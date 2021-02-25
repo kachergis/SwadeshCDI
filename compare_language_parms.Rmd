@@ -1,0 +1,154 @@
+---
+title: "Finding Equal Difficulty Cross-linguistic Items"
+author: "George"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+require(mirt)
+require(tidyverse)
+```
+
+Our goal is to look at IRT parameters across a diverse set of languages and find a subset of uni-lemmas that are somewhat similar in their difficulty.
+We'll start with 2PL fits to WG data (comprehension and production separately) for 9 languages: Croatian, Danish, English, Korean, Spanish, Italian, Mandarin, Russian, and Turkish.
+
+## WG Comprehension
+
+```{r, echo=F, message=F}
+load("data/multiling_2pl_WG_comp_fits.Rdata")
+
+languages = c("Croatian","Danish","English (American)","Korean","Spanish (Mexican)",
+              "Italian","Mandarin (Taiwanese)","Russian","Turkish") 
+
+join_lang_coefs <- function(languages, coefs) {
+  xldf <- tibble()
+  for(lang in languages) {
+    load(paste("data/",lang,"_WG_data.Rdata", sep=''))
+    ldat <- items %>% left_join(coefs[[lang]]) # either by "definition" or "item_id"
+    xldf <- bind_rows(xldf, ldat)
+  }
+  return(xldf)
+}
+
+xldf <- join_lang_coefs(languages, coefs) 
+#table(xldf$language)
+xldf %>% ggplot( aes(x=-d, fill=language)) +
+    geom_histogram(alpha=0.6, position = 'identity') +
+    theme_classic() + xlab("Item Difficulty")
+```
+
+Mostly overlapping difficulty distributions, except for Danish, which is apparently quite easy to learn (will revisit--maybe specify a prior for item difficulty?).
+
+### Candidate Items
+
+Shown below are the total number of items per language that also have uni-lemmas.
+
+```{r, echo=F, message=F}
+pars <- xldf %>% filter(!is.na(uni_lemma), !is.na(d)) 
+
+ul <- sort(table(pars$uni_lemma))
+
+long_list = ul[which(ul>1)] 
+short_list = ul[which(ul>4)] 
+
+
+# problem: some languages have multiple items matching a single uni_lemma
+# (e.g., Croatian has stric=uncle and ujak=uncle; Turkish has 3 "market"s )
+comp_pars <-
+  pars %>% arrange(desc(language, uni_lemma, a1)) %>% # get most discriminating uni_lemma per lang
+  filter(is.element(uni_lemma, names(short_list))) %>%
+  select(uni_lemma, category, lexical_class, language, d) %>%
+  group_by(uni_lemma, language) %>%
+  slice(1) %>% 
+  pivot_wider(names_from = language, values_from = d)
+
+comp_pars$sd = apply(comp_pars[,4:11], 1, sd, na.rm=T)
+
+med_d = median(comp_pars$sd, na.rm=T) # 3.57
+sd_d = sd(comp_pars$sd, na.rm=T)
+
+good_items <- comp_pars %>% 
+  filter(sd < (med_d - sd_d)) %>% 
+  arrange(lexical_class, desc(sd))
+
+tab <- table(pars$language)
+kableExtra::kable(tab, col.names=c("Language","Items"))
+```
+
+Of these, a total of `r length(long_list)` uni-lemmas are included in more than one language, and only `r length(short_list)` uni-lemmas are included in 5 or more of the languages.
+We will start by considering this more restricted list, but if there are not enough good candidates then we may consider making pairwise comparisons between each possible language pair (more flexible, but more complicated).
+(There are only `r nrow(na.omit(comp_pars))` uni-lemmas used in all 9 languages.)
+
+To evaluate how variable items are in their cross-linguistic difficulty, we calculate the standard deviation (SD) of each uni-lemma's difficulty.
+The median SD is `r round(med_d, 2)` (SD=`r round(sd_d, 2)`), so we consider the `r nrow(good_items)` items with SD < `r round(med_d - sd_d, 2)`.
+These items are shown below, sorted by lexical class and in order of increasing SD.
+
+```{r, echo=F}
+kableExtra::kable(good_items, digits=2)
+```
+
+
+## WG Production
+
+Now we'll turn to production data.
+
+```{r, echo=F, message=F}
+load("data/multiling_2pl_WG_prod_fits.Rdata")
+# had to rename definition column for some languages (Korean & Spanish)
+# coefs$Korean <- coefs$Korean %>% rename(item_id = definition)
+
+xldf <- join_lang_coefs(languages, coefs) 
+#table(xldf$language)
+xldf %>% ggplot( aes(x=-d, fill=language)) +
+    geom_histogram(alpha=0.6, position = 'identity') +
+    theme_classic() + xlab("Item Difficulty")
+```
+
+Mostly overlapping difficulty distributions, except for some wildly difficult Croatian items (should definitely re-fit with a constrained prior).
+
+### Candidate Items
+
+Shown below are the total number of items per language that also have uni-lemmas.
+
+```{r, echo=F, message=F}
+pars <- xldf %>% filter(!is.na(uni_lemma), !is.na(d)) 
+
+ul <- sort(table(pars$uni_lemma))
+
+long_list = ul[which(ul>1)] 
+short_list = ul[which(ul>4)] 
+
+prod_pars <-
+  pars %>% arrange(desc(language, uni_lemma, a1)) %>% # get most discriminating uni_lemma per lang
+  filter(is.element(uni_lemma, names(short_list))) %>%
+  select(uni_lemma, category, lexical_class, language, d) %>%
+  group_by(uni_lemma, language) %>%
+  slice(1) %>% 
+  pivot_wider(names_from = language, values_from = d)
+
+prod_pars$sd = apply(prod_pars[,4:11], 1, sd, na.rm=T)
+
+med_d = median(prod_pars$sd, na.rm=T) # 3.57
+sd_d = sd(prod_pars$sd, na.rm=T)
+
+good_items <- prod_pars %>% 
+  filter(sd < 1.5) %>%  # 0 items with sd < (med_d - sd)
+  arrange(lexical_class, desc(sd))
+
+tab <- table(pars$language)
+kableExtra::kable(tab, col.names=c("Language","Items"))
+```
+
+Of these, a total of `r length(long_list)` uni-lemmas are included in more than one language, and only `r length(short_list)` uni-lemmas are included in 5 or more of the languages.
+We will start by considering this more restricted list, but if there are not enough good candidates then we may consider making pairwise comparisons between each possible language pair (more flexible, but more complicated).
+(There are only `r nrow(na.omit(prod_pars))` uni-lemmas used in all 9 languages.)
+
+To evaluate how variable items are in their cross-linguistic difficulty, we calculate the standard deviation (SD) of each uni-lemma's difficulty.
+The median SD is `r round(med_d, 2)` (SD=`r round(sd_d, 2)`), so we consider the `r nrow(good_items)` items with SD less than 1.5.
+These items are shown below, sorted by lexical class and in order of increasing SD.
+
+```{r, echo=F}
+kableExtra::kable(good_items, digits=2)
+```

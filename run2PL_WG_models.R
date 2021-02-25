@@ -89,31 +89,6 @@ for(lang in languages) {
 save(models, coefs, file="data/multiling_2pl_WG_comp_fits.Rdata")
 
 
-join_lang_coefs <- function(languages, coefs) {
-  xldf <- tibble()
-  for(lang in languages) {
-    load(paste("data/",lang,"_WG_data.Rdata", sep=''))
-    ldat <- items %>% left_join(coefs[[lang]]) # either by "definition" or "item_id"
-    xldf <- bind_rows(xldf, ldat)
-  }
-  return(xldf)
-}
-
-xldf <- join_lang_coefs(languages, coefs) 
-pars <- xldf %>% filter(!is.na(uni_lemma), !is.na(d)) 
-
-# problem: some languages have multiple items matching a single uni_lemma
-# (e.g., Croatian has stric=uncle and ujak=uncle; Turkish has 3 "market"s )
-corm <-
-  pars %>% select(uni_lemma, category, lexical_class, language, d) %>%
-  pivot_wider(names_from = language, values_from = d) %>%
-  cor()
-
-sort(table(pars$uni_lemma))
-
-# words with >1 uni_lemma
-# box, cup, eat, grandpa, sock, telephone, walk, you, bottle, pasta, put, aunt, and uncle
-
 models = list()
 coefs = list()
 
