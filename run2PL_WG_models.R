@@ -79,7 +79,11 @@ coefs = list()
 # do comprehension first
 for(lang in languages) {
   load(paste("data/",lang,"_WG_data.Rdata", sep=''))
-  models[[lang]] = mirt(data = d_comp, model = 1, itemtype="2PL", 
+  mod_string = paste0('G = 1-',ncol(d_comp),',
+                LBOUND = (1-',ncol(d_comp),', a1, 0),
+                PRIOR = (1-',ncol(d_comp),', d, norm, 0, 3)')
+  mod <- mirt.model(mod_string)
+  models[[lang]] = mirt(data = d_comp, model = mod, itemtype="2PL", 
                         method="QMCEM", verbose=TRUE, 
                         technical=list(NCYCLES=2000, removeEmptyRows=TRUE)) 
   coefs[[lang]] <- as_tibble(coef(models[[lang]], simplify = TRUE)$items) %>%
@@ -95,11 +99,16 @@ coefs = list()
 # production
 for(lang in languages) {
   load(paste("data/",lang,"_WG_data.Rdata", sep=''))
-  models[[lang]] = mirt(data = d_prod, model = 1, itemtype="2PL", 
+  mod_string = paste0('G = 1-',ncol(d_prod),',
+                LBOUND = (1-',ncol(d_prod),', a1, 0),
+                PRIOR = (1-',ncol(d_prod),', d, norm, 0, 3)')
+  mod <- mirt.model(mod_string)
+  models[[lang]] = mirt(data = d_prod, model = mod, itemtype="2PL", 
                         method="QMCEM", verbose=TRUE, 
                         technical=list(NCYCLES=2000, removeEmptyRows=TRUE)) 
   coefs[[lang]] <- as_tibble(coef(models[[lang]], simplify = TRUE)$items) %>%
     mutate(definition = rownames(coef(models[[lang]], simplify = TRUE)$items))
 }
 
+# Croatian production did not converge
 save(models, coefs, file="data/multiling_2pl_WG_prod_fits.Rdata")

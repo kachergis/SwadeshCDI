@@ -19,6 +19,9 @@ We'll start with 2PL fits to WG data (comprehension and production separately) f
 ```{r, echo=F, message=F}
 load("data/multiling_2pl_WG_comp_fits.Rdata")
 
+coefs$Korean <- coefs$Korean %>% rename(item_id = definition)
+coefs$`Spanish (Mexican)` <- coefs$`Spanish (Mexican)` %>% rename(item_id = definition)
+
 languages = c("Croatian","Danish","English (American)","Korean","Spanish (Mexican)",
               "Italian","Mandarin (Taiwanese)","Russian","Turkish") 
 
@@ -97,7 +100,8 @@ Now we'll turn to production data.
 ```{r, echo=F, message=F}
 load("data/multiling_2pl_WG_prod_fits.Rdata")
 # had to rename definition column for some languages (Korean & Spanish)
-# coefs$Korean <- coefs$Korean %>% rename(item_id = definition)
+coefs$Korean <- coefs$Korean %>% rename(item_id = definition)
+coefs$`Spanish (Mexican)` <- coefs$`Spanish (Mexican)` %>% rename(item_id = definition)
 
 xldf <- join_lang_coefs(languages, coefs) 
 #table(xldf$language)
