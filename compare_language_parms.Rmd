@@ -37,12 +37,12 @@ join_lang_coefs <- function(languages, coefs) {
 
 xldf <- join_lang_coefs(languages, coefs) 
 #table(xldf$language)
-xldf %>% ggplot( aes(x=-d, fill=language)) +
+xldf %>% ggplot( aes(x=d, fill=language)) +
     geom_histogram(alpha=0.6, position = 'identity') +
     theme_classic() + xlab("Item Difficulty")
 ```
 
-Mostly overlapping difficulty distributions, except for Danish, which is apparently quite easy to learn (will revisit--maybe specify a prior for item difficulty?).
+Mostly overlapping difficulty distributions, except for Danish, which is apparently quite difficult to learn (and this is using a N(0,3) prior on difficulty).
 
 ### Candidate Items
 
@@ -68,11 +68,15 @@ comp_pars <-
   pivot_wider(names_from = language, values_from = d)
 
 comp_pars$sd = apply(comp_pars[,4:11], 1, sd, na.rm=T)
+comp_pars$numNAs = apply(comp_pars[,4:11], 1, function(x) { sum(is.na(x)) })
 
 med_d = median(comp_pars$sd, na.rm=T) # 3.57
 sd_d = sd(comp_pars$sd, na.rm=T)
 
+
+
 good_items <- comp_pars %>% 
+  filter(numNAs < 5) %>%
   filter(sd < (med_d - sd_d)) %>% 
   arrange(lexical_class, desc(sd))
 
@@ -105,12 +109,12 @@ coefs$`Spanish (Mexican)` <- coefs$`Spanish (Mexican)` %>% rename(item_id = defi
 
 xldf <- join_lang_coefs(languages, coefs) 
 #table(xldf$language)
-xldf %>% ggplot( aes(x=-d, fill=language)) +
+xldf %>% ggplot( aes(x=d, fill=language)) +
     geom_histogram(alpha=0.6, position = 'identity') +
     theme_classic() + xlab("Item Difficulty")
 ```
 
-Mostly overlapping difficulty distributions, except for some wildly difficult Croatian items (should definitely re-fit with a constrained prior).
+Mostly overlapping difficulty distributions (with a difficulty prior ~ N(0,3)).
 
 ### Candidate Items
 
@@ -133,11 +137,14 @@ prod_pars <-
   pivot_wider(names_from = language, values_from = d)
 
 prod_pars$sd = apply(prod_pars[,4:11], 1, sd, na.rm=T)
+prod_pars$numNAs = apply(prod_pars[,4:11], 1, function(x) { sum(is.na(x)) })
+
 
 med_d = median(prod_pars$sd, na.rm=T) # 3.57
 sd_d = sd(prod_pars$sd, na.rm=T)
 
 good_items <- prod_pars %>% 
+  filter(numNAs < 5) %>%
   filter(sd < 1.5) %>%  # 0 items with sd < (med_d - sd)
   arrange(lexical_class, desc(sd))
 
