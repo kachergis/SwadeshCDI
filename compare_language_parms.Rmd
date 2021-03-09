@@ -36,6 +36,8 @@ join_lang_coefs <- function(languages, coefs) {
 }
 
 xldf <- join_lang_coefs(languages, coefs) 
+
+save(xldf, file="data/xling-WGcomp-IRTparms.Rdata")
 #table(xldf$language)
 xldf %>% ggplot( aes(x=d, fill=language)) +
     geom_histogram(alpha=0.6, position = 'identity') +
@@ -43,6 +45,40 @@ xldf %>% ggplot( aes(x=d, fill=language)) +
 ```
 
 Mostly overlapping difficulty distributions, except for Danish, which is apparently quite difficult to learn (and this is using a N(0,3) prior on difficulty).
+
+## Cross-linguistic similarities 
+
+```{r}
+comp_cors <- matrix(0, nrow=length(languages), ncol=length(languages))
+comp_sims <- tibble()
+colnames(comp_cors) = languages
+rownames(comp_cors) = languages
+
+for(l1 in languages) {
+  for(l2 in languages) {
+    tmp <- xldf %>% filter(language==l1 | language==l2, !is.na(d)) %>%
+      select(uni_lemma, category, lexical_class, language, d) %>%
+      group_by(uni_lemma, language) %>%
+      slice(1) %>% 
+      pivot_wider(names_from = language, values_from = d) %>%
+      drop_na()
+    comp_cors[l1,l2] <- cor(tmp[,l1], tmp[,l2])
+    comp_sims <- bind_rows(comp_sims, tibble("Lang1" = l1, "Lang2" = l2, 
+                                             "r" = cor(tmp[,l1], tmp[,l2])[[1]], 
+                                             "N" = nrow(tmp)))
+  }
+}
+
+require(gplots)
+library(RColorBrewer)
+Colors = brewer.pal(11,"Spectral")
+diag(comp_cors) = NA
+heatmap.2(comp_cors[-7,-7], col=Colors)
+# subset(xldf, language=="Mandarin (Taiwanese)" & !is.na(uni_lemma))
+# Mandarin (Taiwanese) is missing all uni_lemmas...we gotta fix that
+
+```
+
 
 ### Candidate Items
 
@@ -108,11 +144,39 @@ coefs$Korean <- coefs$Korean %>% rename(item_id = definition)
 coefs$`Spanish (Mexican)` <- coefs$`Spanish (Mexican)` %>% rename(item_id = definition)
 
 xldf <- join_lang_coefs(languages, coefs) 
+save(xldf, file="data/xling-WGprod-IRTparms.Rdata")
 #table(xldf$language)
 xldf %>% ggplot( aes(x=d, fill=language)) +
     geom_histogram(alpha=0.6, position = 'identity') +
     theme_classic() + xlab("Item Difficulty")
 ```
+## Cross-linguistic similarities
+
+```{r}
+prod_cors <- matrix(0, nrow=length(languages), ncol=length(languages))
+prod_sims <- tibble()
+colnames(prod_cors) = languages
+rownames(prod_cors) = languages
+
+for(l1 in languages) {
+  for(l2 in languages) {
+    tmp <- xldf %>% filter(language==l1 | language==l2, !is.na(d)) %>%
+      select(uni_lemma, category, lexical_class, language, d) %>%
+      group_by(uni_lemma, language) %>%
+      slice(1) %>% 
+      pivot_wider(names_from = language, values_from = d) %>%
+      drop_na()
+    prod_cors[l1,l2] <- cor(tmp[,l1], tmp[,l2])
+    prod_sims <- bind_rows(prod_sims, tibble("Lang1" = l1, "Lang2" = l2, 
+                                             "r" = cor(tmp[,l1], tmp[,l2])[[1]], 
+                                             "N" = nrow(tmp)))
+  }
+}
+
+diag(prod_cors) = NA
+heatmap.2(prod_cors[-7,-7], col=Colors, scale="none")
+```
+
 
 Mostly overlapping difficulty distributions (with a difficulty prior ~ N(0,3)).
 
