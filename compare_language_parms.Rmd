@@ -21,9 +21,17 @@ load("data/multiling_2pl_WG_comp_fits.Rdata")
 
 coefs$Korean <- coefs$Korean %>% rename(item_id = definition)
 coefs$`Spanish (Mexican)` <- coefs$`Spanish (Mexican)` %>% rename(item_id = definition)
+coefs$`Spanish (European)` <- coefs$`Spanish (European)` %>% rename(item_id = definition)
+coefs$Latvian <- coefs$Latvian %>% rename(item_id = definition)
+coefs$Hebrew <- coefs$Hebrew %>% rename(item_id = definition)
+coefs$Slovak <- coefs$Slovak %>% rename(item_id = definition)
+coefs$`French (French)` <- coefs$`French (French)` %>% rename(item_id = definition)
+
 
 languages = c("Croatian","Danish","English (American)","Korean","Spanish (Mexican)",
-              "Italian","Mandarin (Taiwanese)","Russian","Turkish") 
+              "Italian","Mandarin (Taiwanese)","French (French)", 
+              "Latvian", "Hebrew", "Norwegian", "French (Quebecois)",
+              "Slovak", "Spanish (European)", "Russian", "Turkish") 
 
 join_lang_coefs <- function(languages, coefs) {
   xldf <- tibble()
@@ -73,7 +81,8 @@ require(gplots)
 library(RColorBrewer)
 Colors = brewer.pal(11,"Spectral")
 diag(comp_cors) = NA
-heatmap.2(comp_cors[-7,-7], col=Colors)
+#bad_lang = c("Mandarin (Taiwanese)","Latvian","Spanish (European)")
+heatmap.2(comp_cors[-c(7,9,14),-c(7,9,14)], col=Colors)
 # subset(xldf, language=="Mandarin (Taiwanese)" & !is.na(uni_lemma))
 # Mandarin (Taiwanese) is missing all uni_lemmas...we gotta fix that
 
@@ -142,6 +151,12 @@ load("data/multiling_2pl_WG_prod_fits.Rdata")
 # had to rename definition column for some languages (Korean & Spanish)
 coefs$Korean <- coefs$Korean %>% rename(item_id = definition)
 coefs$`Spanish (Mexican)` <- coefs$`Spanish (Mexican)` %>% rename(item_id = definition)
+coefs$`Spanish (European)` <- coefs$`Spanish (European)` %>% rename(item_id = definition)
+coefs$Latvian <- coefs$Latvian %>% rename(item_id = definition)
+coefs$Hebrew <- coefs$Hebrew %>% rename(item_id = definition)
+coefs$Slovak <- coefs$Slovak %>% rename(item_id = definition)
+coefs$`French (French)` <- coefs$`French (French)` %>% rename(item_id = definition)
+
 
 xldf <- join_lang_coefs(languages, coefs) 
 save(xldf, file="data/xling-WGprod-IRTparms.Rdata")
@@ -174,7 +189,8 @@ for(l1 in languages) {
 }
 
 diag(prod_cors) = NA
-heatmap.2(prod_cors[-7,-7], col=Colors, scale="none")
+#heatmap.2(prod_cors[-7,-7], col=Colors, scale="none")
+heatmap.2(comp_cors[-c(7,9,14),-c(7,9,14)], col=Colors)
 ```
 
 

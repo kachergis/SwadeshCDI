@@ -5,18 +5,25 @@ library(wordbankr)
 library(tidyverse)
 library(mirt)
 
+wordbankr::get_instruments() %>% 
+  filter(form=="WG") %>%
+  arrange(desc(unilemma_coverage))
+  
+
 # MB@home: wide age range, diff items for different age ranges?
 
 get_wg_data <- function(language, save=T) {
   d_demo <- 
     get_administration_data(language = language, form = "WG") 
-
-  items <- get_item_data(language = language, form="WG") 
+  
+  items <- get_item_data(language = language, form="WG") %>%
+    filter(type=="word")
   
   d_long_wg <- get_instrument_data(language = language, form = "WG") %>% # 418 items
     left_join(items %>% select(-complexity_category), by="num_item_id") %>%
     mutate(produces = as.numeric(value == "produces"),
-           comprehends = as.numeric(value == "understands"))
+           comprehends = as.numeric(value == "understands")) %>%
+    filter(type=="word")
   
   d_prod <- d_long_wg %>% select(data_id, item_id, produces) %>%
     pivot_wider(id_cols = data_id, names_from = item_id, 
@@ -63,52 +70,78 @@ get_wg_data("Croatian")
 get_wg_data("Danish")
 get_wg_data("Italian")
 get_wg_data("Russian")
+get_wg_data("Spanish (Mexican)")
 
-# need to run IRT models for these:
-get_wg_data("Spanish (Mexican)") # 'list' object cannot be coerced to type 'double'
-get_wg_data("Korean") # 'list' object cannot be coerced to type 'double'
-get_wg_data("Hebrew") # duplicate definitions: should we 1) use numeric item_id,
+get_wg_data("Spanish (European)") # "26 words with all 0 responses removed from Spanish (European) production"
+get_wg_data("Swedish") # "44 words with all 0 responses removed from Swedish production"
+get_wg_data("Norwegian") 
+get_wg_data("French (Quebecois)") # "83 words with all 0 responses removed from French (Quebecois) production"
+get_wg_data("Slovak")
+# "2 words with all 0 responses removed from Slovak comprehension"
+# "3 words with all 0 responses removed from Slovak production"
+get_wg_data("Latvian")
+
+# a lot removed..
+get_wg_data("French (French)")
+# "79 words with all 0 responses removed from French (French) comprehension"
+# "486 words with all 0 responses removed from French (French) production"
+
+get_wg_data("Korean") 
+get_wg_data("Hebrew") # "4 words with all 0 responses removed from Hebrew production"
+
 
 languages = c("Croatian","Danish","English (American)","Korean","Spanish (Mexican)",
-              "Italian","Mandarin (Taiwanese)","Russian","Turkish")
+              "Italian","Mandarin (Taiwanese)","French (French)", 
+              "Korean", "Latvian", "Hebrew", "Norwegian", "French (Quebecois)",
+              "Slovak", "Spanish (European)", "Russian", "Turkish") 
+# "Swedish", <- a bunch of words have only one response category, but there are lots of NAs..
 
-models = list()
-coefs = list()
+#models = list()
+#coefs = list()
+load("data/multiling_2pl_WG_comp_fits.Rdata")
 
-
+# Norwegian did not converge after 2000 cycles
 # do comprehension first
 for(lang in languages) {
-  load(paste("data/",lang,"_WG_data.Rdata", sep=''))
-  mod_string = paste0('G = 1-',ncol(d_comp),',
+  if(!is.element(lang, names(models))) { # skip if already fitted
+    load(paste("data/",lang,"_WG_data.Rdata", sep=''))
+    print(paste("Fitting",nrow(d_comp),"subjects and",ncol(d_comp),"words in",lang))
+    mod_string = paste0('G = 1-',ncol(d_comp),',
                 LBOUND = (1-',ncol(d_comp),', a1, 0),
                 PRIOR = (1-',ncol(d_comp),', d, norm, 0, 3)')
-  mod <- mirt.model(mod_string)
-  models[[lang]] = mirt(data = d_comp, model = mod, itemtype="2PL", 
+    mod <- mirt.model(mod_string)
+    models[[lang]] = mirt(data = d_comp, model = mod, itemtype="2PL", 
                         method="QMCEM", verbose=TRUE, 
                         technical=list(NCYCLES=2000, removeEmptyRows=TRUE)) 
-  coefs[[lang]] <- as_tibble(coef(models[[lang]], simplify = TRUE)$items) %>%
-    mutate(definition = rownames(coef(models[[lang]], simplify = TRUE)$items))
+    coefs[[lang]] <- as_tibble(coef(models[[lang]], simplify = TRUE)$items) %>%
+      mutate(definition = rownames(coef(models[[lang]], simplify = TRUE)$items))
+  }
 }
 
 save(models, coefs, file="data/multiling_2pl_WG_comp_fits.Rdata")
 
 
-models = list()
-coefs = list()
+# fit WG production
 
+#models = list()
+#coefs = list()
+load("data/multiling_2pl_WG_prod_fits.Rdata")
 # production
 for(lang in languages) {
-  load(paste("data/",lang,"_WG_data.Rdata", sep=''))
-  mod_string = paste0('G = 1-',ncol(d_prod),',
+  if(!is.element(lang, names(models))) { # skip if already fitted
+    load(paste("data/",lang,"_WG_data.Rdata", sep=''))
+    print(paste("Fitting",nrow(d_prod),"subjects and",ncol(d_prod),"words in",lang))
+    mod_string = paste0('G = 1-',ncol(d_prod),',
                 LBOUND = (1-',ncol(d_prod),', a1, 0),
                 PRIOR = (1-',ncol(d_prod),', d, norm, 0, 3)')
-  mod <- mirt.model(mod_string)
-  models[[lang]] = mirt(data = d_prod, model = mod, itemtype="2PL", 
+    mod <- mirt.model(mod_string)
+    models[[lang]] = mirt(data = d_prod, model = mod, itemtype="2PL", 
                         method="QMCEM", verbose=TRUE, 
                         technical=list(NCYCLES=2000, removeEmptyRows=TRUE)) 
-  coefs[[lang]] <- as_tibble(coef(models[[lang]], simplify = TRUE)$items) %>%
-    mutate(definition = rownames(coef(models[[lang]], simplify = TRUE)$items))
+    coefs[[lang]] <- as_tibble(coef(models[[lang]], simplify = TRUE)$items) %>%
+      mutate(definition = rownames(coef(models[[lang]], simplify = TRUE)$items))
+  }
 }
 
-# Croatian production did not converge
+# Norwegian and Croatian production did not converge
 save(models, coefs, file="data/multiling_2pl_WG_prod_fits.Rdata")
