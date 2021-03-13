@@ -9,24 +9,7 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 require(mirt)
 require(tidyverse)
-```
-
-Our goal is to look at IRT parameters across a diverse set of languages and find a subset of uni-lemmas that are somewhat similar in their difficulty.
-We'll start with 2PL fits to WG data (comprehension and production separately) for 9 languages: Croatian, Danish, English, Korean, Spanish, Italian, Mandarin, Russian, and Turkish.
-
-## WG Comprehension
-
-```{r, echo=F, message=F}
 load("data/multiling_2pl_WG_comp_fits.Rdata")
-
-coefs$Korean <- coefs$Korean %>% rename(item_id = definition)
-coefs$`Spanish (Mexican)` <- coefs$`Spanish (Mexican)` %>% rename(item_id = definition)
-coefs$`Spanish (European)` <- coefs$`Spanish (European)` %>% rename(item_id = definition)
-coefs$Latvian <- coefs$Latvian %>% rename(item_id = definition)
-coefs$Hebrew <- coefs$Hebrew %>% rename(item_id = definition)
-coefs$Slovak <- coefs$Slovak %>% rename(item_id = definition)
-coefs$`French (French)` <- coefs$`French (French)` %>% rename(item_id = definition)
-
 
 languages = c("Croatian","Danish","English (American)","Korean","Spanish (Mexican)",
               "Italian","Mandarin (Taiwanese)","French (French)", 
@@ -43,20 +26,46 @@ join_lang_coefs <- function(languages, coefs) {
   return(xldf)
 }
 
+```
+
+Our goal is to look at IRT parameters across a diverse set of languages and find a subset of uni-lemmas that are somewhat similar in their difficulty.
+We'll start with 2PL fits to WG data (comprehension and production separately) for `r length(languages)` languages: `r languages`.
+(Although 3 of these don't yet have uni-lemmas coded, but I'm working on that.)
+
+## WG Comprehension
+
+```{r, echo=F, message=F, eval=F}
+coefs$Korean <- coefs$Korean %>% rename(item_id = definition)
+coefs$`Spanish (Mexican)` <- coefs$`Spanish (Mexican)` %>% rename(item_id = definition)
+coefs$`Spanish (European)` <- coefs$`Spanish (European)` %>% rename(item_id = definition)
+coefs$Latvian <- coefs$Latvian %>% rename(item_id = definition)
+coefs$Hebrew <- coefs$Hebrew %>% rename(item_id = definition)
+coefs$Slovak <- coefs$Slovak %>% rename(item_id = definition)
+coefs$`French (French)` <- coefs$`French (French)` %>% rename(item_id = definition)
+
+
 xldf <- join_lang_coefs(languages, coefs) 
 
 save(xldf, file="data/xling-WGcomp-IRTparms.Rdata")
+```
+
+```{r, echo=F}
+load("data/xling-WGcomp-IRTparms.Rdata")
 #table(xldf$language)
 xldf %>% ggplot( aes(x=d, fill=language)) +
     geom_histogram(alpha=0.6, position = 'identity') +
     theme_classic() + xlab("Item Difficulty")
 ```
 
+
 Mostly overlapping difficulty distributions, except for Danish, which is apparently quite difficult to learn (and this is using a N(0,3) prior on difficulty).
 
 ## Cross-linguistic similarities 
 
-```{r}
+We look at the Spearman correlation between the item difficulty of each language compared to each other language. 
+We might expect this to recapitulate the historical relationship between languages, with more similar languages having more similar item difficulties (e.g., Quebecois and European French).
+
+```{r, echo=F, fig.width=6.5, fig.height=6.5}
 comp_cors <- matrix(0, nrow=length(languages), ncol=length(languages))
 comp_sims <- tibble()
 colnames(comp_cors) = languages
@@ -70,9 +79,9 @@ for(l1 in languages) {
       slice(1) %>% 
       pivot_wider(names_from = language, values_from = d) %>%
       drop_na()
-    comp_cors[l1,l2] <- cor(tmp[,l1], tmp[,l2])
+    comp_cors[l1,l2] <- cor(tmp[,l1], tmp[,l2], method="spearman")
     comp_sims <- bind_rows(comp_sims, tibble("Lang1" = l1, "Lang2" = l2, 
-                                             "r" = cor(tmp[,l1], tmp[,l2])[[1]], 
+                                             "r" = cor(tmp[,l1], tmp[,l2], method="spearman")[[1]], 
                                              "N" = nrow(tmp)))
   }
 }
@@ -88,6 +97,23 @@ heatmap.2(comp_cors[-c(7,9,14),-c(7,9,14)], col=Colors)
 
 ```
 
+
+## Difficulty by CDI Category
+
+```{r, echo=F, fig.width=10, fig.height=10}
+comp_cat <- xldf %>% group_by(language, category) %>%
+  filter(!is.na(d), !is.na(category), 
+         !is.element(category, c("articles", "connecting_words", "states", "other", "verb_endings", "prepositions", "outside_places", "descriptive_words (adjectives)",
+                                 "descriptive_words (adverbs)", "helping_verbs"))) %>%
+  tidyboot::tidyboot_mean(d, na.rm=T)
+
+# color=language
+comp_cat %>% ggplot(aes(x=reorder(language, mean), y=mean)) + geom_point(alpha=.7) +
+  geom_linerange(aes(ymin=ci_lower, ymax=ci_upper), alpha=.7) +
+  facet_wrap(. ~ category) + coord_flip() + 
+  theme_classic() + ylab("Mean item difficulty") + xlab("Language")
+#ggsave("xling_diff_by_category_WGcomp.pdf", width=10, height=10)
+```
 
 ### Candidate Items
 
@@ -119,7 +145,6 @@ med_d = median(comp_pars$sd, na.rm=T) # 3.57
 sd_d = sd(comp_pars$sd, na.rm=T)
 
 
-
 good_items <- comp_pars %>% 
   filter(numNAs < 5) %>%
   filter(sd < (med_d - sd_d)) %>% 
@@ -142,11 +167,12 @@ kableExtra::kable(good_items, digits=2)
 ```
 
 
+
 ## WG Production
 
 Now we'll turn to production data.
 
-```{r, echo=F, message=F}
+```{r, eval=F, echo=F, message=F}
 load("data/multiling_2pl_WG_prod_fits.Rdata")
 # had to rename definition column for some languages (Korean & Spanish)
 coefs$Korean <- coefs$Korean %>% rename(item_id = definition)
@@ -160,14 +186,20 @@ coefs$`French (French)` <- coefs$`French (French)` %>% rename(item_id = definiti
 
 xldf <- join_lang_coefs(languages, coefs) 
 save(xldf, file="data/xling-WGprod-IRTparms.Rdata")
+```
+
+```{r, echo=F}
+load("data/xling-WGprod-IRTparms.Rdata")
 #table(xldf$language)
 xldf %>% ggplot( aes(x=d, fill=language)) +
     geom_histogram(alpha=0.6, position = 'identity') +
     theme_classic() + xlab("Item Difficulty")
 ```
+
+
 ## Cross-linguistic similarities
 
-```{r}
+```{r, echo=F, fig.width=6.5, fig.height=6.5}
 prod_cors <- matrix(0, nrow=length(languages), ncol=length(languages))
 prod_sims <- tibble()
 colnames(prod_cors) = languages
@@ -181,20 +213,36 @@ for(l1 in languages) {
       slice(1) %>% 
       pivot_wider(names_from = language, values_from = d) %>%
       drop_na()
-    prod_cors[l1,l2] <- cor(tmp[,l1], tmp[,l2])
+    prod_cors[l1,l2] <- cor(tmp[,l1], tmp[,l2], method="spearman")
     prod_sims <- bind_rows(prod_sims, tibble("Lang1" = l1, "Lang2" = l2, 
-                                             "r" = cor(tmp[,l1], tmp[,l2])[[1]], 
+                                             "r" = cor(tmp[,l1], tmp[,l2], method="spearman")[[1]], 
                                              "N" = nrow(tmp)))
   }
 }
 
 diag(prod_cors) = NA
-#heatmap.2(prod_cors[-7,-7], col=Colors, scale="none")
 heatmap.2(comp_cors[-c(7,9,14),-c(7,9,14)], col=Colors)
 ```
 
 
 Mostly overlapping difficulty distributions (with a difficulty prior ~ N(0,3)).
+
+## Difficulty by CDI Category
+
+```{r, echo=F, fig.width=10, fig.height=10}
+prod_cat <- xldf %>% group_by(language, category) %>%
+  filter(!is.na(d), !is.na(category), 
+         !is.element(category, c("articles", "connecting_words", "states", "other", "verb_endings", "prepositions", "outside_places", "descriptive_words (adjectives)",
+                                 "descriptive_words (adverbs)", "helping_verbs"))) %>%
+  tidyboot::tidyboot_mean(d, na.rm=T)
+
+# color=language
+prod_cat %>% ggplot(aes(x=reorder(language, mean), y=mean)) + geom_point(alpha=.7) +
+  geom_linerange(aes(ymin=ci_lower, ymax=ci_upper), alpha=.7) +
+  facet_wrap(. ~ category) + coord_flip() + 
+  theme_classic() + ylab("Mean item difficulty") + xlab("Language")
+#ggsave("xling_diff_by_category_WGprod.pdf", width=10, height=10)
+```
 
 ### Candidate Items
 
@@ -225,7 +273,7 @@ sd_d = sd(prod_pars$sd, na.rm=T)
 
 good_items <- prod_pars %>% 
   filter(numNAs < 5) %>%
-  filter(sd < 1.5) %>%  # 0 items with sd < (med_d - sd)
+  filter(sd < 1.25) %>%  # 
   arrange(lexical_class, desc(sd))
 
 tab <- table(pars$language)
@@ -237,9 +285,10 @@ We will start by considering this more restricted list, but if there are not eno
 (There are only `r nrow(na.omit(prod_pars))` uni-lemmas used in all 9 languages.)
 
 To evaluate how variable items are in their cross-linguistic difficulty, we calculate the standard deviation (SD) of each uni-lemma's difficulty.
-The median SD is `r round(med_d, 2)` (SD=`r round(sd_d, 2)`), so we consider the `r nrow(good_items)` items with SD less than 1.5.
+The median SD is `r round(med_d, 2)` (SD=`r round(sd_d, 2)`), so we consider the `r nrow(good_items)` items with SD less than 1.25.
 These items are shown below, sorted by lexical class and in order of increasing SD.
 
 ```{r, echo=F}
 kableExtra::kable(good_items, digits=2)
 ```
+
