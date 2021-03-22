@@ -21,9 +21,24 @@ get_wg_data <- function(language, save=T) {
   
   d_long_wg <- get_instrument_data(language = language, form = "WG") %>% # 418 items
     left_join(items %>% select(-complexity_category), by="num_item_id") %>%
-    mutate(produces = as.numeric(value == "produces"),
-           comprehends = as.numeric(value == "understands")) %>%
     filter(type=="word")
+  
+  if(!"" %in% unique(d_long_wg$value)) print(paste("No blank responses in",language,"-- replace NAs with ''?"))
+  
+  if(language=="Danish" | language=="Norwegian") {
+    d_long_wg <- d_long_wg %>% mutate(value = replace_na(value, ""))
+  }
+  
+  d_long_wg <- d_long_wg %>%
+    mutate(produces = as.numeric(value == "produces"),
+           comprehends = as.numeric(value == "understands"))
+  
+  #table(d_long_wg$value)
+  
+  # negative correlation (because if you produce, you don't understand and vice-versa?)
+  #d_long_wg %>% group_by(data_id) %>% 
+  #  summarise(produces = sum(produces, na.rm=T), comprehends = sum(comprehends, na.rm=T)) %>%
+  #  ggplot(aes(x=produces, y=comprehends)) + geom_point()
   
   d_prod <- d_long_wg %>% select(data_id, item_id, produces) %>%
     pivot_wider(id_cols = data_id, names_from = item_id, 
@@ -72,14 +87,26 @@ get_wg_data("Italian")
 get_wg_data("Russian")
 get_wg_data("Spanish (Mexican)")
 
-get_wg_data("Spanish (European)") # "26 words with all 0 responses removed from Spanish (European) production"
+#get_wg_data("Spanish (European)") # "26 words with all 0 responses removed from Spanish (European) production"
+# manually adding uni-lemmas GK coded
+do_once <- function(language) {
+  load(paste("data/",language,"_WG_data.Rdata", sep=''))
+  sp_eur_it <- read_csv("[Spanish_European_WG].csv")
+  items <- items %>% select(-uni_lemma) %>% 
+    left_join(sp_eur_it %>% select(definition, uni_lemma))
+  d_long_wg <- d_long_wg %>% select(-uni_lemma) %>%
+    left_join(sp_eur_it %>% select(definition, uni_lemma))
+  save(d_demo, items, d_long_wg, d_prod, d_comp,
+     file=paste("data/",language,"_WG_data.Rdata", sep=''))
+}
+
 get_wg_data("Swedish") # "44 words with all 0 responses removed from Swedish production"
 get_wg_data("Norwegian") 
 get_wg_data("French (Quebecois)") # "83 words with all 0 responses removed from French (Quebecois) production"
 get_wg_data("Slovak")
 # "2 words with all 0 responses removed from Slovak comprehension"
 # "3 words with all 0 responses removed from Slovak production"
-get_wg_data("Latvian")
+get_wg_data("Latvian") # need uni-lemmas
 
 # a lot removed..
 get_wg_data("French (French)")
@@ -100,6 +127,8 @@ languages = c("Croatian","Danish","English (American)","Korean","Spanish (Mexica
 #coefs = list()
 load("data/multiling_2pl_WG_comp_fits.Rdata")
 
+languages = c("Danish","Norwegian","French (French)","Croatian")
+
 # Norwegian did not converge after 2000 cycles
 # do comprehension first
 for(lang in languages) {
@@ -112,7 +141,7 @@ for(lang in languages) {
     mod <- mirt.model(mod_string)
     models[[lang]] = mirt(data = d_comp, model = mod, itemtype="2PL", 
                         method="QMCEM", verbose=TRUE, 
-                        technical=list(NCYCLES=2000, removeEmptyRows=TRUE)) 
+                        technical=list(NCYCLES=3000, removeEmptyRows=TRUE)) 
     coefs[[lang]] <- as_tibble(coef(models[[lang]], simplify = TRUE)$items) %>%
       mutate(definition = rownames(coef(models[[lang]], simplify = TRUE)$items))
   }
@@ -137,11 +166,10 @@ for(lang in languages) {
     mod <- mirt.model(mod_string)
     models[[lang]] = mirt(data = d_prod, model = mod, itemtype="2PL", 
                         method="QMCEM", verbose=TRUE, 
-                        technical=list(NCYCLES=2000, removeEmptyRows=TRUE)) 
+                        technical=list(NCYCLES=3000, removeEmptyRows=TRUE)) 
     coefs[[lang]] <- as_tibble(coef(models[[lang]], simplify = TRUE)$items) %>%
       mutate(definition = rownames(coef(models[[lang]], simplify = TRUE)$items))
   }
 }
 
-# Norwegian and Croatian production did not converge
 save(models, coefs, file="data/multiling_2pl_WG_prod_fits.Rdata")

@@ -1,0 +1,120 @@
+---
+title: "Cross-linguistic Ability Check"
+author: "George"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+require(mirt)
+require(tidyverse)
+require(ggpubr)
+
+languages = c("Croatian","Danish","English (American)","Korean","Spanish (Mexican)",
+              "Italian","Mandarin (Taiwanese)","French (French)", 
+              "Korean", "Latvian", "Hebrew", "Norwegian", "French (Quebecois)",
+              "Slovak", "Spanish (European)", "Russian", "Turkish") 
+```
+
+We want to compare the IRT-estimated ability vs. age plots for each language model to make sure that nothing is funky with the fits.
+(Particularly since Danish and Norwegian comprehension item parameters have shifted distributions compared to the other languages.)
+
+```{r comprehension, echo=F, eval=F}
+load("data/multiling_2pl_WG_comp_fits.Rdata")
+all_demo <- tibble()
+for(language in languages) {
+  load(paste("data/",language,"_WG_data.Rdata", sep=''))
+  # sometimes a mismatch between # of subjects in d_demo and d_comp !
+  # e.g., English d_comp = 2454 rows, d_demo = 2435 rows (does d_comp have a few longitudinal?)
+  # length(intersect(rownames(d_comp), d_demo$data_id))
+  d_comp <- d_comp[which(rowSums(d_comp, na.rm=T)!=0),]
+  thetas <- tibble(data_id = as.numeric(rownames(d_comp)), 
+                   comp_ability = fscores(models[[language]], method="MAP", 
+                          response.pattern = d_comp,
+                          append_response.pattern = F)[,c("G")])                
+  all_demo <- bind_rows(all_demo, d_demo %>% left_join(thetas))
+  if(!models[[language]]@OptimInfo$converged) print(paste(language,"not converged!"))
+}
+
+```
+
+
+```{r production, echo=F, eval=F}
+load("data/multiling_2pl_WG_prod_fits.Rdata")
+prod_demo <- tibble()
+for(language in languages) {
+  load(paste("data/",language,"_WG_data.Rdata", sep=''))
+  d_prod <- d_prod[which(rowSums(d_prod, na.rm=T)!=0),]
+  thetas <- tibble(data_id = as.numeric(rownames(d_prod)), 
+                   prod_ability = fscores(models[[language]], method="MAP", 
+                          response.pattern = d_prod,
+                          append_response.pattern = F)[,c("G")])                
+  prod_demo <- bind_rows(prod_demo, d_demo %>% left_join(thetas))
+  if(!models[[language]]@OptimInfo$converged) print(paste(language,"not converged!"))
+}
+# French (French) not converged!
+# French (Quebecois) not converged!
+
+all_demo <- all_demo %>% left_join(prod_demo)
+save(all_demo, file="data/xling_WG_abilities.Rdata")
+```
+
+## Overall Ability Distributions
+
+```{r, echo=F, warning=F, fig.width=8, fig.height=4.5}
+load("data/xling_WG_abilities.Rdata")
+
+p1 <- all_demo %>% ggplot( aes(x=comp_ability, fill=language)) +
+    geom_density(alpha=0.6, position = 'identity') +
+    #geom_vline(aes(xintercept=mean(comp_ability))) + 
+    theme_classic() + xlab("Comprehension Ability")
+
+p2 <- all_demo %>% ggplot( aes(x=prod_ability, fill=language)) +
+    geom_density(alpha=0.6, position = 'identity') +
+    theme_classic() + xlab("Production Ability")
+
+ggarrange(p1, p2, nrow=1, common.legend=T)
+```
+
+The ability distributions per language greatly overlap.
+
+## Comprehension Ability vs. Age
+
+Correlation of comprehension ability and age: `r apa::cor_apa(cor.test(all_demo$comp_ability, all_demo$age), print=F)`
+
+```{r, echo=F, fig.width=10, fig.height=10, warning=F}
+all_demo %>% ggplot( aes(x=jitter(age), y=comp_ability)) +
+  geom_point(alpha=0.6) +
+  facet_wrap(. ~ language) + 
+  theme_classic() + ylab("Comprehension Ability") +
+  geom_smooth(method=lm)
+```
+
+## Production Ability vs. Age
+
+Correlation of production ability and age: `r apa::cor_apa(cor.test(all_demo$prod_ability, all_demo$age), print=F)`
+
+```{r, echo=F, fig.width=10, fig.height=10, warning=F}
+all_demo %>% ggplot( aes(x=age, y=prod_ability)) +
+  geom_point(alpha=0.6) +
+  facet_wrap(. ~ language) + 
+  theme_classic() + ylab("Production Ability") +
+  geom_smooth(method=lm)
+```
+
+
+## Production vs. Comprehension Ability
+
+Correlation of comprehension ability and production ability: `r apa::cor_apa(cor.test(all_demo$comp_ability, all_demo$prod_ability), print=F)`.
+
+```{r, echo=F, fig.width=10, fig.height=10, warning=F}
+all_demo %>% ggplot(aes(x=prod_ability, y=comp_ability)) + # color=language
+  geom_point(alpha=.3) + 
+  facet_wrap(. ~ language) + 
+  xlab("Production Ability") + 
+  ylab("Comprehension Ability") +
+  theme_classic()
+```
+
+

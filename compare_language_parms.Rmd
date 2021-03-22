@@ -9,6 +9,7 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 require(mirt)
 require(tidyverse)
+require(ggpubr)
 load("data/multiling_2pl_WG_comp_fits.Rdata")
 
 languages = c("Croatian","Danish","English (American)","Korean","Spanish (Mexican)",
@@ -30,7 +31,7 @@ join_lang_coefs <- function(languages, coefs) {
 
 Our goal is to look at IRT parameters across a diverse set of languages and find a subset of uni-lemmas that are somewhat similar in their difficulty.
 We'll start with 2PL fits to WG data (comprehension and production separately) for `r length(languages)` languages: `r languages`.
-(Although 3 of these don't yet have uni-lemmas coded, but I'm working on that.)
+(Although 2 of these don't yet have uni-lemmas coded, but I'm working on that.)
 
 ## WG Comprehension
 
@@ -54,18 +55,18 @@ load("data/xling-WGcomp-IRTparms.Rdata")
 #table(xldf$language)
 xldf %>% ggplot( aes(x=d, fill=language)) +
     geom_histogram(alpha=0.6, position = 'identity') +
-    theme_classic() + xlab("Item Difficulty")
+    theme_classic() + xlab("Item Easiness")
 ```
 
 
-Mostly overlapping difficulty distributions, except for Danish, which is apparently quite difficult to learn (and this is using a N(0,3) prior on difficulty).
+Mostly overlapping difficulty distributions, (this is using a N(0,3) prior on difficulty).
 
 ## Cross-linguistic similarities 
 
 We look at the Spearman correlation between the item difficulty of each language compared to each other language. 
 We might expect this to recapitulate the historical relationship between languages, with more similar languages having more similar item difficulties (e.g., Quebecois and European French).
 
-```{r, echo=F, fig.width=6.5, fig.height=6.5}
+```{r, echo=F, fig.width=8, fig.height=8}
 comp_cors <- matrix(0, nrow=length(languages), ncol=length(languages))
 comp_sims <- tibble()
 colnames(comp_cors) = languages
@@ -90,8 +91,8 @@ require(gplots)
 library(RColorBrewer)
 Colors = brewer.pal(11,"Spectral")
 diag(comp_cors) = NA
-#bad_lang = c("Mandarin (Taiwanese)","Latvian","Spanish (European)")
-heatmap.2(comp_cors[-c(7,9,14),-c(7,9,14)], col=Colors)
+#bad_lang = c("Mandarin (Taiwanese)","Latvian")
+heatmap.2(comp_cors[-c(7,9),-c(7,9)], col=Colors)
 # subset(xldf, language=="Mandarin (Taiwanese)" & !is.na(uni_lemma))
 # Mandarin (Taiwanese) is missing all uni_lemmas...we gotta fix that
 
@@ -111,7 +112,7 @@ comp_cat <- xldf %>% group_by(language, category) %>%
 comp_cat %>% ggplot(aes(x=reorder(language, mean), y=mean)) + geom_point(alpha=.7) +
   geom_linerange(aes(ymin=ci_lower, ymax=ci_upper), alpha=.7) +
   facet_wrap(. ~ category) + coord_flip() + 
-  theme_classic() + ylab("Mean item difficulty") + xlab("Language")
+  theme_classic() + ylab("Mean item easiness") + xlab("Language")
 #ggsave("xling_diff_by_category_WGcomp.pdf", width=10, height=10)
 ```
 
@@ -124,10 +125,18 @@ pars <- xldf %>% filter(!is.na(uni_lemma), !is.na(d))
 
 ul <- sort(table(pars$uni_lemma))
 
-long_list = ul[which(ul>1)] 
-short_list = ul[which(ul>4)] 
+long_list = ul[which(ul>1)] # 639
+short_list = ul[which(ul>5)] # 386
 
+tab <- table(pars$language)
+kableExtra::kable(tab, col.names=c("Language","Items"))
+```
 
+Below we examine the standard deviation of unilemmas' cross-linguistic difficulty as a function of how many languages that unilemma is missing from.
+How should we choose thresholds for inclusion -- both on the variability of an item's difficulty, and on the number of languages in which it is included?
+For now we consider items with less than median SD that are missing from no more than 6 languages (lower left region of plot).
+
+```{r, echo=F}
 # problem: some languages have multiple items matching a single uni_lemma
 # (e.g., Croatian has stric=uncle and ujak=uncle; Turkish has 3 "market"s )
 comp_pars <-
@@ -138,32 +147,36 @@ comp_pars <-
   slice(1) %>% 
   pivot_wider(names_from = language, values_from = d)
 
-comp_pars$sd = apply(comp_pars[,4:11], 1, sd, na.rm=T)
-comp_pars$numNAs = apply(comp_pars[,4:11], 1, function(x) { sum(is.na(x)) })
+comp_pars$sd = apply(comp_pars[,4:17], 1, sd, na.rm=T)
+comp_pars$numNAs = apply(comp_pars[,4:17], 1, function(x) { sum(is.na(x)) })
 
-med_d = median(comp_pars$sd, na.rm=T) # 3.57
-sd_d = sd(comp_pars$sd, na.rm=T)
+med_d = median(comp_pars$sd, na.rm=T) # 2.18
+sd_d = sd(comp_pars$sd, na.rm=T) # .97
 
+comp_pars %>% ggplot(aes(x=jitter(numNAs), y=sd, color=lexical_class)) + 
+  geom_point(alpha=.7) + theme_classic() + 
+  xlab("# of languages without uni-lemma") +
+  ylab("SD of unilemma's cross-linguistic difficulty") +
+  geom_hline(aes(yintercept=med_d - .5*sd_d), linetype="dashed") + 
+  geom_vline(aes(xintercept=6.5), linetype="dashed")
 
-good_items <- comp_pars %>% 
-  filter(numNAs < 5) %>%
-  filter(sd < (med_d - sd_d)) %>% 
-  arrange(lexical_class, desc(sd))
-
-tab <- table(pars$language)
-kableExtra::kable(tab, col.names=c("Language","Items"))
+good_comp <- comp_pars %>% 
+  filter(numNAs < 7) %>%
+  filter(sd < (med_d - .5*sd_d)) %>% 
+  arrange(numNAs)
+  #arrange(lexical_class, desc(sd))
 ```
 
-Of these, a total of `r length(long_list)` uni-lemmas are included in more than one language, and only `r length(short_list)` uni-lemmas are included in 5 or more of the languages.
+Of these, a total of `r length(long_list)` uni-lemmas are included in more than one language, and only `r length(short_list)` uni-lemmas are included in 6 or more of the languages.
 We will start by considering this more restricted list, but if there are not enough good candidates then we may consider making pairwise comparisons between each possible language pair (more flexible, but more complicated).
-(There are only `r nrow(na.omit(comp_pars))` uni-lemmas used in all 9 languages.)
+(There are only `r nrow(na.omit(comp_pars))` uni-lemmas used in all `r length(languages)` languages.)
 
 To evaluate how variable items are in their cross-linguistic difficulty, we calculate the standard deviation (SD) of each uni-lemma's difficulty.
-The median SD is `r round(med_d, 2)` (SD=`r round(sd_d, 2)`), so we consider the `r nrow(good_items)` items with SD < `r round(med_d - sd_d, 2)`.
-These items are shown below, sorted by lexical class and in order of increasing SD.
+The median SD is `r round(med_d, 2)` (SD=`r round(sd_d, 2)`), so we consider the `r nrow(good_comp)` items with SD < `r round(med_d - .5*sd_d, 2)`.
+These items are shown below, sorted by number of languages from which the unilemma is missing.
 
 ```{r, echo=F}
-kableExtra::kable(good_items, digits=2)
+kableExtra::kable(good_comp, digits=2)
 ```
 
 
@@ -193,13 +206,13 @@ load("data/xling-WGprod-IRTparms.Rdata")
 #table(xldf$language)
 xldf %>% ggplot( aes(x=d, fill=language)) +
     geom_histogram(alpha=0.6, position = 'identity') +
-    theme_classic() + xlab("Item Difficulty")
+    theme_classic() + xlab("Item Easiness")
 ```
 
 
 ## Cross-linguistic similarities
 
-```{r, echo=F, fig.width=6.5, fig.height=6.5}
+```{r, echo=F, fig.width=8, fig.height=8}
 prod_cors <- matrix(0, nrow=length(languages), ncol=length(languages))
 prod_sims <- tibble()
 colnames(prod_cors) = languages
@@ -221,7 +234,7 @@ for(l1 in languages) {
 }
 
 diag(prod_cors) = NA
-heatmap.2(comp_cors[-c(7,9,14),-c(7,9,14)], col=Colors)
+heatmap.2(prod_cors[-c(7,9),-c(7,9)], col=Colors)
 ```
 
 
@@ -240,8 +253,13 @@ prod_cat <- xldf %>% group_by(language, category) %>%
 prod_cat %>% ggplot(aes(x=reorder(language, mean), y=mean)) + geom_point(alpha=.7) +
   geom_linerange(aes(ymin=ci_lower, ymax=ci_upper), alpha=.7) +
   facet_wrap(. ~ category) + coord_flip() + 
-  theme_classic() + ylab("Mean item difficulty") + xlab("Language")
+  theme_classic() + ylab("Mean item easiness") + xlab("Language")
 #ggsave("xling_diff_by_category_WGprod.pdf", width=10, height=10)
+
+#prod_cat %>% ggplot(aes(x=reorder(category, mean), y=mean)) + geom_point(alpha=.7) +
+#  geom_linerange(aes(ymin=ci_lower, ymax=ci_upper), alpha=.7) +
+#  facet_wrap(. ~ language) + coord_flip() + 
+#  theme_classic() + ylab("Mean item easiness") + xlab("Category")
 ```
 
 ### Candidate Items
@@ -254,8 +272,17 @@ pars <- xldf %>% filter(!is.na(uni_lemma), !is.na(d))
 ul <- sort(table(pars$uni_lemma))
 
 long_list = ul[which(ul>1)] 
-short_list = ul[which(ul>4)] 
+short_list = ul[which(ul>5)] 
 
+tab <- table(pars$language)
+kableExtra::kable(tab, col.names=c("Language","Items"))
+```
+
+Below we examine the standard deviation of unilemmas' cross-linguistic difficulty as a function of how many languages that unilemma is missing from.
+What thresholds to use for inclusion?
+For now we consider items with less than median SD that are missing from no more than 6 languages (lower left region of plot).
+
+```{r, echo=F}
 prod_pars <-
   pars %>% arrange(desc(language, uni_lemma, a1)) %>% # get most discriminating uni_lemma per lang
   filter(is.element(uni_lemma, names(short_list))) %>%
@@ -264,31 +291,65 @@ prod_pars <-
   slice(1) %>% 
   pivot_wider(names_from = language, values_from = d)
 
-prod_pars$sd = apply(prod_pars[,4:11], 1, sd, na.rm=T)
-prod_pars$numNAs = apply(prod_pars[,4:11], 1, function(x) { sum(is.na(x)) })
+prod_pars$sd = apply(prod_pars[,4:17], 1, sd, na.rm=T)
+prod_pars$numNAs = apply(prod_pars[,4:17], 1, function(x) { sum(is.na(x)) })
 
 
-med_d = median(prod_pars$sd, na.rm=T) # 3.57
-sd_d = sd(prod_pars$sd, na.rm=T)
+med_d = median(prod_pars$sd, na.rm=T) # 2.14
+sd_d = sd(prod_pars$sd, na.rm=T) # .68
 
-good_items <- prod_pars %>% 
-  filter(numNAs < 5) %>%
-  filter(sd < 1.25) %>%  # 
-  arrange(lexical_class, desc(sd))
+prod_pars %>% ggplot(aes(x=jitter(numNAs), y=sd, color=lexical_class)) + 
+  geom_point(alpha=.7) + theme_classic() + 
+  xlab("# of languages without uni-lemma") +
+  ylab("SD of unilemma's cross-linguistic difficulty") +
+  geom_hline(aes(yintercept=med_d - .5*sd_d), linetype="dashed") + 
+  geom_vline(aes(xintercept=6.5), linetype="dashed")
 
-tab <- table(pars$language)
-kableExtra::kable(tab, col.names=c("Language","Items"))
+good_prod <- prod_pars %>% 
+  filter(numNAs < 6) %>%
+  filter(sd < (med_d - .5*sd_d)) %>%  
+  arrange(numNAs)
+  #arrange(lexical_class, desc(sd))
+
+save(good_prod, good_comp, file="data/good_crosslinguistic_items.RData")
 ```
 
-Of these, a total of `r length(long_list)` uni-lemmas are included in more than one language, and only `r length(short_list)` uni-lemmas are included in 5 or more of the languages.
+Of these, a total of `r length(long_list)` uni-lemmas are included in more than one language, and only `r length(short_list)` uni-lemmas are included in 6 or more of the languages.
 We will start by considering this more restricted list, but if there are not enough good candidates then we may consider making pairwise comparisons between each possible language pair (more flexible, but more complicated).
-(There are only `r nrow(na.omit(prod_pars))` uni-lemmas used in all 9 languages.)
+(There are only `r nrow(na.omit(prod_pars))` uni-lemmas used in all `r length(languages)` languages.)
 
 To evaluate how variable items are in their cross-linguistic difficulty, we calculate the standard deviation (SD) of each uni-lemma's difficulty.
-The median SD is `r round(med_d, 2)` (SD=`r round(sd_d, 2)`), so we consider the `r nrow(good_items)` items with SD less than 1.25.
-These items are shown below, sorted by lexical class and in order of increasing SD.
+The median SD is `r round(med_d, 2)` (SD=`r round(sd_d, 2)`), so we consider the `r nrow(good_prod)` items with SD less than `r round(med_d - .5*sd_d,2)`.
+These items are shown below, sorted by number of languages from which the unilemma is missing.
 
 ```{r, echo=F}
-kableExtra::kable(good_items, digits=2)
+kableExtra::kable(good_prod, digits=2)
 ```
 
+## Overview of Cross-linguistic Comprehension and Production Difficulties by Category
+
+```{r, echo=F, fig.width=12, fig.height=9}
+posish = position_dodge2(.5)
+p1 <- comp_cat %>% ggplot(aes(x=reorder(category, mean), y=mean, color=language)) + geom_point(alpha=.7, position=posish) +
+  geom_linerange(aes(ymin=ci_lower, ymax=ci_upper), position=posish, alpha=.7) +
+  coord_flip() + 
+  theme_classic() + ylab("Mean item easiness") + xlab("Category")
+#ggsave("xling_diff_by_category_WGcomp_color.pdf", width=8, height=9)
+
+p2 <- prod_cat %>% ggplot(aes(x=reorder(category, mean), y=mean, color=language)) + geom_point(alpha=.7, position=posish) +
+  geom_linerange(aes(ymin=ci_lower, ymax=ci_upper), position=posish, alpha=.7) +
+  coord_flip() + 
+  theme_classic() + ylab("Mean item easiness") + xlab("Category")
+#ggsave("xling_diff_by_category_WGprod_color.pdf", width=8, height=9)
+
+ggarrange(p1, p2, common.legend = T)
+```
+
+
+## Next steps
+
+`r length(intersect(good_comp$uni_lemma, good_prod$uni_lemma))` of the uni-lemmas are on both the good cross-linguistic comprehension and production lists.
+Is this enough items, or do we want to relax the criteria for inclusion?
+How does the difficulty of these "good" items compare to the overall item difficulties? (Are they systematically easier? If so, the list may not work well for a short form CDI since it will overestimate vocabulary size. Should plot sd(difficulty) vs. mean(difficulty).)
+The next step is to do real-data simulations for each language using these items, and see how well we recover full CDI scores / ability. 
+If this doesn't work well, we may consider constructing pairwise language lists.
