@@ -98,7 +98,7 @@ get_wg_data("Mandarin (Beijing)", form="IC")
 get_wg_data("American Sign Language", form="FormA")
 
 languages = c("British Sign Language", "Mandarin (Beijing)", "American Sign Language",
-              "Portuguese (European)")
+              "Portuguese (European)", "English (British)")
 
 # should we try adding WS data from languages with no WG data? e.g., German
 get_wg_data("German", form="WS")
@@ -106,8 +106,9 @@ get_wg_data("German", form="WS")
 add_new_unilemmas <- function(language) {
   load(paste("data/",language,"_WG_data.Rdata", sep=''))
   # load item table with newly-coded uni_lemma
-  #its_uni <- read_csv("[Spanish_European_WG].csv") 
-  its_uni <- read_csv("[Latvian_WG].csv")
+  #its_uni <- read_csv("updated_unilemmas/[Spanish_European_WG].csv") 
+  #its_uni <- read_csv("updated_unilemmas/[Mandarin_Beijing_IC].csv")
+  #its_uni <- read_csv("updated_unilemmas/[Mandarin_Taiwanese_WG].csv")
   items <- items %>% select(-uni_lemma) %>% 
     left_join(its_uni %>% select(definition, uni_lemma))
   d_long_wg <- d_long_wg %>% select(-uni_lemma) %>%
@@ -122,9 +123,9 @@ get_wg_data("French (Quebecois)") # "83 words with all 0 responses removed from 
 get_wg_data("Slovak")
 # "2 words with all 0 responses removed from Slovak comprehension"
 # "3 words with all 0 responses removed from Slovak production"
-get_wg_data("Latvian") # need uni-lemmas
+get_wg_data("Latvian")
 
-# a lot removed..
+# a lot removed..very low rates of "produces"
 get_wg_data("French (French)")
 # "79 words with all 0 responses removed from French (French) comprehension"
 # "486 words with all 0 responses removed from French (French) production"

@@ -1,0 +1,39 @@
+---
+title: "Swadesh Comparisons"
+author: "George"
+date: "3/23/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+# https://en.wikipedia.org/wiki/Swadesh_list
+swadesh100 = c()
+
+# https://en.wikipedia.org/wiki/Automated_Similarity_Judgment_Program#Word_list
+# ASJP subset of 40 Swadesh items that perform as well as full list
+# categories: Body parts, Animals and plants, People, Nature, Verbs and adjectives, Numerals and pronouns
+asjp = c("eye","ear","nose","tongue","tooth","hand","knee","blood","bone","breast","liver","skin",
+         "louse", # "bug" ?
+         "dog","fish (animal)","horn","tree","leaf",
+         "person","name", # People; match "name" to "child's own name" / "babysitter's name" / "pet's name" ?
+         "sun","star","water","fire","stone","path","mountain","night", # Nature
+         "drink (action)","die","see","hear","come", # Verbs and adjectives
+         "new","full","one","two","I","you","we")
+
+```
+
+## Variability of Difficulty by CDI Category
+
+and by lexical class
+
+```{r cars}
+
+```
+
+## Are Swadesh/ASJP words less variable in difficulty?
+
+```{r}
+
+```
+
