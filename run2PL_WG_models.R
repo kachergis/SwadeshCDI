@@ -5,21 +5,21 @@ library(wordbankr)
 library(tidyverse)
 library(mirt)
 
-wordbankr::get_instruments() %>% 
+instr <- wordbankr::get_instruments() %>% 
   filter(form=="WG") %>%
   arrange(desc(unilemma_coverage))
   
 
 # MB@home: wide age range, diff items for different age ranges?
 
-get_wg_data <- function(language, save=T) {
+get_wg_data <- function(language, save=T, form="WG") {
   d_demo <- 
-    get_administration_data(language = language, form = "WG") 
+    get_administration_data(language = language, form = form) 
   
-  items <- get_item_data(language = language, form="WG") %>%
+  items <- get_item_data(language = language, form=form) %>%
     filter(type=="word")
   
-  d_long_wg <- get_instrument_data(language = language, form = "WG") %>% # 418 items
+  d_long_wg <- get_instrument_data(language = language, form = form) %>% # 418 items
     left_join(items %>% select(-complexity_category), by="num_item_id") %>%
     filter(type=="word")
   
@@ -78,8 +78,12 @@ get_wg_data <- function(language, save=T) {
                 file=paste("data/",language,"_WG_data.Rdata", sep=''))
 }
 
+#get_wg_data("Spanish (European)") # "26 words with all 0 responses removed from Spanish (European) production"
+# manually adding uni-lemmas GK coded
+get_wg_data("Kiswahili") # 8 all 0 responses removed from comprehension, 76 removed from production
+get_wg_data("Kigiriama") # 32 removed from production
 get_wg_data("Turkish")
-get_wg_data("Mandarin (Taiwanese)")
+get_wg_data("Mandarin (Taiwanese)") # need to manually code and add uni_lemmas
 get_wg_data("English (American)")
 get_wg_data("Croatian") 
 get_wg_data("Danish")
@@ -87,15 +91,27 @@ get_wg_data("Italian")
 get_wg_data("Russian")
 get_wg_data("Spanish (Mexican)")
 
-#get_wg_data("Spanish (European)") # "26 words with all 0 responses removed from Spanish (European) production"
-# manually adding uni-lemmas GK coded
-do_once <- function(language) {
+
+get_wg_data("British Sign Language") # removed 11 comprehension words and 16 production words
+get_wg_data("English (British)", form="Oxford CDI")
+get_wg_data("Mandarin (Beijing)", form="IC")
+get_wg_data("American Sign Language", form="FormA")
+
+languages = c("British Sign Language", "Mandarin (Beijing)", "American Sign Language",
+              "Portuguese (European)")
+
+# should we try adding WS data from languages with no WG data? e.g., German
+get_wg_data("German", form="WS")
+
+add_new_unilemmas <- function(language) {
   load(paste("data/",language,"_WG_data.Rdata", sep=''))
-  sp_eur_it <- read_csv("[Spanish_European_WG].csv")
+  # load item table with newly-coded uni_lemma
+  #its_uni <- read_csv("[Spanish_European_WG].csv") 
+  its_uni <- read_csv("[Latvian_WG].csv")
   items <- items %>% select(-uni_lemma) %>% 
-    left_join(sp_eur_it %>% select(definition, uni_lemma))
+    left_join(its_uni %>% select(definition, uni_lemma))
   d_long_wg <- d_long_wg %>% select(-uni_lemma) %>%
-    left_join(sp_eur_it %>% select(definition, uni_lemma))
+    left_join(its_uni %>% select(definition, uni_lemma))
   save(d_demo, items, d_long_wg, d_prod, d_comp,
      file=paste("data/",language,"_WG_data.Rdata", sep=''))
 }
@@ -113,21 +129,23 @@ get_wg_data("French (French)")
 # "79 words with all 0 responses removed from French (French) comprehension"
 # "486 words with all 0 responses removed from French (French) production"
 
+# generalization test: try using proposed short lists on this (need to code uni_lemmas for short list)
+get_wg_data("Portuguese (European)") # 222 subjects
+# do real-data simulations
+
 get_wg_data("Korean") 
 get_wg_data("Hebrew") # "4 words with all 0 responses removed from Hebrew production"
 
 
-languages = c("Croatian","Danish","English (American)","Korean","Spanish (Mexican)",
+languages = c("Kiswahili","Kigiriama",
+              "Croatian","Danish","English (American)","Korean","Spanish (Mexican)",
               "Italian","Mandarin (Taiwanese)","French (French)", 
               "Korean", "Latvian", "Hebrew", "Norwegian", "French (Quebecois)",
               "Slovak", "Spanish (European)", "Russian", "Turkish") 
-# "Swedish", <- a bunch of words have only one response category, but there are lots of NAs..
 
 #models = list()
 #coefs = list()
 load("data/multiling_2pl_WG_comp_fits.Rdata")
-
-languages = c("Danish","Norwegian","French (French)","Croatian")
 
 # Norwegian did not converge after 2000 cycles
 # do comprehension first
