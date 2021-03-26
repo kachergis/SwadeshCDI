@@ -6,7 +6,7 @@ library(tidyverse)
 library(mirt)
 
 instr <- wordbankr::get_instruments() %>% 
-  filter(form=="WG") %>%
+  #filter(form=="WG") %>%
   arrange(desc(unilemma_coverage))
   
 
@@ -32,7 +32,7 @@ get_wg_data <- function(language, save=T, form="WG") {
   d_long_wg <- d_long_wg %>%
     mutate(produces = as.numeric(value == "produces"),
            comprehends = as.numeric(value == "understands"))
-  
+  print(paste("retrieved data for",length(unique(d_long_wg$data_id)),language,"participants"))
   #table(d_long_wg$value)
   
   # negative correlation (because if you produce, you don't understand and vice-versa?)
@@ -92,10 +92,15 @@ get_wg_data("Russian")
 get_wg_data("Spanish (Mexican)")
 
 
-get_wg_data("British Sign Language") # removed 11 comprehension words and 16 production words
+get_wg_data("British Sign Language") # 161 subjects; removed 11 comprehension words and 16 production words
 get_wg_data("English (British)", form="Oxford CDI")
 get_wg_data("Mandarin (Beijing)", form="IC")
-get_wg_data("American Sign Language", form="FormA")
+
+# not many ASL subjects, but how much do the forms overlap? can we combine..?
+#get_wg_data("American Sign Language", form="FormA") # 6 subjects..
+get_wg_data("American Sign Language", form="FormBTwo") # 20 subjects
+#get_wg_data("American Sign Language", form="FormBOne") # 19 subjects
+#get_wg_data("American Sign Language", form="FormC") # 18 subjects
 
 languages = c("British Sign Language", "Mandarin (Beijing)", "American Sign Language",
               "Portuguese (European)", "English (British)")

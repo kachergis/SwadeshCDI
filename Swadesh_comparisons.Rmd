@@ -28,10 +28,28 @@ asjp = c("eye","ear","nose","tongue","tooth","hand","knee","blood","bone","breas
 and by lexical class
 
 ```{r cars}
+load("data/good_crosslinguistic_items.Rdata")
 
+
+intersect(good_comp$uni_lemma, asjp) # "dog"  "eye"  "nose" "see"
+
+intersect(good_prod$uni_lemma, asjp) # "nose" "dog" "fish (animal)" "drink (action)"
+
+load("data/xling-WGcomp-IRTparms.Rdata")
+comp_parms <- xldf
+load("data/xling-WGprod-IRTparms.Rdata")
+prod_parms <- xldf
+
+intersect(comp_parms$)
 ```
 
 ## Are Swadesh/ASJP words less variable in difficulty?
+
+```{r}
+
+```
+
+
 
 ```{r}
 
