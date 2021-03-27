@@ -197,3 +197,28 @@ for(lang in languages) {
 }
 
 save(models, coefs, file="data/multiling_2pl_WG_prod_fits.Rdata")
+
+
+# combine comprehension (1) and production (2) data and
+# fit generalized partial credit model
+models = list()
+coefs = list()
+# https://rstudio-pubs-static.s3.amazonaws.com/357155_6674780326ef4afba5f009d17a85d4ae.html
+for(lang in languages) {
+  if(!is.element(lang, names(models))) { # skip if already fitted
+    load(paste("data/",lang,"_WG_data.Rdata", sep=''))
+    d_cp = d_prod * 2 + d_comp
+    print(paste("Fitting",nrow(d_cp),"subjects and",ncol(d_cp),"words in",lang))
+    
+    mod_string = paste0('G = 1-',ncol(d_cp),',
+                LBOUND = (1-',ncol(d_cp),', a, 0)')
+    mod <- mirt.model(mod_string)
+    models[[lang]] = mirt(data = d_cp, model = mod, itemtype="gpcm", 
+                          method="QMCEM", verbose=TRUE, 
+                          technical=list(NCYCLES=3000, removeEmptyRows=TRUE)) 
+    coefs[[lang]] <- as_tibble(coef(models[[lang]], simplify = TRUE)$items) %>%
+      mutate(definition = rownames(coef(models[[lang]], simplify = TRUE)$items))
+  }
+}
+
+save(models, coefs, file="data/multiling_2pl_WG_comp_prod_gpcm_fits.Rdata")
