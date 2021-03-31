@@ -71,8 +71,8 @@ get_wg_data <- function(language, save=T, form="WG") {
   
   print(paste(length(bad_words_comp),"words with all 0 responses removed from",language,"comprehension"))
   print(paste(length(bad_words_prod),"words with all 0 responses removed from",language,"production"))
-  if(length(bad_words_comp)!=0) d_comp = d_comp[,-bad_words_comp]
-  if(length(bad_words_prod)!=0) d_prod = d_prod[,-bad_words_prod]
+  #if(length(bad_words_comp)!=0) d_comp = d_comp[,-bad_words_comp]
+  #if(length(bad_words_prod)!=0) d_prod = d_prod[,-bad_words_prod]
   
   if(save) save(d_demo, items, d_long_wg, d_prod, d_comp,
                 file=paste("data/",language,"_WG_data.Rdata", sep=''))
