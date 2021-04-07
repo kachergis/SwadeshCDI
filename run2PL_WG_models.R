@@ -83,7 +83,7 @@ get_wg_data <- function(language, save=T, form="WG") {
 get_wg_data("Kiswahili") # 8 all 0 responses removed from comprehension, 76 removed from production
 get_wg_data("Kigiriama") # 32 removed from production
 get_wg_data("Turkish")
-get_wg_data("Mandarin (Taiwanese)") # need to manually code and add uni_lemmas
+#get_wg_data("Mandarin (Taiwanese)") # need to manually code and add uni_lemmas
 get_wg_data("English (American)")
 get_wg_data("Croatian") 
 get_wg_data("Danish")
