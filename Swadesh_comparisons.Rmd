@@ -35,9 +35,9 @@ Below we show the standard deviation of cross-linguistic item difficulties by CD
 load("data/good_crosslinguistic_items.Rdata")
 
 
-intersect(good_comp$uni_lemma, asjp) # "dog"  "eye"  "nose" "see"
+#intersect(good_comp$uni_lemma, asjp) # "dog"  "eye"  "nose" "see"
 
-intersect(good_prod$uni_lemma, asjp) # "nose" "dog" "fish (animal)" "drink (action)"
+#intersect(good_prod$uni_lemma, asjp) # "nose" "dog" "fish (animal)" "drink (action)"
 
 load("data/xling-WGcomp-IRTparms.Rdata")
 comp_parms <- xldf
@@ -140,21 +140,59 @@ prod_agg %>%
   #geom_point() + theme_bw()
 ```
 
-For both comprehension and production, words on the ASJP are on average both easier and less variable in their easiness than the items that are not on the ASJP. 
+For both comprehension and production, words on the ASJP are on average both easier and less variable in their cross-linguistic easiness than the items that are not on the ASJP. 
 
 
-## Partial Credit Model Fits
+## Generalized Partial Credit Model (GPCM) Fits
 
 ```{r eval=F, echo=F}
-load("data/multiling_2pl_WG_comp_prod_gpcm_fits.Rdata")
+load("data/multiling_2pl_WG_comp_prod_gpcm_fits.Rdata") 
 
+coefs$Korean <- coefs$Korean %>% rename(item_id = definition)
+coefs$`Spanish (Mexican)` <- coefs$`Spanish (Mexican)` %>% rename(item_id = definition)
+coefs$`English (British)` <- coefs$`English (British)` %>% rename(item_id = definition)
+
+# join_lang_coefs() defined in compare_language_parms.Rmd -- ToDo: move to helper_functions.R
 xldf <- join_lang_coefs(names(coefs), coefs) 
 save(xldf, file="data/xling-WGcomp-prod-gpcmIRTparms.Rdata")
 ```
 
-```{r}
+We've now fitted the combined comprehension and production WG data with GPCM models (`r length(unique(xldf$language))` languages, so far), which have two difficulty parameters (and still a single discrimination parameter).
+Below we compare these parameters to the separate 2PL fits for comprehension and production.
+
+```{r, echo=F}
 load("data/xling-WGcomp-prod-gpcmIRTparms.Rdata")
 
+allp <- xldf %>% left_join(comp_parms %>% 
+                             select(uni_lemma, language, item_id, definition, d, a1) %>% 
+                             rename(d_comp = d, a1_comp = a1))
+allp <- allp %>% left_join(prod_parms %>% 
+                             select(uni_lemma, language, item_id, definition, d, a1) %>% 
+                             rename(d_prod = d, a1_prod = a1))
+```
 
+```{r, echo=F}
+allp %>% summarise(a1_vs_comp = cor(a1, a1_comp, use="complete"),
+                   a1_vs_prod = cor(a1, a1_prod, use="complete"),
+                   d1_vs_comp = cor(d1, d_comp, use="complete"),
+                   d2_vs_comp = cor(d2, d_comp, use="complete"),
+                   d1_vs_prod = cor(d1, d_prod, use="complete"),
+                   d2_vs_prod = cor(d2, d_prod, use="complete"))
+```
+
+Strong correlations between GPCM discrimination (a1) and comprehension, as well as GPCM's d1 and comprehension difficulty.
+Moderate correlations 
+
+### Difficulties
+
+```{r, echo=F, warning=F}
+require(GGally)
+ggpairs(allp, c("d1","d2","d_comp","d_prod")) + theme_classic()
+```
+
+### Discrimination 
+
+```{r, echo=F, warning=F}
+ggpairs(allp, c("a1","a1_comp","a1_prod")) + theme_classic()
 ```
 

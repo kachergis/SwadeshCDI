@@ -14,8 +14,8 @@ load("data/multiling_2pl_WG_comp_fits.Rdata")
 
 languages = c("Croatian","Danish","English (American)","Korean","Spanish (Mexican)",
               "Italian","Mandarin (Taiwanese)","French (French)", 
-              "Latvian", "Hebrew", "Norwegian", "French (Quebecois)",
-              "Slovak", "Spanish (European)", "Russian", "Turkish") 
+              "Latvian", "Norwegian", "French (Quebecois)", # "Hebrew",
+              "Slovak", "Spanish (European)", "Russian", "Turkish", "English (British)") 
 
 join_lang_coefs <- function(languages, coefs) {
   xldf <- tibble()
@@ -40,9 +40,10 @@ coefs$Korean <- coefs$Korean %>% rename(item_id = definition)
 coefs$`Spanish (Mexican)` <- coefs$`Spanish (Mexican)` %>% rename(item_id = definition)
 coefs$`Spanish (European)` <- coefs$`Spanish (European)` %>% rename(item_id = definition)
 coefs$Latvian <- coefs$Latvian %>% rename(item_id = definition)
-coefs$Hebrew <- coefs$Hebrew %>% rename(item_id = definition)
+#coefs$Hebrew <- coefs$Hebrew %>% rename(item_id = definition)
 coefs$Slovak <- coefs$Slovak %>% rename(item_id = definition)
 coefs$`French (French)` <- coefs$`French (French)` %>% rename(item_id = definition)
+coefs$`English (British)` <- coefs$`English (British)` %>% rename(item_id = definition)
 
 
 xldf <- join_lang_coefs(languages, coefs) 
@@ -193,6 +194,7 @@ coefs$Latvian <- coefs$Latvian %>% rename(item_id = definition)
 coefs$Hebrew <- coefs$Hebrew %>% rename(item_id = definition)
 coefs$Slovak <- coefs$Slovak %>% rename(item_id = definition)
 coefs$`French (French)` <- coefs$`French (French)` %>% rename(item_id = definition)
+coefs$`English (British)` <- coefs$`English (British)` %>% rename(item_id = definition)
 
 
 xldf <- join_lang_coefs(languages, coefs) 

@@ -64,6 +64,8 @@ get_wg_data <- function(language, save=T, form="WG") {
     colnames(d_prod) = items$definition
   }
   
+  d_comp <- d_prod + d_comp # anything you produce, you also comprehend
+  
   bad_words_prod = which(colSums(d_prod, na.rm=T) == 0)
   bad_words_comp = which(colSums(d_comp, na.rm=T) == 0)
   #bad_subjs_prod = which(rowSums(d_prod) == 0) # mirt can remove
@@ -71,8 +73,8 @@ get_wg_data <- function(language, save=T, form="WG") {
   
   print(paste(length(bad_words_comp),"words with all 0 responses removed from",language,"comprehension"))
   print(paste(length(bad_words_prod),"words with all 0 responses removed from",language,"production"))
-  #if(length(bad_words_comp)!=0) d_comp = d_comp[,-bad_words_comp]
-  #if(length(bad_words_prod)!=0) d_prod = d_prod[,-bad_words_prod]
+  if(length(bad_words_comp)!=0) d_comp = d_comp[,-bad_words_comp]
+  if(length(bad_words_prod)!=0) d_prod = d_prod[,-bad_words_prod]
   
   if(save) save(d_demo, items, d_long_wg, d_prod, d_comp,
                 file=paste("data/",language,"_WG_data.Rdata", sep=''))
@@ -80,7 +82,7 @@ get_wg_data <- function(language, save=T, form="WG") {
 
 #get_wg_data("Spanish (European)") # "26 words with all 0 responses removed from Spanish (European) production"
 # manually adding uni-lemmas GK coded
-get_wg_data("Kiswahili") # 8 all 0 responses removed from comprehension, 76 removed from production
+get_wg_data("Kiswahili") # 
 get_wg_data("Kigiriama") # 32 removed from production
 get_wg_data("Turkish")
 #get_wg_data("Mandarin (Taiwanese)") # need to manually code and add uni_lemmas
@@ -92,7 +94,7 @@ get_wg_data("Russian")
 get_wg_data("Spanish (Mexican)")
 
 
-get_wg_data("British Sign Language") # 161 subjects; removed 11 comprehension words and 16 production words
+get_wg_data("British Sign Language") # 161 subjects; removed 3 comprehension words and 16 production words
 get_wg_data("English (British)", form="Oxford CDI")
 get_wg_data("Mandarin (Beijing)", form="IC")
 
@@ -142,16 +144,16 @@ get_wg_data("Portuguese (European)") # 222 subjects
 get_wg_data("Korean") 
 get_wg_data("Hebrew") # "4 words with all 0 responses removed from Hebrew production"
 
-
-languages = c("Kiswahili","Kigiriama",
+# "Kiswahili",
+languages = c("Kigiriama", "English (British)",
               "Croatian","Danish","English (American)","Korean","Spanish (Mexican)",
               "Italian","Mandarin (Taiwanese)","French (French)", 
               "Korean", "Latvian", "Hebrew", "Norwegian", "French (Quebecois)",
               "Slovak", "Spanish (European)", "Russian", "Turkish") 
 
-#models = list()
-#coefs = list()
-load("data/multiling_2pl_WG_comp_fits.Rdata")
+models = list()
+coefs = list()
+#load("data/multiling_2pl_WG_comp_fits.Rdata")
 
 # Norwegian did not converge after 2000 cycles
 # do comprehension first
