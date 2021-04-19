@@ -66,35 +66,11 @@ get_wg_data <- function(language, save=T, form="WG") {
   
   d_comp <- d_prod + d_comp # anything you produce, you also comprehend
   
-  bad_words_prod = which(colSums(d_prod, na.rm=T) == 0)
-  bad_words_comp = which(colSums(d_comp, na.rm=T) == 0)
-  #bad_subjs_prod = which(rowSums(d_prod) == 0) # mirt can remove
-  #bad_subjs_comp = which(rowSums(d_comp) == 0) 
-  
-  print(paste(length(bad_words_comp),"words with all 0 responses removed from",language,"comprehension"))
-  print(paste(length(bad_words_prod),"words with all 0 responses removed from",language,"production"))
-  if(length(bad_words_comp)!=0) d_comp = d_comp[,-bad_words_comp]
-  if(length(bad_words_prod)!=0) d_prod = d_prod[,-bad_words_prod]
-  
   if(save) save(d_demo, items, d_long_wg, d_prod, d_comp,
                 file=paste("data/",language,"_WG_data.Rdata", sep=''))
 }
 
-#get_wg_data("Spanish (European)") # "26 words with all 0 responses removed from Spanish (European) production"
-# manually adding uni-lemmas GK coded
-get_wg_data("Kiswahili") # 
-get_wg_data("Kigiriama") # 32 removed from production
-get_wg_data("Turkish")
-#get_wg_data("Mandarin (Taiwanese)") # need to manually code and add uni_lemmas
-get_wg_data("English (American)")
-get_wg_data("Croatian") 
-get_wg_data("Danish")
-get_wg_data("Italian")
-get_wg_data("Russian")
-get_wg_data("Spanish (Mexican)")
 
-
-get_wg_data("British Sign Language") # 161 subjects; removed 3 comprehension words and 16 production words
 get_wg_data("English (British)", form="Oxford CDI")
 get_wg_data("Mandarin (Beijing)", form="IC")
 
@@ -104,62 +80,64 @@ get_wg_data("American Sign Language", form="FormBTwo") # 20 subjects
 #get_wg_data("American Sign Language", form="FormBOne") # 19 subjects
 #get_wg_data("American Sign Language", form="FormC") # 18 subjects
 
-languages = c("British Sign Language", "Mandarin (Beijing)", "American Sign Language",
-              "Portuguese (European)", "English (British)")
+# add these to languages for IRT fits
+langs_different_forms = c("English (British)", "Mandarin (Beijing)", "American Sign Language")
 
 # should we try adding WS data from languages with no WG data? e.g., German
-get_wg_data("German", form="WS")
+#get_wg_data("German", form="WS")
 
-add_new_unilemmas <- function(language) {
+# generalization test: try using proposed short lists on Portuguese 
+# ToDo: code uni_lemmas for short list
+
+# do real-data simulations of CATs for each language
+
+languages = c("Kigiriama", "English (British)", "British Sign Language",
+              "Croatian","Danish","English (American)","Korean","Spanish (Mexican)",
+              "Italian","Mandarin (Taiwanese)","French (French)", 
+              "Korean", "Latvian", "Hebrew", "Norwegian", "French (Quebecois)",
+              "Slovak", "Spanish (European)", "Russian", "Turkish", "Portuguese (European)") 
+
+for(lang in languages) {
+  get_wg_data(lang)
+}
+
+
+langs_new_unilemmas <- c("Spanish (European)", "Mandarin (Taiwanese)", "Mandarin (Beijing)",
+                         "Korean", "Latvian") # ToDo: Portuguese (European)
+unilemma_files = c("[Spanish_European_WG].csv", "[Mandarin_Taiwanese_WG].csv", "[Mandarin_Beijing_IC].csv",
+                   "[Korean_WG].csv", "[Latvian_WG].csv")
+
+add_new_unilemmas <- function(language, unilemma_file) {
   load(paste("data/",language,"_WG_data.Rdata", sep=''))
   # load item table with newly-coded uni_lemma
-  #its_uni <- read_csv("updated_unilemmas/[Spanish_European_WG].csv") 
-  #its_uni <- read_csv("updated_unilemmas/[Mandarin_Beijing_IC].csv")
-  #its_uni <- read_csv("updated_unilemmas/[Mandarin_Taiwanese_WG].csv")
+  its_uni <- read_csv(paste0("updated_unilemmas/",unilemma_file))
   items <- items %>% select(-uni_lemma) %>% 
     left_join(its_uni %>% select(definition, uni_lemma))
   d_long_wg <- d_long_wg %>% select(-uni_lemma) %>%
     left_join(its_uni %>% select(definition, uni_lemma))
   save(d_demo, items, d_long_wg, d_prod, d_comp,
-     file=paste("data/",language,"_WG_data.Rdata", sep=''))
+       file=paste("data/",language,"_WG_data.Rdata", sep=''))
 }
 
-get_wg_data("Swedish") # "44 words with all 0 responses removed from Swedish production"
-get_wg_data("Norwegian") 
-get_wg_data("French (Quebecois)") # "83 words with all 0 responses removed from French (Quebecois) production"
-get_wg_data("Slovak")
-# "2 words with all 0 responses removed from Slovak comprehension"
-# "3 words with all 0 responses removed from Slovak production"
-get_wg_data("Latvian")
+for(i in 1:length(langs_new_unilemmas)) {
+  add_new_unilemmas(langs_new_unilemmas[i], unilemma_files[i])
+}
 
-# a lot removed..very low rates of "produces"
-get_wg_data("French (French)")
-# "79 words with all 0 responses removed from French (French) comprehension"
-# "486 words with all 0 responses removed from French (French) production"
 
-# generalization test: try using proposed short lists on this (need to code uni_lemmas for short list)
-get_wg_data("Portuguese (European)") # 222 subjects
-# do real-data simulations
-
-get_wg_data("Korean") 
-get_wg_data("Hebrew") # "4 words with all 0 responses removed from Hebrew production"
-
-# "Kiswahili",
-languages = c("Kigiriama", "English (British)",
-              "Croatian","Danish","English (American)","Korean","Spanish (Mexican)",
-              "Italian","Mandarin (Taiwanese)","French (French)", 
-              "Korean", "Latvian", "Hebrew", "Norwegian", "French (Quebecois)",
-              "Slovak", "Spanish (European)", "Russian", "Turkish") 
-
-models = list()
-coefs = list()
-#load("data/multiling_2pl_WG_comp_fits.Rdata")
+#models = list()
+#coefs = list()
+load("data/multiling_2pl_WG_comp_fits.Rdata")
 
 # Norwegian did not converge after 2000 cycles
 # do comprehension first
 for(lang in languages) {
   if(!is.element(lang, names(models))) { # skip if already fitted
     load(paste("data/",lang,"_WG_data.Rdata", sep=''))
+    
+    bad_words_comp = c(which(colSums(d_comp, na.rm=T) == 0), which(colSums(d_comp, na.rm=T) == nrow(d_comp)))
+    print(paste(length(bad_words_comp),"words with all 0 or 1 responses removed from",lang,"comprehension"))
+    if(length(bad_words_comp)!=0) d_comp = d_comp[,-bad_words_comp]
+    
     print(paste("Fitting",nrow(d_comp),"subjects and",ncol(d_comp),"words in",lang))
     mod_string = paste0('G = 1-',ncol(d_comp),',
                 LBOUND = (1-',ncol(d_comp),', a1, 0),
@@ -185,6 +163,11 @@ load("data/multiling_2pl_WG_prod_fits.Rdata")
 for(lang in languages) {
   if(!is.element(lang, names(models))) { # skip if already fitted
     load(paste("data/",lang,"_WG_data.Rdata", sep=''))
+    
+    bad_words_prod = c(which(colSums(d_prod, na.rm=T) == 0), which(colSums(d_prod, na.rm=T) == nrow(d_prod)))
+    print(paste(length(bad_words_prod),"words with all 0 responses removed from",lang,"production"))
+    if(length(bad_words_prod)!=0) d_prod = d_prod[,-bad_words_prod]
+    
     print(paste("Fitting",nrow(d_prod),"subjects and",ncol(d_prod),"words in",lang))
     mod_string = paste0('G = 1-',ncol(d_prod),',
                 LBOUND = (1-',ncol(d_prod),', a1, 0),
@@ -203,13 +186,19 @@ save(models, coefs, file="data/multiling_2pl_WG_prod_fits.Rdata")
 
 # combine comprehension (1) and production (2) data and
 # fit generalized partial credit model
-models = list()
-coefs = list()
+#models = list()
+#coefs = list()
+load("data/multiling_2pl_WG_comp_prod_gpcm_fits.Rdata")
 # https://rstudio-pubs-static.s3.amazonaws.com/357155_6674780326ef4afba5f009d17a85d4ae.html
 for(lang in languages) {
   if(!is.element(lang, names(models))) { # skip if already fitted
     load(paste("data/",lang,"_WG_data.Rdata", sep=''))
-    d_cp = d_prod * 2 + d_comp
+    d_cp = d_prod + d_comp
+    
+    bad_words = c(which(colSums(d_cp, na.rm=T) == 0), which(colSums(d_cp, na.rm=T) == nrow(d_cp)))
+    print(paste(length(bad_words),"words with all 0 or 1 responses removed from",lang,"production"))
+    if(length(bad_words)!=0) d_cp = d_cp[,-bad_words]
+    
     print(paste("Fitting",nrow(d_cp),"subjects and",ncol(d_cp),"words in",lang))
     
     mod_string = paste0('G = 1-',ncol(d_cp),',

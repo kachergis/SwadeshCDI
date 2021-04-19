@@ -36,14 +36,13 @@ We'll start with 2PL fits to WG data (comprehension and production separately) f
 ## WG Comprehension
 
 ```{r, echo=F, message=F, eval=F}
-coefs$Korean <- coefs$Korean %>% rename(item_id = definition)
-coefs$`Spanish (Mexican)` <- coefs$`Spanish (Mexican)` %>% rename(item_id = definition)
-coefs$`Spanish (European)` <- coefs$`Spanish (European)` %>% rename(item_id = definition)
-coefs$Latvian <- coefs$Latvian %>% rename(item_id = definition)
-#coefs$Hebrew <- coefs$Hebrew %>% rename(item_id = definition)
-coefs$Slovak <- coefs$Slovak %>% rename(item_id = definition)
-coefs$`French (French)` <- coefs$`French (French)` %>% rename(item_id = definition)
-coefs$`English (British)` <- coefs$`English (British)` %>% rename(item_id = definition)
+for(lang in names(coefs)) {
+  if("definition" %in% names(coefs[[lang]])) {
+    if(grepl("item_", coefs[[lang]]$definition[1])) {
+      coefs[[lang]] <- coefs[[lang]] %>% rename(item_id = definition)
+    }
+  } 
+}
 
 
 xldf <- join_lang_coefs(languages, coefs) 
@@ -187,15 +186,14 @@ Now we'll turn to production data.
 ```{r, eval=F, echo=F, message=F}
 load("data/multiling_2pl_WG_prod_fits.Rdata")
 # had to rename definition column for some languages (Korean & Spanish)
-coefs$Korean <- coefs$Korean %>% rename(item_id = definition)
-coefs$`Spanish (Mexican)` <- coefs$`Spanish (Mexican)` %>% rename(item_id = definition)
-coefs$`Spanish (European)` <- coefs$`Spanish (European)` %>% rename(item_id = definition)
-coefs$Latvian <- coefs$Latvian %>% rename(item_id = definition)
-coefs$Hebrew <- coefs$Hebrew %>% rename(item_id = definition)
-coefs$Slovak <- coefs$Slovak %>% rename(item_id = definition)
-coefs$`French (French)` <- coefs$`French (French)` %>% rename(item_id = definition)
-coefs$`English (British)` <- coefs$`English (British)` %>% rename(item_id = definition)
 
+for(lang in names(coefs)) {
+  if("definition" %in% names(coefs[[lang]])) {
+    if(grepl("item_", coefs[[lang]]$definition[1])) {
+      coefs[[lang]] <- coefs[[lang]] %>% rename(item_id = definition)
+    }
+  } 
+}
 
 xldf <- join_lang_coefs(languages, coefs) 
 save(xldf, file="data/xling-WGprod-IRTparms.Rdata")
