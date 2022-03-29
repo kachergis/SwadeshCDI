@@ -12,23 +12,15 @@ require(tidyverse)
 require(ggpubr)
 load("data/multiling_2pl_WG_comp_fits.Rdata")
 
-<<<<<<< Updated upstream
-languages = c("Croatian","Danish","English (American)","Korean","Spanish (Mexican)",
-              "Italian","Mandarin (Taiwanese)","French (French)", 
-              "Latvian", "Norwegian", "French (Quebecois)", "Hebrew", # hebrew cause probs?
-              "Slovak", "Spanish (European)", "Russian", "Turkish", "English (British)",
-              "Portuguese (European)") # "Kigiriama" "British Sign Language"
 
-setdiff(names(coefs), languages)
-=======
 #languages = c("Croatian","Danish","English (American)","Korean","Spanish (Mexican)",
 #              "Italian","Mandarin (Taiwanese)","French (French)", 
-#              "Latvian", "Norwegian", "French (Quebecois)", "Hebrew",
-#              "Slovak", "Spanish (European)", "Russian", "Turkish", "English (British)") 
+#              "Latvian", "Norwegian", "French (Quebecois)", "Hebrew", # hebrew cause probs?
+#              "Slovak", "Spanish (European)", "Russian", "Turkish", "English (British)",
+#              "Portuguese (European)") # "Kigiriama" "British Sign Language"
 
 languages = setdiff(names(coefs), c("Kigiriama"))
 
->>>>>>> Stashed changes
 
 join_lang_coefs <- function(languages, coefs) {
   xldf <- tibble()
