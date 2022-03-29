@@ -12,6 +12,7 @@ require(tidyverse)
 require(ggpubr)
 load("data/multiling_2pl_WG_comp_fits.Rdata")
 
+<<<<<<< Updated upstream
 languages = c("Croatian","Danish","English (American)","Korean","Spanish (Mexican)",
               "Italian","Mandarin (Taiwanese)","French (French)", 
               "Latvian", "Norwegian", "French (Quebecois)", "Hebrew", # hebrew cause probs?
@@ -19,6 +20,15 @@ languages = c("Croatian","Danish","English (American)","Korean","Spanish (Mexica
               "Portuguese (European)") # "Kigiriama" "British Sign Language"
 
 setdiff(names(coefs), languages)
+=======
+#languages = c("Croatian","Danish","English (American)","Korean","Spanish (Mexican)",
+#              "Italian","Mandarin (Taiwanese)","French (French)", 
+#              "Latvian", "Norwegian", "French (Quebecois)", "Hebrew",
+#              "Slovak", "Spanish (European)", "Russian", "Turkish", "English (British)") 
+
+languages = setdiff(names(coefs), c("Kigiriama"))
+
+>>>>>>> Stashed changes
 
 join_lang_coefs <- function(languages, coefs) {
   xldf <- tibble()
@@ -34,22 +44,34 @@ join_lang_coefs <- function(languages, coefs) {
 
 Our goal is to look at IRT parameters across a diverse set of languages and find a subset of uni-lemmas that are somewhat similar in their difficulty.
 We'll start with 2PL fits to WG data (comprehension and production separately) for `r length(languages)` languages: `r languages`.
-(Although 2 of these don't yet have uni-lemmas coded, but I'm working on that.)
 
 ## WG Comprehension
 
 ```{r, echo=F, message=F, eval=F}
+# Spanish (Mexican) has item_id column with definitions...
+# others (e.g. Kigiriama) have definition column with item_ids (e.g., item_1)
+
 for(lang in names(coefs)) {
   if("definition" %in% names(coefs[[lang]])) {
     if(grepl("item_", coefs[[lang]]$definition[1])) {
       coefs[[lang]] <- coefs[[lang]] %>% rename(item_id = definition)
+      print(paste(lang, "- renamed definition to item_id"))
+    } 
+  } else if("item_id" %in% names(coefs[[lang]])) {
+    if(! grepl("item_", coefs[[lang]]$item_id[1])) {
+      coefs[[lang]] <- coefs[[lang]] %>% rename(definition = item_id)
+      print(paste(lang, "- renamed item_id to definition"))
     }
-  } 
+  }
 }
 
 
 xldf <- join_lang_coefs(languages, coefs) 
-
+#  "Kigiriama - renamed definition to item_id"
+# "Spanish (Mexican) - renamed item_id to definition" (why was this one messed up?)
+# "English (British) - renamed definition to item_id"
+# "Hebrew - renamed definition to item_id"
+# "Portuguese (European) - renamed definition to item_id"
 save(xldf, file="data/xling-WGcomp-IRTparms.Rdata")
 ```
 
@@ -89,7 +111,7 @@ for(l1 in languages) {
                                              "N" = nrow(tmp)))
   }
 }
-
+# Column `Spanish (Mexican)` doesn't exist. ???
 require(gplots)
 library(RColorBrewer)
 Colors = brewer.pal(11,"Spectral")
@@ -148,8 +170,8 @@ comp_pars <-
   slice(1) %>% 
   pivot_wider(names_from = language, values_from = d)
 
-comp_pars$sd = apply(comp_pars[,4:19], 1, sd, na.rm=T)
-comp_pars$numNAs = apply(comp_pars[,4:19], 1, function(x) { sum(is.na(x)) })
+comp_pars$sd = apply(comp_pars[,4:ncol(comp_pars)], 1, sd, na.rm=T)
+comp_pars$numNAs = apply(comp_pars[,4:ncol(comp_pars)], 1, function(x) { sum(is.na(x)) })
 
 med_d = median(comp_pars$sd, na.rm=T) # 1.07
 sd_d = sd(comp_pars$sd, na.rm=T) # .44
@@ -177,7 +199,9 @@ The median SD is `r round(med_d, 2)` (SD=`r round(sd_d, 2)`), so we consider the
 These items are shown below, sorted by number of languages from which the unilemma is missing.
 
 ```{r, echo=F}
-kableExtra::kable(good_comp, digits=2)
+#kableExtra::kable(good_comp, digits=2)
+good_comp %>% DT::datatable() %>%
+  DT::formatRound(columns=4:24, digits=3)
 ```
 
 
@@ -194,10 +218,27 @@ for(lang in names(coefs)) {
   if("definition" %in% names(coefs[[lang]])) {
     if(grepl("item_", coefs[[lang]]$definition[1])) {
       coefs[[lang]] <- coefs[[lang]] %>% rename(item_id = definition)
+      print(paste(lang, "- renamed definition to item_id"))
+    } 
+  } else if("item_id" %in% names(coefs[[lang]])) {
+    if(! grepl("item_", coefs[[lang]]$item_id[1])) {
+      coefs[[lang]] <- coefs[[lang]] %>% rename(definition = item_id)
+      print(paste(lang, "- renamed item_id to definition"))
     }
-  } 
+  }
 }
-
+# "Korean - renamed definition to item_id"
+# "Spanish (Mexican) - renamed definition to item_id"
+# "French (French) - renamed definition to item_id"
+# "Latvian - renamed definition to item_id"
+# "Hebrew - renamed definition to item_id"
+# "Slovak - renamed definition to item_id"
+# "Spanish (European) - renamed definition to item_id"
+# "Kigiriama - renamed definition to item_id"
+# "Kiswahili - renamed definition to item_id"
+# "Mandarin (Beijing) - renamed definition to item_id"
+# "Portuguese (European) - renamed definition to item_id"
+# "English (British) - renamed definition to item_id"
 xldf <- join_lang_coefs(languages, coefs) 
 save(xldf, file="data/xling-WGprod-IRTparms.Rdata")
 ```
@@ -324,7 +365,9 @@ The median SD is `r round(med_d, 2)` (SD=`r round(sd_d, 2)`), so we consider the
 These items are shown below, sorted by number of languages from which the unilemma is missing.
 
 ```{r, echo=F}
-kableExtra::kable(good_prod, digits=2)
+#kableExtra::kable(good_prod, digits=2)
+good_prod %>% DT::datatable() %>%
+  DT::formatRound(columns=4:24, digits=3)
 ```
 
 ## Overview of Cross-linguistic Comprehension and Production Difficulties by Category

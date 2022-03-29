@@ -11,10 +11,6 @@ require(mirt)
 require(tidyverse)
 require(ggpubr)
 
-languages = c("Croatian","Danish","English (American)","Korean","Spanish (Mexican)",
-              "Italian","Mandarin (Taiwanese)","French (French)", 
-              "Korean", "Latvian", "Hebrew", "Norwegian", "French (Quebecois)",
-              "Slovak", "Spanish (European)", "Russian", "Turkish") 
 ```
 
 We want to compare the IRT-estimated ability vs. age plots for each language model to make sure that nothing is funky with the fits.
@@ -22,13 +18,15 @@ We want to compare the IRT-estimated ability vs. age plots for each language mod
 
 ```{r comprehension, echo=F, eval=F}
 load("data/multiling_2pl_WG_comp_fits.Rdata")
+languages = setdiff(names(coefs), c("Kigiriama", "French (French)"))
 all_demo <- tibble()
 for(language in languages) {
   load(paste("data/",language,"_WG_data.Rdata", sep=''))
   # sometimes a mismatch between # of subjects in d_demo and d_comp !
   # e.g., English d_comp = 2454 rows, d_demo = 2435 rows (does d_comp have a few longitudinal?)
   # length(intersect(rownames(d_comp), d_demo$data_id))
-  d_comp <- d_comp[which(rowSums(d_comp, na.rm=T)!=0),]
+  d_comp <- d_comp[which(rowSums(d_comp, na.rm=T)!=0 & 
+                           rowSums(d_comp, na.rm=T)!=nrow(d_comp)),]
   thetas <- tibble(data_id = as.numeric(rownames(d_comp)), 
                    comp_ability = fscores(models[[language]], method="MAP", 
                           response.pattern = d_comp,
@@ -36,7 +34,8 @@ for(language in languages) {
   all_demo <- bind_rows(all_demo, d_demo %>% left_join(thetas))
   if(!models[[language]]@OptimInfo$converged) print(paste(language,"not converged!"))
 }
-
+# problem with French (French): maybe because d_comp columns are item_id ?
+# or because of a few near-ceiling/-floor participants?
 ```
 
 

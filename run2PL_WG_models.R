@@ -91,11 +91,12 @@ langs_different_forms = c("English (British)", "Mandarin (Beijing)", "American S
 
 # do real-data simulations of CATs for each language
 
-languages = c("Kigiriama", "English (British)", "British Sign Language",
+languages = c("Kigiriama",  "British Sign Language",
               "Croatian","Danish","English (American)","Korean","Spanish (Mexican)",
               "Italian","Mandarin (Taiwanese)","French (French)", 
               "Korean", "Latvian", "Hebrew", "Norwegian", "French (Quebecois)",
-              "Slovak", "Spanish (European)", "Russian", "Turkish", "Portuguese (European)") 
+              "Slovak", "Spanish (European)", "Spanish (Mexican)",
+              "Russian", "Turkish", "Portuguese (European)") 
 
 for(lang in languages) {
   get_wg_data(lang)
@@ -103,9 +104,10 @@ for(lang in languages) {
 
 
 langs_new_unilemmas <- c("Spanish (European)", "Mandarin (Taiwanese)", "Mandarin (Beijing)",
-                         "Korean", "Latvian") # ToDo: Portuguese (European)
-unilemma_files = c("[Spanish_European_WG].csv", "[Mandarin_Taiwanese_WG].csv", "[Mandarin_Beijing_IC].csv",
-                   "[Korean_WG].csv", "[Latvian_WG].csv")
+                         "Korean", "Latvian", "Portuguese (European)") # ToDo: Portuguese (European)
+unilemma_files = c("[Spanish_European_WG].csv", "[Mandarin_Taiwanese_WG].csv", 
+                   "[Mandarin_Beijing_IC].csv", "[Korean_WG].csv", 
+                   "[Latvian_WG].csv", "[Portuguese_European_WG].csv")
 
 add_new_unilemmas <- function(language, unilemma_file) {
   load(paste("data/",language,"_WG_data.Rdata", sep=''))
@@ -123,6 +125,9 @@ for(i in 1:length(langs_new_unilemmas)) {
   add_new_unilemmas(langs_new_unilemmas[i], unilemma_files[i])
 }
 
+# warnings:
+#1: In load(paste("data/", language, "_WG_data.Rdata", sep = "")) :
+#  input string '面包' cannot be translated to UTF-8, is it valid in 'CP1252'?
 
 #models = list()
 #coefs = list()
