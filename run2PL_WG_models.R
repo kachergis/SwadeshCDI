@@ -59,10 +59,10 @@ get_wg_data <- function(language, save=T, form="WG") {
   d_comp <- d_comp %>% data.matrix
   
   # only swap in definition as colnames if they are unique
-  if(length(unique(items$definition))==length(items$definition)) {
-    colnames(d_comp) = items$definition
-    colnames(d_prod) = items$definition
-  }
+  #if(length(unique(items$definition))==length(items$definition)) {
+  #  colnames(d_comp) = items$definition
+  #  colnames(d_prod) = items$definition
+  #}
   
   d_comp <- d_prod + d_comp # anything you produce, you also comprehend
   
@@ -92,7 +92,7 @@ langs_different_forms = c("English (British)", "Mandarin (Beijing)", "American S
 # do real-data simulations of CATs for each language
 
 languages = c("Kigiriama",  "British Sign Language",
-              "Croatian","Danish","English (American)","Korean","Spanish (Mexican)",
+              "Croatian","Danish","English (American)",
               "Italian","Mandarin (Taiwanese)","French (French)", 
               "Korean", "Latvian", "Hebrew", "Norwegian", "French (Quebecois)",
               "Slovak", "Spanish (European)", "Spanish (Mexican)",
@@ -104,7 +104,7 @@ for(lang in languages) {
 
 
 langs_new_unilemmas <- c("Spanish (European)", "Mandarin (Taiwanese)", "Mandarin (Beijing)",
-                         "Korean", "Latvian", "Portuguese (European)") # ToDo: Portuguese (European)
+                         "Korean", "Latvian", "Portuguese (European)") 
 unilemma_files = c("[Spanish_European_WG].csv", "[Mandarin_Taiwanese_WG].csv", 
                    "[Mandarin_Beijing_IC].csv", "[Korean_WG].csv", 
                    "[Latvian_WG].csv", "[Portuguese_European_WG].csv")
@@ -157,10 +157,10 @@ for(lang in languages) {
 }
 
 save(models, coefs, file="data/multiling_2pl_WG_comp_fits.Rdata")
-
+# "79 words with all 0 or 1 responses removed from French (French) comprehension" (a lot! look at these?)
 
 # fit WG production
-
+mirtCluster(4)
 #models = list()
 #coefs = list()
 load("data/multiling_2pl_WG_prod_fits.Rdata")
@@ -186,6 +186,7 @@ for(lang in languages) {
   }
 }
 
+# "16 words with all 0 responses removed from Croatian production"
 save(models, coefs, file="data/multiling_2pl_WG_prod_fits.Rdata")
 
 

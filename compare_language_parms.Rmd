@@ -22,6 +22,7 @@ load("data/multiling_2pl_WG_comp_fits.Rdata")
 languages = setdiff(names(coefs), c("Kigiriama"))
 
 
+# old version: join is messed up because some unicode characters got converted (in mirt?) e.g. 'č' became 'c'
 join_lang_coefs <- function(languages, coefs) {
   xldf <- tibble()
   for(lang in languages) {
@@ -32,6 +33,27 @@ join_lang_coefs <- function(languages, coefs) {
   return(xldf)
 }
 
+# some unicode issue with the join: 
+# table(subset(xldf, is.na(d))$language)
+# 58 Croatian items, 79 French (French) items, 1 Hebrew, 2 Slovak, 103 Turkish..
+
+# maybe just re-do all with item_id in coefs?
+
+# ASSUMES SAME ORDER OF DEFINITIONS IN MIRT (should be true)
+bind_lang_coefs <- function(languages, coefs) {
+  xldf <- tibble()
+  for(lang in languages) {
+    load(paste("data/",lang,"_WG_data.Rdata", sep=''))
+    #ldat <- items %>% left_join(coefs[[lang]]) # either by "definition" or "item_id"
+    ldat <- items %>% distinct(item_id, definition, language, form, 
+                               type, category, lexical_class, uni_lemma) %>% 
+      bind_cols(coefs[[lang]] %>% select(a1, d))
+    xldf <- bind_rows(xldf, ldat)
+  }
+  return(xldf)
+}
+
+# Korean coefs[[lang]] = 284, 297 items
 ```
 
 Our goal is to look at IRT parameters across a diverse set of languages and find a subset of uni-lemmas that are somewhat similar in their difficulty.
@@ -64,6 +86,8 @@ xldf <- join_lang_coefs(languages, coefs)
 # "English (British) - renamed definition to item_id"
 # "Hebrew - renamed definition to item_id"
 # "Portuguese (European) - renamed definition to item_id"
+
+
 save(xldf, file="data/xling-WGcomp-IRTparms.Rdata")
 ```
 
