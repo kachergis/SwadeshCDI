@@ -166,7 +166,8 @@ mirtCluster(4)
 load("data/multiling_2pl_WG_prod_fits.Rdata")
 # production
 for(lang in languages) {
-  if(!is.element(lang, names(models))) { # skip if already fitted
+  #if(!is.element(lang, names(models))) { # skip if already fitted
+  if(1==1) {
     load(paste("data/",lang,"_WG_data.Rdata", sep=''))
     
     bad_words_prod = c(which(colSums(d_prod, na.rm=T) == 0), which(colSums(d_prod, na.rm=T) == nrow(d_prod)))
@@ -187,8 +188,9 @@ for(lang in languages) {
 }
 
 # "16 words with all 0 responses removed from Croatian production"
+# "486 words with all 0 responses removed from French (French) production" !!
 save(models, coefs, file="data/multiling_2pl_WG_prod_fits.Rdata")
-
+# re-did Croatian, Turkish, French (French), Slovak, Hebrew
 
 # combine comprehension (1) and production (2) data and
 # fit generalized partial credit model

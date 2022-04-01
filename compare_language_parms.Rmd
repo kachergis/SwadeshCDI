@@ -10,6 +10,8 @@ knitr::opts_chunk$set(echo = TRUE)
 require(mirt)
 require(tidyverse)
 require(ggpubr)
+require(gplots)
+library(RColorBrewer)
 load("data/multiling_2pl_WG_comp_fits.Rdata")
 
 
@@ -87,6 +89,8 @@ xldf <- join_lang_coefs(languages, coefs)
 # "Hebrew - renamed definition to item_id"
 # "Portuguese (European) - renamed definition to item_id"
 
+# subset(xldf, is.na(d))
+# only missing parameters for items that had all 0 or 1 responses in the data (85, most of em French)
 
 save(xldf, file="data/xling-WGcomp-IRTparms.Rdata")
 ```
@@ -127,9 +131,7 @@ for(l1 in languages) {
                                              "N" = nrow(tmp)))
   }
 }
-# Column `Spanish (Mexican)` doesn't exist. ???
-require(gplots)
-library(RColorBrewer)
+
 Colors = brewer.pal(11,"Spectral")
 diag(comp_cors) = NA
 #bad_lang = c("Mandarin (Taiwanese)")
