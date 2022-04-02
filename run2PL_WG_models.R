@@ -221,3 +221,4 @@ for(lang in languages) {
 }
 
 save(models, coefs, file="data/multiling_2pl_WG_comp_prod_gpcm_fits.Rdata")
+# re-did Norwegian, Croatian, French (French)
