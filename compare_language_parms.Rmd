@@ -166,8 +166,8 @@ pars <- xldf %>% filter(!is.na(uni_lemma), !is.na(d))
 
 ul <- sort(table(pars$uni_lemma))
 
-long_list = ul[which(ul>1)] # 679
-short_list = ul[which(ul>5)] # 412
+long_list = ul[which(ul>1)] # 723
+short_list = ul[which(ul>5)] # 444
 
 tab <- table(pars$language)
 kableExtra::kable(tab, col.names=c("Language","Items"))
@@ -245,19 +245,9 @@ for(lang in names(coefs)) {
     }
   }
 }
-# "Korean - renamed definition to item_id"
-# "Spanish (Mexican) - renamed definition to item_id"
-# "French (French) - renamed definition to item_id"
-# "Latvian - renamed definition to item_id"
-# "Hebrew - renamed definition to item_id"
-# "Slovak - renamed definition to item_id"
-# "Spanish (European) - renamed definition to item_id"
-# "Kigiriama - renamed definition to item_id"
-# "Kiswahili - renamed definition to item_id"
-# "Mandarin (Beijing) - renamed definition to item_id"
-# "Portuguese (European) - renamed definition to item_id"
-# "English (British) - renamed definition to item_id"
-xldf <- join_lang_coefs(languages, coefs) 
+
+xldf <- join_lang_coefs(names(coefs), coefs) 
+# table(subset(xldf, is.na(d))$language) # lots of missing parameters, but esp. French
 save(xldf, file="data/xling-WGprod-IRTparms.Rdata")
 ```
 
@@ -273,6 +263,9 @@ xldf %>% ggplot( aes(x=d, fill=language)) +
 ## Cross-linguistic similarities
 
 ```{r, echo=F, fig.width=8, fig.height=8}
+# remove/fix French (French)
+languages = setdiff(names(coefs), c("French (French)", "Kigiriama"))
+
 prod_cors <- matrix(0, nrow=length(languages), ncol=length(languages))
 prod_sims <- tibble()
 colnames(prod_cors) = languages
@@ -331,8 +324,8 @@ pars <- xldf %>% filter(!is.na(uni_lemma), !is.na(d))
 
 ul <- sort(table(pars$uni_lemma))
 
-long_list = ul[which(ul>1)] 
-short_list = ul[which(ul>5)] 
+long_list = ul[which(ul>1)] # 701
+short_list = ul[which(ul>5)] # 428
 
 tab <- table(pars$language)
 kableExtra::kable(tab, col.names=c("Language","Items"))
@@ -355,8 +348,8 @@ prod_pars$sd = apply(prod_pars[,4:19], 1, sd, na.rm=T)
 prod_pars$numNAs = apply(prod_pars[,4:19], 1, function(x) { sum(is.na(x)) })
 
 
-med_d = median(prod_pars$sd, na.rm=T) # 2.33
-sd_d = sd(prod_pars$sd, na.rm=T) # .83
+med_d = median(prod_pars$sd, na.rm=T) # 2.25
+sd_d = sd(prod_pars$sd, na.rm=T) # .81
 
 prod_pars %>% ggplot(aes(x=jitter(numNAs), y=sd, color=lexical_class)) + 
   geom_point(alpha=.7) + theme_classic() + 
