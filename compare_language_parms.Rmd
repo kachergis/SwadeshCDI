@@ -253,6 +253,21 @@ save(xldf, file="data/xling-WGprod-IRTparms.Rdata")
 
 ```{r, echo=F}
 load("data/xling-WGprod-IRTparms.Rdata")
+
+# Virginia: "this", "that" vs. others - demonstratives are supposedly earlier learned
+demons <- xldf %>% filter(!is.na(d)) %>%
+  #filter(lexical_class=="function_words") %>%
+  mutate(demonstrative = ifelse(uni_lemma=="this", "this", ifelse(uni_lemma=="that", "that", "non-demon"))) %>%
+  filter(!is.na(demonstrative)) %>%
+  group_by(language, demonstrative) %>%
+  summarise(difficulty = -mean(d)) %>%
+  group_by(demonstrative) %>%
+  tidyboot::tidyboot_mean(difficulty)
+
+#demons %>% ggplot(aes(x=demonstrative, y=mean)) + 
+#  geom_linerange(aes(ymin=ci_lower, ymax=ci_upper)) + geom_point() +
+#  theme_classic() + ylab("Mean difficulty") + ggtitle("all words")
+
 #table(xldf$language)
 xldf %>% ggplot( aes(x=d, fill=language)) +
     geom_histogram(alpha=0.6, position = 'identity') +
