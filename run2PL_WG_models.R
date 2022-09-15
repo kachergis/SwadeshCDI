@@ -17,14 +17,15 @@ get_wg_data <- function(language, save=T, form="WG") {
     get_administration_data(language = language, form = form) 
   
   items <- get_item_data(language = language, form=form) %>%
-    filter(type=="word")
+    filter(item_kind=="word") # wordbankr update: 'type' now 'item_kind'
   
   d_long_wg <- get_instrument_data(language = language, form = form) %>% # 418 items
-    left_join(items %>% select(-complexity_category), by="num_item_id") %>%
-    filter(type=="word")
+    left_join(items %>% select(-complexity_category), by="item_id") %>%
+    filter(item_kind=="word") # wordbankr update: 'num_item_id' now 'item_id'
   
   if(!"" %in% unique(d_long_wg$value)) print(paste("No blank responses in",language,"-- replace NAs with ''?"))
   
+  # ToDo: are Danish and Norwegian missing values fixed?
   if(language=="Danish" | language=="Norwegian") {
     d_long_wg <- d_long_wg %>% mutate(value = replace_na(value, ""))
   }
@@ -84,30 +85,30 @@ get_wg_data("American Sign Language", form="FormBTwo") # 20 subjects
 langs_different_forms = c("English (British)", "Mandarin (Beijing)", "American Sign Language")
 
 # should we try adding WS data from languages with no WG data? e.g., German
-#get_wg_data("German", form="WS")
+#get_wg_data("German", form="WS") # 1181 Ss
 
 # generalization test: try using proposed short lists on Portuguese 
 # ToDo: code uni_lemmas for short list
 
 # do real-data simulations of CATs for each language
 
-languages = c("Kigiriama",  "British Sign Language",
+languages = c("Kigiriama", "Kiswahili", "British Sign Language",
               "Croatian","Danish","English (American)",
               "Italian","Mandarin (Taiwanese)","French (French)", 
               "Korean", "Latvian", "Hebrew", "Norwegian", "French (Quebecois)",
-              "Slovak", "Spanish (European)", "Spanish (Mexican)",
+              "Slovak", "Spanish (European)", "Spanish (Mexican)", "Swedish",
               "Russian", "Turkish", "Portuguese (European)") 
 
 for(lang in languages) {
   get_wg_data(lang)
 }
 
-
-langs_new_unilemmas <- c("Spanish (European)", "Mandarin (Taiwanese)", "Mandarin (Beijing)",
-                         "Korean", "Latvian", "Portuguese (European)") 
-unilemma_files = c("[Spanish_European_WG].csv", "[Mandarin_Taiwanese_WG].csv", 
-                   "[Mandarin_Beijing_IC].csv", "[Korean_WG].csv", 
-                   "[Latvian_WG].csv", "[Portuguese_European_WG].csv")
+# no longer need to add uni-lemmas, as they are all included in wordbank 2.0!
+#langs_new_unilemmas <- c("Spanish (European)", "Mandarin (Taiwanese)", "Mandarin (Beijing)",
+#                         "Korean", "Latvian", "Portuguese (European)") 
+#unilemma_files = c("[Spanish_European_WG].csv", "[Mandarin_Taiwanese_WG].csv", 
+#                   "[Mandarin_Beijing_IC].csv", "[Korean_WG].csv", 
+#                   "[Latvian_WG].csv", "[Portuguese_European_WG].csv")
 
 add_new_unilemmas <- function(language, unilemma_file) {
   load(paste("data/",language,"_WG_data.Rdata", sep=''))
@@ -121,9 +122,9 @@ add_new_unilemmas <- function(language, unilemma_file) {
        file=paste("data/",language,"_WG_data.Rdata", sep=''))
 }
 
-for(i in 1:length(langs_new_unilemmas)) {
-  add_new_unilemmas(langs_new_unilemmas[i], unilemma_files[i])
-}
+#for(i in 1:length(langs_new_unilemmas)) {
+#  add_new_unilemmas(langs_new_unilemmas[i], unilemma_files[i])
+#}
 
 # warnings:
 #1: In load(paste("data/", language, "_WG_data.Rdata", sep = "")) :
