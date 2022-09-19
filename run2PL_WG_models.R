@@ -204,12 +204,13 @@ for(lang in languages) {
                         technical=list(NCYCLES=3000, removeEmptyRows=TRUE)) 
     coefs[[lang]] <- as_tibble(coef(models[[lang]], simplify = TRUE)$items) %>%
       mutate(definition = rownames(coef(models[[lang]], simplify = TRUE)$items))
+    save(models, coefs, file="data/multiling_2pl_WG_prod_fits.Rdata")
   }
 }
 
 # "16 words with all 0 responses removed from Croatian production"
 # "486 words with all 0 responses removed from French (French) production" !!
-save(models, coefs, file="data/multiling_2pl_WG_prod_fits.Rdata")
+
 # re-did Croatian, Turkish, French (French), Slovak, Hebrew
 
 # combine comprehension (1) and production (2) data and
