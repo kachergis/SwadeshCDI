@@ -136,6 +136,7 @@ load("data/multiling_2pl_WG_comp_fits.Rdata")
 
 # Norwegian did not converge after 2000 cycles
 # do comprehension first
+mirtCluster()
 for(lang in languages) {
   if(!is.element(lang, names(models))) { # skip if already fitted
     load(paste("data/",lang,"_WG_data.Rdata", sep=''))
@@ -154,10 +155,16 @@ for(lang in languages) {
                         technical=list(NCYCLES=3000, removeEmptyRows=TRUE)) 
     coefs[[lang]] <- as_tibble(coef(models[[lang]], simplify = TRUE)$items) %>%
       mutate(definition = rownames(coef(models[[lang]], simplify = TRUE)$items))
+    save(models, coefs, file="data/multiling_2pl_WG_comp_fits.Rdata")
   }
 }
 
-save(models, coefs, file="data/multiling_2pl_WG_comp_fits.Rdata")
+# problem with Swedish..
+#"Fitting 474 subjects and 385 words in Swedish"
+#Error: The following items have only one response 
+#category and cannot be estimated: item_1 item_2 item_3 item_4 item_5 item_6 item_7
+#... item_113
+
 # "79 words with all 0 or 1 responses removed from French (French) comprehension" (a lot! look at these?)
 
 # fit WG production
@@ -218,8 +225,9 @@ for(lang in languages) {
                           technical=list(NCYCLES=3000, removeEmptyRows=TRUE)) 
     coefs[[lang]] <- as_tibble(coef(models[[lang]], simplify = TRUE)$items) %>%
       mutate(definition = rownames(coef(models[[lang]], simplify = TRUE)$items))
+    save(models, coefs, file="data/multiling_2pl_WG_comp_prod_gpcm_fits.Rdata")
   }
 }
 
-save(models, coefs, file="data/multiling_2pl_WG_comp_prod_gpcm_fits.Rdata")
+
 # re-did Norwegian, Croatian, French (French), Turkish, Slovak, Hebrew
