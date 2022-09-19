@@ -97,10 +97,23 @@ languages = c("Kigiriama", "Kiswahili", "British Sign Language",
               "Italian","Mandarin (Taiwanese)","French (French)", 
               "Korean", "Latvian", "Hebrew", "Norwegian", "French (Quebecois)",
               "Slovak", "Spanish (European)", "Spanish (Mexican)", "Swedish",
-              "Russian", "Turkish", "Portuguese (European)") 
+              "Russian", "Turkish", "Portuguese (European)", 
+              "Dutch", "Spanish (Chilean)", "Persian") # last 3 are new in WB2
+
+# other languages in WB -- see how many Ss we have, run/maybe pick for generalization tests!
+other_wg_languages = unique(setdiff(subset(instr, form=="WG")$language, languages))
 
 for(lang in languages) {
   get_wg_data(lang)
+}
+
+# no WG: Cantonese
+for(lang in other_wg_languages) {
+  tryCatch(get_wg_data(lang), 
+            error=function(e) {
+              message(lang)
+              message(e)
+            })
 }
 
 # no longer need to add uni-lemmas, as they are all included in wordbank 2.0!
@@ -174,8 +187,7 @@ mirtCluster(4)
 load("data/multiling_2pl_WG_prod_fits.Rdata")
 # production
 for(lang in languages) {
-  #if(!is.element(lang, names(models))) { # skip if already fitted
-  if(1==1) {
+  if(!is.element(lang, names(models))) { # skip if already fitted
     load(paste("data/",lang,"_WG_data.Rdata", sep=''))
     
     bad_words_prod = c(which(colSums(d_prod, na.rm=T) == 0), which(colSums(d_prod, na.rm=T) == nrow(d_prod)))
