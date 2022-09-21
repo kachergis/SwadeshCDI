@@ -95,6 +95,7 @@ languages = c("Kigiriama", "Kiswahili", "British Sign Language",
               "Slovak", "Spanish (European)", "Spanish (Mexican)", "Swedish",
               "Russian", "Turkish", "Portuguese (European)", 
               "Dutch", "Spanish (Chilean)", "Persian") # last 3 are new in WB2
+# 24 langs here, but have 29 downloaded in WG folder
 
 # get_wg_data("Spanish (Chilean)")
 # "No blank responses in Spanish (Chilean) -- replace NAs with ''?"
@@ -123,7 +124,7 @@ load("data/multiling_2pl_WG_comp_fits.Rdata")
 mirtCluster()
 for(lang in languages) {
   if(!is.element(lang, names(models))) { # skip if already fitted
-    load(paste("data/",lang,"_WG_data.Rdata", sep=''))
+    load(paste("data/WG/",lang,"_WG_data.Rdata", sep=''))
     
     bad_words_comp = c(which(colSums(d_comp, na.rm=T) == 0), which(colSums(d_comp, na.rm=T) == nrow(d_comp)))
     print(paste(length(bad_words_comp),"words with all 0 or 1 responses removed from",lang,"comprehension"))
@@ -159,7 +160,7 @@ load("data/multiling_2pl_WG_prod_fits.Rdata")
 # production
 for(lang in languages) {
   if(!is.element(lang, names(models))) { # skip if already fitted
-    load(paste("data/",lang,"_WG_data.Rdata", sep=''))
+    load(paste("data/WG/",lang,"_WG_data.Rdata", sep=''))
     
     bad_words_prod = c(which(colSums(d_prod, na.rm=T) == 0), which(colSums(d_prod, na.rm=T) == nrow(d_prod)))
     print(paste(length(bad_words_prod),"words with all 0 responses removed from",lang,"production"))
@@ -178,7 +179,7 @@ for(lang in languages) {
     save(models, coefs, file="data/multiling_2pl_WG_prod_fits.Rdata")
   }
 }
-# WB2 fits completed, but some models not fully converged after 3000 iterations
+# WB2 fits for 24 languages completed, but some models not fully converged after 3000 iterations
 
 # combine comprehension (1) and production (2) data and
 # fit generalized partial credit model
@@ -188,7 +189,7 @@ load("data/multiling_2pl_WG_comp_prod_gpcm_fits.Rdata")
 # https://rstudio-pubs-static.s3.amazonaws.com/357155_6674780326ef4afba5f009d17a85d4ae.html
 for(lang in languages) {
   if(!is.element(lang, names(models))) { # skip if already fitted
-    load(paste("data/",lang,"_WG_data.Rdata", sep=''))
+    load(paste("data/WG/",lang,"_WG_data.Rdata", sep=''))
     d_cp = d_prod + d_comp
     
     bad_words = c(which(colSums(d_cp, na.rm=T) == 0), which(colSums(d_cp, na.rm=T) == nrow(d_cp)))
@@ -209,5 +210,3 @@ for(lang in languages) {
   }
 }
 
-
-# re-did Norwegian, Croatian, French (French), Turkish, Slovak, Hebrew
