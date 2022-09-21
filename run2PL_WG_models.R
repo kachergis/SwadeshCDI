@@ -59,12 +59,6 @@ get_wg_data <- function(language, save=T, form="WG") {
   d_comp$data_id = NULL
   d_comp <- d_comp %>% data.matrix
   
-  # only swap in definition as colnames if they are unique
-  #if(length(unique(items$definition))==length(items$definition)) {
-  #  colnames(d_comp) = items$definition
-  #  colnames(d_prod) = items$definition
-  #}
-  
   d_comp <- d_prod + d_comp # anything you produce, you also comprehend
   
   if(save) save(d_demo, items, d_long_wg, d_prod, d_comp,
@@ -74,6 +68,8 @@ get_wg_data <- function(language, save=T, form="WG") {
 
 get_wg_data("English (British)", form="Oxford CDI")
 get_wg_data("Mandarin (Beijing)", form="IC")
+
+# get_wg_data("Cantonese") # nrow(instruments) not greater than 0
 
 # not many ASL subjects, but how much do the forms overlap? can we combine..?
 #get_wg_data("American Sign Language", form="FormA") # 6 subjects..
@@ -100,15 +96,12 @@ languages = c("Kigiriama", "Kiswahili", "British Sign Language",
               "Russian", "Turkish", "Portuguese (European)", 
               "Dutch", "Spanish (Chilean)", "Persian") # last 3 are new in WB2
 
-# other languages in WB -- see how many Ss we have, run/maybe pick for generalization tests!
-other_wg_languages = unique(setdiff(subset(instr, form=="WG")$language, languages))
-
-for(lang in languages) {
-  get_wg_data(lang)
-}
+# get_wg_data("Spanish (Chilean)")
+# "No blank responses in Spanish (Chilean) -- replace NAs with ''?"
+# "retrieved data for 74 Spanish (Chilean) participants"
 
 # no WG: Cantonese
-for(lang in other_wg_languages) {
+for(lang in languages) {
   tryCatch(get_wg_data(lang), 
             error=function(e) {
               message(lang)
@@ -116,28 +109,6 @@ for(lang in other_wg_languages) {
             })
 }
 
-# no longer need to add uni-lemmas, as they are all included in wordbank 2.0!
-#langs_new_unilemmas <- c("Spanish (European)", "Mandarin (Taiwanese)", "Mandarin (Beijing)",
-#                         "Korean", "Latvian", "Portuguese (European)") 
-#unilemma_files = c("[Spanish_European_WG].csv", "[Mandarin_Taiwanese_WG].csv", 
-#                   "[Mandarin_Beijing_IC].csv", "[Korean_WG].csv", 
-#                   "[Latvian_WG].csv", "[Portuguese_European_WG].csv")
-
-add_new_unilemmas <- function(language, unilemma_file) {
-  load(paste("data/",language,"_WG_data.Rdata", sep=''))
-  # load item table with newly-coded uni_lemma
-  its_uni <- read_csv(paste0("updated_unilemmas/",unilemma_file))
-  items <- items %>% select(-uni_lemma) %>% 
-    left_join(its_uni %>% select(definition, uni_lemma))
-  d_long_wg <- d_long_wg %>% select(-uni_lemma) %>%
-    left_join(its_uni %>% select(definition, uni_lemma))
-  save(d_demo, items, d_long_wg, d_prod, d_comp,
-       file=paste("data/",language,"_WG_data.Rdata", sep=''))
-}
-
-#for(i in 1:length(langs_new_unilemmas)) {
-#  add_new_unilemmas(langs_new_unilemmas[i], unilemma_files[i])
-#}
 
 # warnings:
 #1: In load(paste("data/", language, "_WG_data.Rdata", sep = "")) :
@@ -181,7 +152,7 @@ for(lang in languages) {
 # "79 words with all 0 or 1 responses removed from French (French) comprehension" (a lot! look at these?)
 
 # fit WG production
-mirtCluster(4)
+mirtCluster()
 #models = list()
 #coefs = list()
 load("data/multiling_2pl_WG_prod_fits.Rdata")
@@ -207,11 +178,7 @@ for(lang in languages) {
     save(models, coefs, file="data/multiling_2pl_WG_prod_fits.Rdata")
   }
 }
-
-# "16 words with all 0 responses removed from Croatian production"
-# "486 words with all 0 responses removed from French (French) production" !!
-
-# re-did Croatian, Turkish, French (French), Slovak, Hebrew
+# WB2 fits completed, but some models not fully converged after 3000 iterations
 
 # combine comprehension (1) and production (2) data and
 # fit generalized partial credit model
