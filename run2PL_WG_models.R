@@ -1,119 +1,18 @@
 # generic functions to 
 # 1) grab 
 
-library(wordbankr)
+#library(wordbankr)
 library(tidyverse)
 library(mirt)
 
-instr <- wordbankr::get_instruments() %>% 
-  #filter(form=="WG") %>%
-  arrange(desc(unilemma_coverage))
-  
-
-# MB@home: wide age range, diff items for different age ranges?
-
-get_wg_data <- function(language, save=T, form="WG") {
-  d_demo <- 
-    get_administration_data(language = language, form = form) 
-  
-  items <- get_item_data(language = language, form=form) %>%
-    filter(item_kind=="word") # wordbankr update: 'type' now 'item_kind'
-  
-  d_long_wg <- get_instrument_data(language = language, form = form) %>% # 418 items
-    left_join(items %>% select(-complexity_category), by="item_id") %>%
-    filter(item_kind=="word") # wordbankr update: 'num_item_id' now 'item_id'
-  
-  if(!"" %in% unique(d_long_wg$value)) print(paste("No blank responses in",language,"-- replace NAs with ''?"))
-  
-  # ToDo: are Danish and Norwegian missing values fixed?
-  if(language=="Danish" | language=="Norwegian") {
-    d_long_wg <- d_long_wg %>% mutate(value = replace_na(value, ""))
-  }
-  
-  d_long_wg <- d_long_wg %>%
-    mutate(produces = as.numeric(value == "produces"),
-           comprehends = as.numeric(value == "understands"))
-  print(paste("retrieved data for",length(unique(d_long_wg$data_id)),language,"participants"))
-  #table(d_long_wg$value)
-  
-  # negative correlation (because if you produce, you don't understand and vice-versa?)
-  #d_long_wg %>% group_by(data_id) %>% 
-  #  summarise(produces = sum(produces, na.rm=T), comprehends = sum(comprehends, na.rm=T)) %>%
-  #  ggplot(aes(x=produces, y=comprehends)) + geom_point()
-  
-  d_prod <- d_long_wg %>% select(data_id, item_id, produces) %>%
-    pivot_wider(id_cols = data_id, names_from = item_id, 
-                values_from = produces) %>%
-    data.frame() 
-  
-  rownames(d_prod) = d_prod$data_id
-  d_prod$data_id = NULL
-  d_prod <- d_prod %>% data.matrix
-  
-  d_comp <- d_long_wg %>% select(data_id, item_id, comprehends) %>%
-    pivot_wider(id_cols = data_id, names_from = item_id, 
-                values_from = comprehends) %>%
-    data.frame()
-  
-  rownames(d_comp) = d_comp$data_id
-  d_comp$data_id = NULL
-  d_comp <- d_comp %>% data.matrix
-  
-  d_comp <- d_prod + d_comp # anything you produce, you also comprehend
-  
-  if(save) save(d_demo, items, d_long_wg, d_prod, d_comp,
-                file=paste("data/",language,"_WG_data.Rdata", sep=''))
-}
-
-
-get_wg_data("English (British)", form="Oxford CDI")
-get_wg_data("Mandarin (Beijing)", form="IC")
-
-# get_wg_data("Cantonese") # nrow(instruments) not greater than 0
-
-# not many ASL subjects, but how much do the forms overlap? can we combine..?
-#get_wg_data("American Sign Language", form="FormA") # 6 subjects..
-get_wg_data("American Sign Language", form="FormBTwo") # 20 subjects
-#get_wg_data("American Sign Language", form="FormBOne") # 19 subjects
-#get_wg_data("American Sign Language", form="FormC") # 18 subjects
-
-# add these to languages for IRT fits
-langs_different_forms = c("English (British)", "Mandarin (Beijing)", "American Sign Language")
-
-# should we try adding WS data from languages with no WG data? e.g., German
-#get_wg_data("German", form="WS") # 1181 Ss
-
-# generalization test: try using proposed short lists on Portuguese 
-# ToDo: code uni_lemmas for short list
-
-# do real-data simulations of CATs for each language
-
+# ToDo: rewrite to read whatever language data files are in data/WG
 languages = c("Kigiriama", "Kiswahili", "British Sign Language",
               "Croatian","Danish","English (American)",
               "Italian","Mandarin (Taiwanese)","French (French)", 
               "Korean", "Latvian", "Hebrew", "Norwegian", "French (Quebecois)",
               "Slovak", "Spanish (European)", "Spanish (Mexican)", "Swedish",
               "Russian", "Turkish", "Portuguese (European)", 
-              "Dutch", "Spanish (Chilean)", "Persian") # last 3 are new in WB2
-# 24 langs here, but have 29 downloaded in WG folder
-
-# get_wg_data("Spanish (Chilean)")
-# "No blank responses in Spanish (Chilean) -- replace NAs with ''?"
-# "retrieved data for 74 Spanish (Chilean) participants"
-
-# no WG: Cantonese
-for(lang in languages) {
-  tryCatch(get_wg_data(lang), 
-            error=function(e) {
-              message(lang)
-              message(e)
-            })
-}
-
-
-# warnings:
-#1: In load(paste("data/", language, "_WG_data.Rdata", sep = "")) :
-#  input string '面包' cannot be translated to UTF-8, is it valid in 'CP1252'?
+              "Dutch", "Spanish (Chilean)", "Persian")
 
 #models = list()
 #coefs = list()
@@ -210,3 +109,8 @@ for(lang in languages) {
   }
 }
 
+
+# what is this??
+# "3 words with all 0 or 1 responses removed from British Sign Language production"
+# "Fitting 161 subjects and 545 words in British Sign Language"
+# "item_72" re-mapped to ensure all categories have a distance of 1 ...
