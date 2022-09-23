@@ -48,6 +48,8 @@ for(lang in languages) {
 #Error: The following items have only one response 
 #category and cannot be estimated: item_1 item_2 item_3 item_4 item_5 item_6 item_7
 #... item_113
+# issue with Spanish (Chilean):
+# data contains response patterns with only NAs 
 
 # "79 words with all 0 or 1 responses removed from French (French) comprehension" (a lot! look at these?)
 
