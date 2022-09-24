@@ -67,8 +67,8 @@ get_wg_data <- function(language, save=T, form="WG") {
 }
 
 
-get_wg_data("English (British)", form="Oxford CDI")
-get_wg_data("Mandarin (Beijing)", form="IC")
+get_wg_data("English (British)", form="Oxford CDI") # 1515
+get_wg_data("Mandarin (Beijing)", form="IC") # 230
 
 # get_wg_data("Cantonese") # nrow(instruments) not greater than 0
 
@@ -80,9 +80,6 @@ get_wg_data("American Sign Language", form="FormBTwo") # 20 subjects
 
 # add these to languages for IRT fits
 langs_different_forms = c("English (British)", "Mandarin (Beijing)", "American Sign Language")
-
-# should we try adding WS data from languages with no WG data? e.g., German
-#get_wg_data("German", form="WS") # 1181 Ss
 
 # generalization test: try using proposed short lists on Portuguese 
 # ToDo: code uni_lemmas for short list

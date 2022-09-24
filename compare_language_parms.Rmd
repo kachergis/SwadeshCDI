@@ -14,21 +14,14 @@ require(gplots)
 library(RColorBrewer)
 load("data/multiling_2pl_WG_comp_fits.Rdata")
 
-
-#languages = c("Croatian","Danish","English (American)","Korean","Spanish (Mexican)",
-#              "Italian","Mandarin (Taiwanese)","French (French)", 
-#              "Latvian", "Norwegian", "French (Quebecois)", "Hebrew", # hebrew cause probs?
-#              "Slovak", "Spanish (European)", "Russian", "Turkish", "English (British)",
-#              "Portuguese (European)") # "Kigiriama" "British Sign Language"
-
-languages = setdiff(names(coefs), c("Kigiriama"))
+languages = names(coefs) #setdiff(names(coefs), c("Kigiriama"))
 
 
 # old version: join is messed up because some unicode characters got converted (in mirt?) e.g. 'č' became 'c'
 join_lang_coefs <- function(languages, coefs) {
   xldf <- tibble()
   for(lang in languages) {
-    load(paste("data/",lang,"_WG_data.Rdata", sep=''))
+    load(paste("data/WG/",lang,"_WG_data.Rdata", sep=''))
     ldat <- items %>% left_join(coefs[[lang]]) # either by "definition" or "item_id"
     xldf <- bind_rows(xldf, ldat)
   }
