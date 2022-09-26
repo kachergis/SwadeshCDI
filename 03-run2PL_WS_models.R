@@ -37,4 +37,3 @@ for(lang in languages$language) {
     save(models, coefs, file="data/multiling_2pl_WS_prod_fits.Rdata")
   }
 }
-# WB2 fits for 24 languages completed, but some models not fully converged after 3000 iterations
