@@ -111,6 +111,9 @@ for(lang in languages) {
   }
 }
 
+# Swedish error: Error: The following items have only one response category and cannot be estimated: 
+# item_36 item_111 item_141 item_143 item_147 item_152 item_153 ...
+# Spanish (Chilean) Error: The following items have only one response category and cannot be estimated: item_351 item_361
 
 # what is this??
 # "3 words with all 0 or 1 responses removed from British Sign Language production"
