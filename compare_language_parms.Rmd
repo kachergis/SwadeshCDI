@@ -16,39 +16,40 @@ load("data/multiling_2pl_WG_comp_fits.Rdata")
 
 languages = names(coefs) #setdiff(names(coefs), c("Kigiriama"))
 
+# check convergence - could also print # subjects and words
+check_models <- function(models) {
+  langs <- names(models)
+  for(lang in langs) {
+    print(paste(lang, "converged:", models[[lang]]@OptimInfo$converged))
+  }
+}
+
+check_models(models) # all converged
+
 
 # old version: join is messed up because some unicode characters got converted (in mirt?) e.g. 'č' became 'c'
 join_lang_coefs <- function(languages, coefs) {
   xldf <- tibble()
   for(lang in languages) {
     load(paste("data/WG/",lang,"_WG_data.Rdata", sep=''))
-    ldat <- items %>% left_join(coefs[[lang]]) # either by "definition" or "item_id"
+    ldat <- items %>% left_join(coefs[[lang]], 
+                                by=c("item_id"="definition")) 
+    # either by "definition" or "item_id"
     xldf <- bind_rows(xldf, ldat)
   }
   return(xldf)
 }
 
+xldf <- join_lang_coefs(languages, coefs)
 # some unicode issue with the join: 
 # table(subset(xldf, is.na(d))$language)
-# 58 Croatian items, 79 French (French) items, 1 Hebrew, 2 Slovak, 103 Turkish..
+# 3 British Sign Language,
+# 79 French (French) items, 1 Hebrew, 1 Slovak, 5 Kiswahili, 1 Dutch
 
-# maybe just re-do all with item_id in coefs?
-
-# ASSUMES SAME ORDER OF DEFINITIONS IN MIRT (should be true)
-bind_lang_coefs <- function(languages, coefs) {
-  xldf <- tibble()
-  for(lang in languages) {
-    load(paste("data/",lang,"_WG_data.Rdata", sep=''))
-    #ldat <- items %>% left_join(coefs[[lang]]) # either by "definition" or "item_id"
-    ldat <- items %>% distinct(item_id, definition, language, form, 
-                               type, category, lexical_class, uni_lemma) %>% 
-      bind_cols(coefs[[lang]] %>% select(a1, d))
-    xldf <- bind_rows(xldf, ldat)
-  }
-  return(xldf)
-}
+save(xldf, file="data/xling-WGcomp-IRTparms.Rdata")
 
 # Korean coefs[[lang]] = 284, 297 items
+sort(table(xldf$language))
 ```
 
 Our goal is to look at IRT parameters across a diverse set of languages and find a subset of uni-lemmas that are somewhat similar in their difficulty.
@@ -60,32 +61,10 @@ We'll start with 2PL fits to WG data (comprehension and production separately) f
 # Spanish (Mexican) has item_id column with definitions...
 # others (e.g. Kigiriama) have definition column with item_ids (e.g., item_1)
 
-for(lang in names(coefs)) {
-  if("definition" %in% names(coefs[[lang]])) {
-    if(grepl("item_", coefs[[lang]]$definition[1])) {
-      coefs[[lang]] <- coefs[[lang]] %>% rename(item_id = definition)
-      print(paste(lang, "- renamed definition to item_id"))
-    } 
-  } else if("item_id" %in% names(coefs[[lang]])) {
-    if(! grepl("item_", coefs[[lang]]$item_id[1])) {
-      coefs[[lang]] <- coefs[[lang]] %>% rename(definition = item_id)
-      print(paste(lang, "- renamed item_id to definition"))
-    }
-  }
-}
-
-
-xldf <- join_lang_coefs(languages, coefs) 
-#  "Kigiriama - renamed definition to item_id"
-# "Spanish (Mexican) - renamed item_id to definition" (why was this one messed up?)
-# "English (British) - renamed definition to item_id"
-# "Hebrew - renamed definition to item_id"
-# "Portuguese (European) - renamed definition to item_id"
-
 # subset(xldf, is.na(d))
 # only missing parameters for items that had all 0 or 1 responses in the data (85, most of em French)
 
-save(xldf, file="data/xling-WGcomp-IRTparms.Rdata")
+
 ```
 
 ```{r, echo=F}
@@ -113,7 +92,7 @@ rownames(comp_cors) = languages
 for(l1 in languages) {
   for(l2 in languages) {
     tmp <- xldf %>% filter(language==l1 | language==l2, !is.na(d)) %>%
-      select(uni_lemma, category, lexical_class, language, d) %>%
+      select(uni_lemma, category, lexical_category, language, d) %>%
       group_by(uni_lemma, language) %>%
       slice(1) %>% 
       pivot_wider(names_from = language, values_from = d) %>%
@@ -174,9 +153,9 @@ For now we consider items with less than median SD that are missing from no more
 # problem: some languages have multiple items matching a single uni_lemma
 # (e.g., Croatian has stric=uncle and ujak=uncle; Turkish has 3 "market"s )
 comp_pars <-
-  pars %>% arrange(desc(language, uni_lemma, a1)) %>% # get most discriminating uni_lemma per lang
+  pars %>% arrange(desc(language), desc(uni_lemma), desc(a1)) %>% # get most discriminating uni_lemma per lang
   filter(is.element(uni_lemma, names(short_list))) %>%
-  select(uni_lemma, category, lexical_class, language, d) %>%
+  select(uni_lemma, category, lexical_category, language, d) %>%
   group_by(uni_lemma, language) %>%
   slice(1) %>% 
   pivot_wider(names_from = language, values_from = d)
@@ -187,7 +166,7 @@ comp_pars$numNAs = apply(comp_pars[,4:ncol(comp_pars)], 1, function(x) { sum(is.
 med_d = median(comp_pars$sd, na.rm=T) # 1.07
 sd_d = sd(comp_pars$sd, na.rm=T) # .44
 
-comp_pars %>% ggplot(aes(x=jitter(numNAs), y=sd, color=lexical_class)) + 
+comp_pars %>% ggplot(aes(x=jitter(numNAs), y=sd, color=lexical_category)) + 
   geom_point(alpha=.7) + theme_classic() + 
   xlab("# of languages without uni-lemma") +
   ylab("SD of unilemma's cross-linguistic difficulty") +
@@ -198,7 +177,7 @@ good_comp <- comp_pars %>%
   filter(numNAs < 7) %>%
   filter(sd < (med_d - .5*sd_d)) %>% 
   arrange(numNAs)
-  #arrange(lexical_class, desc(sd))
+  #arrange(lexical_category, desc(sd))
 ```
 
 Of these, a total of `r length(long_list)` uni-lemmas are included in more than one language, and only `r length(short_list)` uni-lemmas are included in 6 or more of the languages.
@@ -223,24 +202,10 @@ Now we'll turn to production data.
 
 ```{r, eval=F, echo=F, message=F}
 load("data/multiling_2pl_WG_prod_fits.Rdata")
-# had to rename definition column for some languages (Korean & Spanish)
 
-for(lang in names(coefs)) {
-  if("definition" %in% names(coefs[[lang]])) {
-    if(grepl("item_", coefs[[lang]]$definition[1])) {
-      coefs[[lang]] <- coefs[[lang]] %>% rename(item_id = definition)
-      print(paste(lang, "- renamed definition to item_id"))
-    } 
-  } else if("item_id" %in% names(coefs[[lang]])) {
-    if(! grepl("item_", coefs[[lang]]$item_id[1])) {
-      coefs[[lang]] <- coefs[[lang]] %>% rename(definition = item_id)
-      print(paste(lang, "- renamed item_id to definition"))
-    }
-  }
-}
 
 xldf <- join_lang_coefs(names(coefs), coefs) 
-# table(subset(xldf, is.na(d))$language) # lots of missing parameters, but esp. French
+sort(table(subset(xldf, is.na(d))$language)) # lots of missing parameters, but esp. French
 save(xldf, file="data/xling-WGprod-IRTparms.Rdata")
 ```
 
@@ -249,7 +214,6 @@ load("data/xling-WGprod-IRTparms.Rdata")
 
 # Virginia: "this", "that" vs. others - demonstratives are supposedly earlier learned
 demons <- xldf %>% filter(!is.na(d)) %>%
-  #filter(lexical_class=="function_words") %>%
   mutate(demonstrative = ifelse(uni_lemma=="this", "this", ifelse(uni_lemma=="that", "that", "non-demon"))) %>%
   filter(!is.na(demonstrative)) %>%
   group_by(language, demonstrative) %>%
@@ -282,7 +246,7 @@ rownames(prod_cors) = languages
 for(l1 in languages) {
   for(l2 in languages) {
     tmp <- xldf %>% filter(language==l1 | language==l2, !is.na(d)) %>%
-      select(uni_lemma, category, lexical_class, language, d) %>%
+      select(uni_lemma, category, lexical_category, language, d) %>%
       group_by(uni_lemma, language) %>%
       slice(1) %>% 
       pivot_wider(names_from = language, values_from = d) %>%
@@ -345,9 +309,9 @@ For now we consider items with less than median SD that are missing from no more
 
 ```{r, echo=F}
 prod_pars <-
-  pars %>% arrange(desc(language, uni_lemma, a1)) %>% # get most discriminating uni_lemma per lang
+  pars %>% arrange(desc(language), desc(uni_lemma), desc(a1)) %>% # get most discriminating uni_lemma per lang
   filter(is.element(uni_lemma, names(short_list))) %>%
-  select(uni_lemma, category, lexical_class, language, d) %>%
+  select(uni_lemma, category, lexical_category, language, d) %>%
   group_by(uni_lemma, language) %>%
   slice(1) %>% 
   pivot_wider(names_from = language, values_from = d)
@@ -359,7 +323,7 @@ prod_pars$numNAs = apply(prod_pars[,4:19], 1, function(x) { sum(is.na(x)) })
 med_d = median(prod_pars$sd, na.rm=T) # 2.25
 sd_d = sd(prod_pars$sd, na.rm=T) # .81
 
-prod_pars %>% ggplot(aes(x=jitter(numNAs), y=sd, color=lexical_class)) + 
+prod_pars %>% ggplot(aes(x=jitter(numNAs), y=sd, color=lexical_category)) + 
   geom_point(alpha=.7) + theme_classic() + 
   xlab("# of languages without uni-lemma") +
   ylab("SD of unilemma's cross-linguistic difficulty") +
@@ -367,10 +331,10 @@ prod_pars %>% ggplot(aes(x=jitter(numNAs), y=sd, color=lexical_class)) +
   geom_vline(aes(xintercept=6.5), linetype="dashed")
 
 good_prod <- prod_pars %>% 
-  filter(numNAs < 6) %>%
+  filter(numNAs < 7) %>%
   filter(sd < (med_d - .5*sd_d)) %>%  
   arrange(numNAs)
-  #arrange(lexical_class, desc(sd))
+  #arrange(lexical_category, desc(sd))
 
 save(good_prod, good_comp, file="data/good_crosslinguistic_items.RData")
 ```

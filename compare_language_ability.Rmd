@@ -18,10 +18,10 @@ We want to compare the IRT-estimated ability vs. age plots for each language mod
 
 ```{r comprehension, echo=F, eval=F}
 load("data/multiling_2pl_WG_comp_fits.Rdata")
-languages = setdiff(names(coefs), c("Kigiriama", "French (French)"))
+languages = names(coefs) #setdiff(names(coefs), c("Kigiriama", "French (French)"))
 all_demo <- tibble()
 for(language in languages) {
-  load(paste("data/",language,"_WG_data.Rdata", sep=''))
+  load(paste("data/WG/",language,"_WG_data.Rdata", sep=''))
   # sometimes a mismatch between # of subjects in d_demo and d_comp !
   # e.g., English d_comp = 2454 rows, d_demo = 2435 rows (does d_comp have a few longitudinal?)
   # length(intersect(rownames(d_comp), d_demo$data_id))
@@ -43,7 +43,7 @@ for(language in languages) {
 load("data/multiling_2pl_WG_prod_fits.Rdata")
 prod_demo <- tibble()
 for(language in languages) {
-  load(paste("data/",language,"_WG_data.Rdata", sep=''))
+  load(paste("data/WG/",language,"_WG_data.Rdata", sep=''))
   d_prod <- d_prod[which(rowSums(d_prod, na.rm=T)!=0),]
   thetas <- tibble(data_id = as.numeric(rownames(d_prod)), 
                    prod_ability = fscores(models[[language]], method="MAP", 

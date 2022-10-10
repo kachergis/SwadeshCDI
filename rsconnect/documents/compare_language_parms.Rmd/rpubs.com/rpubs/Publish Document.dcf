@@ -1,0 +1,11 @@
+name: Publish Document
+title:
+username:
+account: rpubs
+server: rpubs.com
+hostUrl: rpubs.com
+appId: https://api.rpubs.com/api/v1/document/954147/77a0e75c2b774b6db666fdaf3cdcc2be
+bundleId: https://api.rpubs.com/api/v1/document/954147/77a0e75c2b774b6db666fdaf3cdcc2be
+url: http://rpubs.com/kachergis/954147
+when: 1665443128.38581
+lastSyncTime: 1665443128.38581
