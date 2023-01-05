@@ -1,0 +1,305 @@
+---
+title: "Measuring a Basic Developmental Vocabulary Across Many Languages"
+bibliography: library.bib
+csl: apa6.csl
+document-params: "10pt, letterpaper"
+
+author-information: > 
+    \author{{\large \bf George Kachergis (kachergis@stanford.edu)} \\ Department of Psychology, 450 Jane Stanford Way \\ Stanford, CA 94305 USA
+    \AND {\large \bf Michael C. Frank (mcfrank@stanford.edu)} \\ Department of Psychology, 450 Jane Stanford Way \\ Stanford, CA 94305 USA}
+
+abstract: >
+    Early language skill is predictive of later life outcomes, and is thus of great interest to
+    developmental psychologists and clinicians. The Communicative Development Inventories (CDIs),
+    including a parent-reported inventory of early-learned vocabulary items, has proven to be
+    a valid and reliable instrument for measuring children's early language skill. CDIs have been
+    adapted to dozens of languages, and cross-linguistic comparisons thus far show both consistency 
+    and variability in language acquisition trajectories. Here, we use item-response theory
+    models to examine the psychometric properties of translation-equivalent concepts that 
+    have been included on CDIs in several languages, with the goal of identifying a short list of
+    concepts that are of approximately equal difficulty across the majority of the languages. 
+    Using a list of XX items, we test how well this 
+    
+keywords: >
+    early language learning; CDI; psychometrics; cross-linguistic comparison; Swadesh vocabulary;
+    
+output: cogsci2016::cogsci_paper
+#final-submission: \cogscifinalcopy
+---
+
+```{r global_options, include=FALSE}
+knitr::opts_chunk$set(fig.width=3, fig.height=3, fig.crop = F, 
+                      fig.pos = "tb", fig.path='figs/',
+                      echo=F, warning=F, cache=F, 
+                      message=F, sanitize = T)
+```
+
+```{r, libraries}
+library(png)
+library(grid)
+library(xtable)
+require(mirt)
+require(tidyverse)
+require(ggpubr)
+require(tidyboot)
+require(here)
+```
+
+# Introduction
+
+Children's early language skill is predictive of educational outcomes, other developmental milestones, etc.
+
+<!-- REWRITE INTRO -->
+Measuring children's early language is important for parents, clinicians and researchers.
+The MacArthur-Bates Communicative Development Inventories [CDIs; @Fenson2007] are a set of parent report forms that offer a holistic assessment of children's productive and receptive language skills.
+CDIs are low-cost to administer and produce reliable and valid estimates of early vocabulary and other aspects of early language [@fenson1994]. 
+The CDIs offer more comprehensive data than a short interaction in the lab with a child [@Fenson2000], because they ask parents to report on vocabulary comprehension as well as production, and other milestones, such as communicative gesture use and use of word combinations. 
+Vocabulary size is assessed via a checklist format, which allows caregivers to quickly scan and recognize words their child produces or understands, rather than relying on recall alone. 
+Because of these properties, CDI forms have been adapted to dozens of languages. 
+Data from CDIs are archived in a central repository [Wordbank; @frank2017], and insights from these data have been used to inform theories of early language learning [@frank2021]. 
+
+Although CDIs measure a variety of other constructs related to early language, our focus here is on vocabulary assessment. 
+Across languages, measures of vocabulary on the CDIs are very tightly correlated with other aspects of early language like gesture and grammatical competence [@bates1994;@frank2021]. 
+From the perspective of the CDI, it is justifiable to say that the language system is "tightly woven" [@frank2021], meaning that precise measures of early vocabulary provide a good proxy measurement of the language system as a whole. 
+
+In American English and Mexican Spanish (two of the original languages in which the CDIs were developed), there are two long-form CDI instruments that focus on different ages.
+The 396-item vocabulary checklist on the CDI: Words & Gestures (CDI:WG) was designed for children ages 8--16 months and measures both comprehension and production.
+The 680-item vocabulary checklist on the CDI: Words & Sentences (CDI:WS) targets children ages 16--30 months, and includes nearly all of the items from the CDI:WG form, but only measures production. 
+All CDI forms include words from a range of semantic and syntactic categories. 
+For example, the CDI:WS form is comprised of 22 semantic categories representing common early-learned words, including nouns (subdivided into e.g., Body Parts, Toys, and Clothing), action words (e.g. verbs), descriptive words (e.g. adjectives), and closed-class words such as pronouns. 
+
+Although the CDIs have many advantages, one clear drawback is the long length of the vocabulary checklists, which make them time-consuming for parents to complete.
+The length of the CDIs also makes it difficult to include them in studies requiring a battery of tasks, as is often the case in both clinical and research settings.
+Due to these challenges, there have been a variety of efforts to create shortened versions of the CDI. 
+The 100-item short-form CDIs [@Fenson2000; @Fenson2007] are derived from the 680-item CDI:WS form, with items selected based on difficulty and item-to-full score correlations, while also attempting to represent the diversity of semantic and linguistic categories.
+While the scores of the short-form CDI:WS are highly correlated with scores on the full CDI:WS, there is evidence for a ceiling effect for children older than 27 or 28 months of age. 
+
+The basis of CAT is item-response theory modeling [IRT; @embretson2013], a technique for the analysis of test data that allows the inference of both the abilities of test takers and the difficulty (and other information) of individual test questions along shared and standardized dimensions. 
+CAT models use this item information -- typically extracted from a larger dataset collected via standard testing methods -- to select questions of the appropriate difficulty for a particular test-taker. 
+An individual CAT includes a number of components, including the bank of possible items and their difficulties, as well as an algorithm that uses the responses received thus far to choose the next item to give to a test taker, and a rule for when to stop (e.g., after a fixed number of items or after a desired precision has been reached).  
+
+Previous work has applied CAT and related techniques to CDI forms, leveraging the availability of large datasets from previous CDI studies where parents filled out the full forms [@Makransky2016;@mayor2019;@chai2020].
+For example, @Makransky2016 used IRT models fit to normative data from the CDI:WS to develop CAT versions [@Fenson2007]. 
+They conducted a simulation study comparing full scores on the CDI to different fixed-length CAT versions (with 5--400 items).
+Scores from a CAT of only 50 items had a correlation of $r=0.95$ with the full CDI.
+However, for the youngest age group (16--18 month-olds), the correlation with the full CDI was somewhat lower ($r=0.87$).
+
+
+Our goal in the current work is to...
+In particular, our contributions are:
+
+We will first introduce the candidate Item Response Theory (IRT) models, fit them to the datasets, and assess which model is appropriate as the basis for the adaptive CDI. 
+Next, we will conduct various CAT simulations to assess the effects of different design choices on test performance, and choose a set of preferred CAT parameters. 
+Finally, we report results from a validation study.
+We end by discussing the strengths and weaknesses of our approach. 
+
+# Methods
+
+## Item Response Theory Models
+
+A variety of IRT models targeting different types of testing scenarios have been proposed [see @Baker2001 for an overview], but for the dichotomous responses that parents make for each item (word) regarding whether their child can produce that word, we will use the popular 2-parameter logistic (2PL) model that we have previously found is best justified for CDI data [see @Kachergis2022].
+
+The 2PL model jointly estimates for each child $j$ a latent ability $\theta_j$ (here, language skill), and for each item $i$ two parameters: the item's difficulty $b_i$ and discrimination $a_i$, described below.
+In the 2PL model, the probability of child $j$ producing a given item $i$ is 
+ 
+ $$P_{i}(x_i = 1 | b_{i},a_{i},\theta_j ) = \frac{1}{1 + e^{-D a_{i}(\theta_j - b_i )}}$$
+
+Thus, children with high latent ability ($\theta$) will be more likely to produce any given item than children with lower latent ability, and more difficult items will be produced by fewer children (at any given $\theta$) than easier items.
+The discrimination ($a_i$) modifies the slope of the logistic (in the classic Rasch or 1PL model, the slope is always 1):
+<!-- define D (review CATpaper explanation: ogive) --> 
+
+If the authors' names are
+included in the sentence, place only the year in parentheses, as in
+[-@NewellSimon1972a], but otherwise place the entire reference in
+parentheses with the authors and year separated by a comma
+[@NewellSimon1972a]. List multiple references alphabetically and
+separate them by semicolons [@ChalnickBillman1988a; @NewellSimon1972a]. 
+
+
+## Datasets
+
+```{r, load-wg-data, echo=F, results="asis"}
+# WG production fits
+load(here("data/multiling_2pl_WG_prod_fits.Rdata"))
+wg_coefs = coefs
+languages = names(coefs)
+#sort(languages)
+
+#load(here("data/xling_WG_abilities.Rdata"))
+load(here("data/xling-WGprod-IRTparms.Rdata"))
+# 24 languages, 9611 parameters
+wg_parms <- xldf
+items_tab <- wg_parms %>% group_by(language) %>%
+  summarise(WG = n())
+
+tab1 <- xtable::xtable(items_tab, digits=c(0), 
+                       caption = "Number of CDI items per language.")
+print(tab1, type="latex", comment = F, table.placement = "H")
+```
+
+```{r, load-ws-data, echo=F}
+# WS production fits - can we stitch WG+WS for all of these?
+load(here("data/multiling_2pl_WS_prod_fits.Rdata"))
+ws_coefs = coefs
+```
+
+
+We report analyses for twenty-four languages from Wordbank [@frank2017], comprising production data from both CDI:WG vocabulary checklists and CDI:WS vocabulary checklists.
+The languages are: British Sign Language, Croatian, Danish, Dutch, English (U.S.), 
+French (France), French (Quebec), Hebrew, Italian, Kigiriama, Kiswahili, Korean, Latvian, Mandarin (Taiwan),
+Norwegian, Persian, Portuguese (Portugal), Russian, Slovak, Spanish (Chile), Spanish (Mexico), Spanish (Spain),
+Swedish, and Turkish.
+
+### Participants
+
+```{r, count-participants, eval=F}
+count_na <- function(vec) {
+  return(length(which(is.na(vec))))
+}
+
+numna_en = apply(d_mat_en, 1, count_na) 
+eng_ws_subjs = length(which(numna_en<285)) # 5573
+eng_cdi_iii_subjs = length(which(d_demo_en$age>30))
+#eng_wg_subjs = nrow(d_mat_en) - eng_ws_subjs - eng_cdi_iii_subjs # 1991 (lost some with missing data?)
+
+numna_sp = apply(d_mat_sp, 1, count_na) 
+sp_ws_subjs = length(which(numna_sp<222)) # 1146
+#sp_cdi_iii_subjs = length(which(d_demo_sp$age>30)) # only 12 words overlap...
+#sp_wg_subjs = nrow(d_mat_sp) - eng_ws_subjs - eng_cdi_iii_subjs
+```
+
+
+The English production dataset consists of the combined production data from Wordbank for `r eng_wg_subjs` children aged 12-18 months from the American English CDI:WG, data from `r eng_ws_subjs` children aged 16-30 months from the English CDI:WS, and data from 69 children aged 31-36 months from the English CDI-III, for a total of `r nrow(d_demo_en)` participants.
+The Spanish production dataset consists of the combined production data for `r sp_wg_subjs` children from the Mexican Spanish CDI:WG (aged 12 or more months) as well as data from `r sp_ws_subjs` children from the Spanish CDI:WS form (16-30 months), for a total of 1691 participants.
+Figure 1C and 1D shows children's production scores vs. age for the English and Spanish production datasets, respectively.
+Note that the socioeconomic distributions of these datasets are not matched. 
+(See @frank2021 for a discussion of possible effects of socioeconomic status on vocabulary development.)
+
+[^1]: [http://wordbank.stanford.edu/contributors](http://wordbank.stanford.edu/contributors)
+
+```{r, plot-production, echo=F, warning=F, fig.width=6.5, fig.height=5.5, fig.cap="Children's CDI vocabulary plotted by age and sex in each dataset: (A) English comprehension, (B) Spanish comprehension, (C) English production, and (D) Spanish production. Note that we plot fitted quadratics showing extrapolated vocabulary sizes beyond the maximum CDI score, rather than an asymptotic logistic."}
+
+en_prod <- d_demo_en %>% 
+  mutate(sex = as.character(sex),
+         sex = ifelse(sex=="Other", NA, sex)) %>%
+  filter(!is.na(sex)) %>%
+  ggplot(aes(x = age, y = production, group = sex, color = sex)) + 
+  geom_jitter(alpha = .2) + theme_bw() + 
+  stat_smooth(method = "glm", formula = y ~ 0 + x + I(x^2), size = 1) +
+  xlab("Age (months)") + ylab("Words Produced") + xlim(11, 37) + ylim(0, 700) +
+  ggtitle("English Production")
+
+sp_prod <- ggplot(d_demo_sp, aes(x = age, y = production, group = sex, color = sex)) + 
+  geom_jitter(alpha = .3) + theme_bw() + 
+  xlab("Age (months)") + ylab("Words Produced") + xlim(11, 32) + ylim(0, 700) +
+  stat_smooth(method = "glm", formula = y ~ 0 + x + I(x^2), size = 1) +
+  ggtitle("Spanish Production")
+
+
+ggarrange(en_prod, sp_prod,
+          labels = c("A", "B"), 
+          ncol=1, nrow=2, common.legend = T)
+```
+
+
+### Instruments
+
+```{r form-overlap}
+sp_wg_ws_intersect = length(intersect(sp_wg_items$definition, sp_ws_items$definition))
+# 388 / 428 match
+
+sp_wg_not_ws = setdiff(sp_wg_items$definition, sp_ws_items$definition)
+# 40 items -- but many of these match, yes? (just plural/parens/etc)
+
+eng_wg_ws_intersect = length(intersect(eng_wg_items$definition, eng_ws_items$definition))
+# 394 / 396 match
+eng_wg_not_ws = setdiff(eng_wg_items$definition, eng_ws_items$definition)
+# WG: "in" / "inside" -> a single WS item ("inside/in")
+```
+
+The 680-item vocabulary checklist of the English CDI:WS form is organized into 22 semantic categories (e.g., furniture, games and routines, people). 
+The Spanish CDI:WS vocabulary checklist consists of 680 words, organized into 23 semantic categories.
+The English CDI:WG vocabulary checklist is comprised of `r nrow(eng_wg_items)` of the easier vocabulary items from the English CDI:WS, and the Spanish CDI:WG is a subset of `r nrow(sp_wg_items)` of the items from the Spanish CDI:WS. 
+
+When a CDI:WG form was administered, caregivers were asked to indicate for each vocabulary item whether their child 1) understands that word ("comprehends") or 2) both understands and says ("produces") that word. 
+Leaving the item blank indicates that the child neither comprehends nor produces that word.
+When a CDI:WS forms was administered, caregivers were asked to indicate for each vocabulary item on the instrument whether or not their child can recognizably produce (say) the given word.
+
+The current study solely investigates production, thus "produces" responses were coded as 1 and all other responses were coded as 0.
+Our datasets consist of a dichotomous-valued response matrix for each language, of size $N$ subjects $\times$ $W$ words.
+
+# Results
+
+All models, simulations, and other materials are available on OSF[^2].
+
+[^2]: OSF repository: [https://osf.io/XXX/](https://osf.io/XXX/).
+
+```{r generalization-test, echo=F}
+# lots of new Wordbank 2 languages
+gen_test_langs <- c("American Sign Language", "Cantonese", "Spanish (Peruvian)", 
+                    "English (Australian)", "English (British)", "Finnish",
+                    "Greek (Cypriot)", "Hungarian", "Czech", "Irish")
+```
+
+
+```{r swadesh-comparison, echo=F}
+# https://en.wikipedia.org/wiki/Swadesh_list
+swadesh100 = c()
+
+# https://en.wikipedia.org/wiki/Automated_Similarity_Judgment_Program#Word_list
+# ASJP subset of 40 Swadesh items that perform as well as full list
+# categories: Body parts, Animals and plants, People, Nature, Verbs and adjectives, Numerals and pronouns
+asjp = c("eye","ear","nose","tongue","tooth","hand","knee","blood","bone","breast","liver","skin",
+         "louse", # "bug" ?
+         "dog","fish (animal)","horn","tree","leaf",
+         "person","name", # People; match "name" to "child's own name" / "babysitter's name" / "pet's name" ?
+         "sun","star","water (not beverage)","fire","stone","path","mountain","night", # Nature
+         "drink (action)","die","see","hear","come", # Verbs and adjectives
+         "new","full","one","two","I","you","we")
+```
+
+
+
+
+```{r 2-col-image, fig.env = "figure*", fig.pos = "h", fig.width=4, fig.height=2, fig.align = "center", set.cap.width=T, num.cols.cap=2, fig.cap = "This image spans both columns. And the caption text is limited to 0.8 of the width of the document."}
+#img <- png::readPNG("figs/walrus.png")
+#grid::grid.raster(img)
+```
+
+
+
+```{r image, fig.env = "figure", fig.pos = "H", fig.align='center', fig.width=2, fig.height=2, set.cap.width=T, num.cols.cap=1, fig.cap = "One column image."}
+img <- png::readPNG("figs/lab_logo_stanford.png")
+grid::grid.raster(img)
+```
+
+
+```{r plot, fig.env="figure", fig.pos = "H", fig.align = "center", fig.width=2, fig.height=2, fig.cap = "R plot" }
+x <- 0:100
+y <- 2 * (x + rnorm(length(x), sd = 3) + 3)
+
+ggplot2::ggplot(data = data.frame(x, y), 
+                aes(x = x, y = y)) + 
+  geom_point() + 
+  geom_smooth(method = "lm")
+```
+
+
+
+# Discussion
+
+
+# Acknowledgements
+
+We would like to thank all of the contributors to Wordbank, from the researchers who created and adapted the CDIs to those who collected the data (as well as the participants), to those who have created and maintained Wordbank over the years. 
+
+# References 
+
+```{r}
+# References will be generated automatically by Pandoc and included here.
+# The following code is some latex to format the bibliography. Do not remove it.
+```
+
+\setlength{\parindent}{-0.1in} 
+\setlength{\leftskip}{0.125in}
+\noindent
