@@ -36,7 +36,7 @@ for(lang in languages) {
     mod <- mirt.model(mod_string)
     models[[lang]] = mirt(data = d_comp, model = mod, itemtype="2PL", 
                         method="QMCEM", verbose=TRUE, 
-                        technical=list(NCYCLES=3000, removeEmptyRows=TRUE)) 
+                        technical=list(NCYCLES=3000)) 
     coefs[[lang]] <- as_tibble(coef(models[[lang]], simplify = TRUE)$items) %>%
       mutate(definition = rownames(coef(models[[lang]], simplify = TRUE)$items))
     save(models, coefs, file="data/multiling_2pl_WG_comp_fits.Rdata")
@@ -52,6 +52,10 @@ for(lang in languages) {
 # data contains response patterns with only NAs 
 
 # "79 words with all 0 or 1 responses removed from French (French) comprehension" (a lot! look at these?)
+
+languages = c("American Sign Language", "Spanish (Peruvian)", 
+              "English (British)", "Mandarin (Beijing)")
+# no WG: "Cantonese", "English (Australian)", "Finnish", "Greek (Cypriot)", "Hungarian", "Czech", "Irish"
 
 # fit WG production
 mirtCluster()
@@ -74,13 +78,14 @@ for(lang in languages) {
     mod <- mirt.model(mod_string)
     models[[lang]] = mirt(data = d_prod, model = mod, itemtype="2PL", 
                         method="QMCEM", verbose=TRUE, 
-                        technical=list(NCYCLES=3000, removeEmptyRows=TRUE)) 
+                        technical=list(NCYCLES=3000)) 
     coefs[[lang]] <- as_tibble(coef(models[[lang]], simplify = TRUE)$items) %>%
       mutate(definition = rownames(coef(models[[lang]], simplify = TRUE)$items))
     save(models, coefs, file="data/multiling_2pl_WG_prod_fits.Rdata")
   }
 }
-# WB2 fits for 24 languages completed, but some models not fully converged after 3000 iterations
+# WB2 fits for 28 languages completed, but some models not fully converged after 3000 iterations
+
 
 # combine comprehension (1) and production (2) data and
 # fit generalized partial credit model
@@ -104,7 +109,7 @@ for(lang in languages) {
     mod <- mirt.model(mod_string)
     models[[lang]] = mirt(data = d_cp, model = mod, itemtype="gpcm", 
                           method="QMCEM", verbose=TRUE, 
-                          technical=list(NCYCLES=3000, removeEmptyRows=TRUE)) 
+                          technical=list(NCYCLES=3000)) 
     coefs[[lang]] <- as_tibble(coef(models[[lang]], simplify = TRUE)$items) %>%
       mutate(definition = rownames(coef(models[[lang]], simplify = TRUE)$items))
     save(models, coefs, file="data/multiling_2pl_WG_comp_prod_gpcm_fits.Rdata")

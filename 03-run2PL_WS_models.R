@@ -31,7 +31,7 @@ for(lang in languages$language) {
     mod <- mirt.model(mod_string)
     models[[lang]] = mirt(data = d_prod, model = mod, itemtype="2PL", 
                         method="QMCEM", verbose=TRUE, 
-                        technical=list(NCYCLES=3000, removeEmptyRows=TRUE)) 
+                        technical=list(NCYCLES=3000)) # , removeEmptyRows=TRUE
     coefs[[lang]] <- as_tibble(coef(models[[lang]], simplify = TRUE)$items) %>%
       mutate(definition = rownames(coef(models[[lang]], simplify = TRUE)$items))
     save(models, coefs, file="data/multiling_2pl_WS_prod_fits.Rdata")

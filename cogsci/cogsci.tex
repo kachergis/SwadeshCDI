@@ -55,7 +55,7 @@
 \title{Measuring a Basic Developmental Vocabulary Across Many Languages}
 
 
-\author{{\large \bf George Kachergis (kachergis@stanford.edu)} \\ Department of Psychology, 1202 W. Johnson Street \\ Madison, WI 53706 USA \AND {\large \bf Michael C. Frank (mcfrank@stanford.edu)} \\ Department of Educational Psychology, 1025 W. Johnson Street \\ Madison, WI 53706 USA}
+\author{{\large \bf George Kachergis (kachergis@stanford.edu)} \\ Department of Psychology, 450 Jane Stanford Way \\ Stanford, CA 94305 USA \AND {\large \bf Michael C. Frank (mcfrank@stanford.edu)} \\ Department of Psychology, 450 Jane Stanford Way \\ Stanford, CA 94305 USA}
 
 \newlength{\cslhangindent}
 \setlength{\cslhangindent}{1.5em}
@@ -68,150 +68,262 @@
 \maketitle
 
 \begin{abstract}
-Include no author information in the initial submission, to facilitate
-blind review. The abstract should be one paragraph, indented 1/8 inch on
-both sides, in 9\textasciitilde point font with single spacing. The
-heading `Abstract' should be 10\textasciitilde point, bold, centered,
-with one line of space below it. This one-paragraph abstract section is
-required only for standard six page proceedings papers. Following the
-abstract should be a blank line, followed by the header `Keywords' and a
-list of descriptive keywords separated by semicolons, all in
-9\textasciitilde point font, as shown below.
+Early language skill is predictive of later life outcomes, and is thus
+of great interest to developmental psychologists and clinicians. The
+Communicative Development Inventories (CDIs), including a
+parent-reported inventory of early-learned vocabulary items, has proven
+to be a valid and reliable instrument for measuring children's early
+language skill. CDIs have been adapted to dozens of languages, and
+cross-linguistic comparisons thus far show both consistency and
+variability in language acquisition trajectories. Here, we use
+item-response theory models to examine the psychometric properties of
+translation-equivalent concepts that have been included on CDIs in
+several languages, with the goal of identifying a short list of concepts
+that are of approximately equal difficulty across the majority of the
+languages. Using a list of XX items, we test how well this
 
 \textbf{Keywords:}
-Add your choice of indexing terms or keywords; kindly use a semi-colon;
-between each term.
+early language learning; CDI; psychometrics; cross-linguistic
+comparison; Swadesh vocabulary;
 \end{abstract}
 
-\hypertarget{general-formatting-instructions}{%
-\section{General Formatting
-Instructions}\label{general-formatting-instructions}}
+\hypertarget{introduction}{%
+\section{Introduction}\label{introduction}}
 
-For general information about authoring in markdown, see
-\textbf{\href{http://rmarkdown.rstudio.com/authoring_basics.html}{here}.}
+Children's early language skill is predictive of educational outcomes,
+other developmental milestones, etc.
 
-The entire content of a paper (including figures, references, and
-anything else) can be no longer than six pages in the
-\textbf{initial submission}. In the \textbf{final submission}, the text
-of the paper, including an author line, must fit on six pages. Up to one
-additional page can be used for acknowledgements and references.
+Measuring children's early language is important for parents, clinicians
+and researchers. The MacArthur-Bates Communicative Development
+Inventories {[}CDIs; L. Fenson et al. (2007){]} are a set of parent
+report forms that offer a holistic assessment of children's productive
+and receptive language skills. CDIs are low-cost to administer and
+produce reliable and valid estimates of early vocabulary and other
+aspects of early language (Larry Fenson et al., 1994). The CDIs offer
+more comprehensive data than a short interaction in the lab with a child
+(L. Fenson et al., 2000), because they ask parents to report on
+vocabulary comprehension as well as production, and other milestones,
+such as communicative gesture use and use of word combinations.
+Vocabulary size is assessed via a checklist format, which allows
+caregivers to quickly scan and recognize words their child produces or
+understands, rather than relying on recall alone. Because of these
+properties, CDI forms have been adapted to dozens of languages. Data
+from CDIs are archived in a central repository {[}Wordbank; Frank,
+Braginsky, Yurovsky, \& Marchman (2017){]}, and insights from these data
+have been used to inform theories of early language learning (Frank,
+Braginsky, Yurovsky, \& Marchman, 2021).
 
-The text of the paper should be formatted in two columns with an overall
-width of 7 inches (17.8 cm) and length of 9.25 inches (23.5 cm), with
-0.25 inches between the columns. Leave two line spaces between the last
-author listed and the text of the paper; the text of the paper (starting
-with the abstract) should begin no less than 2.75 inches below the top
-of the page. The left margin should be 0.75 inches and the top margin
-should be 1 inch. \textbf{The right and bottom margins will depend on
-whether you use U.S. letter or A4 paper, so you must be sure to
-measure the width of the printed text.} Use 10\textasciitilde point
-Times Roman with 12\textasciitilde point vertical spacing, unless
-otherwise specified.
+Although CDIs measure a variety of other constructs related to early
+language, our focus here is on vocabulary assessment. Across languages,
+measures of vocabulary on the CDIs are very tightly correlated with
+other aspects of early language like gesture and grammatical competence
+(Bates et al., 1994; Frank et al., 2021). From the perspective of the
+CDI, it is justifiable to say that the language system is ``tightly
+woven'' (Frank et al., 2021), meaning that precise measures of early
+vocabulary provide a good proxy measurement of the language system as a
+whole.
 
-The title should be in 14\textasciitilde point bold font, centered. The
-title should be formatted with initial caps (the first letter of content
-words capitalized and the rest lower case). In the initial submission,
-the phrase ``Anonymous CogSci submission'\,' should appear below the
-title, centered, in 11\textasciitilde point bold font. In the final
-submission, each author's name should appear on a separate line,
-11\textasciitilde point bold, and centered, with the author's email
-address in parentheses. Under each author's name list the author's
-affiliation and postal address in ordinary 10\textasciitilde point type.
+In American English and Mexican Spanish (two of the original languages
+in which the CDIs were developed), there are two long-form CDI
+instruments that focus on different ages. The 396-item vocabulary
+checklist on the CDI: Words \& Gestures (CDI:WG) was designed for
+children ages 8--16 months and measures both comprehension and
+production. The 680-item vocabulary checklist on the CDI: Words \&
+Sentences (CDI:WS) targets children ages 16--30 months, and includes
+nearly all of the items from the CDI:WG form, but only measures
+production. All CDI forms include words from a range of semantic and
+syntactic categories. For example, the CDI:WS form is comprised of 22
+semantic categories representing common early-learned words, including
+nouns (subdivided into e.g., Body Parts, Toys, and Clothing), action
+words (e.g.~verbs), descriptive words (e.g.~adjectives), and
+closed-class words such as pronouns.
 
-Indent the first line of each paragraph by 1/8\textasciitilde inch
-(except for the first paragraph of a new section). Do not add extra
-vertical space between paragraphs.
+Although the CDIs have many advantages, one clear drawback is the long
+length of the vocabulary checklists, which make them time-consuming for
+parents to complete. The length of the CDIs also makes it difficult to
+include them in studies requiring a battery of tasks, as is often the
+case in both clinical and research settings. Due to these challenges,
+there have been a variety of efforts to create shortened versions of the
+CDI. The 100-item short-form CDIs (L. Fenson et al., 2000, 2007) are
+derived from the 680-item CDI:WS form, with items selected based on
+difficulty and item-to-full score correlations, while also attempting to
+represent the diversity of semantic and linguistic categories. While the
+scores of the short-form CDI:WS are highly correlated with scores on the
+full CDI:WS, there is evidence for a ceiling effect for children older
+than 27 or 28 months of age.
 
-\hypertarget{first-level-headings}{%
-\section{First-Level Headings}\label{first-level-headings}}
+The basis of CAT is item-response theory modeling {[}IRT; Embretson \&
+Reise (2013){]}, a technique for the analysis of test data that allows
+the inference of both the abilities of test takers and the difficulty
+(and other information) of individual test questions along shared and
+standardized dimensions. CAT models use this item information --
+typically extracted from a larger dataset collected via standard testing
+methods -- to select questions of the appropriate difficulty for a
+particular test-taker. An individual CAT includes a number of
+components, including the bank of possible items and their difficulties,
+as well as an algorithm that uses the responses received thus far to
+choose the next item to give to a test taker, and a rule for when to
+stop (e.g., after a fixed number of items or after a desired precision
+has been reached).
 
-First level headings should be in 12 point , initial caps, bold and
-centered. Leave one line space above the heading and
-1/4\textasciitilde line space below the heading.
+Previous work has applied CAT and related techniques to CDI forms,
+leveraging the availability of large datasets from previous CDI studies
+where parents filled out the full forms (Chai, Lo, \& Mayor, 2020;
+Makransky, Dale, Havmose, \& Bleses, 2016; Mayor \& Mani, 2019). For
+example, Makransky et al. (2016) used IRT models fit to normative data
+from the CDI:WS to develop CAT versions (L. Fenson et al., 2007). They
+conducted a simulation study comparing full scores on the CDI to
+different fixed-length CAT versions (with 5--400 items). Scores from a
+CAT of only 50 items had a correlation of \(r=0.95\) with the full CDI.
+However, for the youngest age group (16--18 month-olds), the correlation
+with the full CDI was somewhat lower (\(r=0.87\)).
 
-\hypertarget{second-level-headings}{%
-\subsection{Second-Level Headings}\label{second-level-headings}}
+Our goal in the current work is to\ldots{} In particular, our
+contributions are:
 
-Second level headings should be 11 point , initial caps, bold, and flush
-left. Leave one line space above the heading and 1/4\textasciitilde{}
-line space below the heading.
+We will first introduce the candidate Item Response Theory (IRT) models,
+fit them to the datasets, and assess which model is appropriate as the
+basis for the adaptive CDI. Next, we will conduct various CAT
+simulations to assess the effects of different design choices on test
+performance, and choose a set of preferred CAT parameters. Finally, we
+report results from a validation study. We end by discussing the
+strengths and weaknesses of our approach.
 
-\hypertarget{third-level-headings}{%
-\subsubsection{Third-Level Headings}\label{third-level-headings}}
+\hypertarget{methods}{%
+\section{Methods}\label{methods}}
 
-Third-level headings should be 10 point , initial caps, bold, and flush
-left. Leave one line space above the heading, but no space after the
-heading.
+\hypertarget{item-response-theory-models}{%
+\subsection{Item Response Theory
+Models}\label{item-response-theory-models}}
 
-\hypertarget{formalities-footnotes-and-floats}{%
-\section{Formalities, Footnotes, and
-Floats}\label{formalities-footnotes-and-floats}}
+A variety of IRT models targeting different types of testing scenarios
+have been proposed (see Baker, 2001 for an overview), but for the
+dichotomous responses that parents make for each item (word) regarding
+whether their child can produce that word, we will use the popular
+2-parameter logistic (2PL) model that we have previously found is best
+justified for CDI data (see \textbf{Kachergis2022?}).
 
-Use standard APA citation format. Citations within the text should
-include the author's last name and year. If the authors' names are
-included in the sentence, place only the year in parentheses, as in
-(1972), but otherwise place the entire reference in parentheses with the
-authors and year separated by a comma (Newell \& Simon, 1972). List
-multiple references alphabetically and separate them by semicolons
-(Chalnick \& Billman, 1988; Newell \& Simon, 1972). Use the et.
-al.~construction only after listing all the authors to a publication in
-an earlier reference and for citations with four or more authors.
+The 2PL model jointly estimates for each child \(j\) a latent ability
+\(\theta_j\) (here, language skill), and for each item \(i\) two
+parameters: the item's difficulty \(b_i\) and discrimination \(a_i\),
+described below. In the 2PL model, the probability of child \(j\)
+producing a given item \(i\) is
 
-For more information on citations in RMarkdown, see
-\textbf{\href{http://rmarkdown.rstudio.com/authoring_bibliographies_and_citations.html\#citations}{here}.}
+\[P_{i}(x_i = 1 | b_{i},a_{i},\theta_j ) = \frac{1}{1 + e^{-D a_{i}(\theta_j - b_i )}}\]
 
-\hypertarget{footnotes}{%
-\subsection{Footnotes}\label{footnotes}}
+Thus, children with high latent ability (\(\theta\)) will be more likely
+to produce any given item than children with lower latent ability, and
+more difficult items will be produced by fewer children (at any given
+\(\theta\)) than easier items. The discrimination (\(a_i\)) modifies the
+slope of the logistic (in the classic Rasch or 1PL model, the slope is
+always 1):
 
-Indicate footnotes with a number\footnote{Sample of the first
-footnote.} in the text. Place the footnotes in 9 point type at the
-bottom of the page on which they appear. Precede the footnote with a
-horizontal rule.\footnote{Sample of the second footnote.} You can also
-use markdown formatting to include footnotes using this syntax
-\footnote{Sample of a markdown footnote.}.
+If the authors' names are included in the sentence, place only the year
+in parentheses, as in (\textbf{NewellSimon1972a?}), but otherwise place
+the entire reference in parentheses with the authors and year separated
+by a comma (\textbf{NewellSimon1972a?}). List multiple references
+alphabetically and separate them by semicolons
+(\textbf{ChalnickBillman1988a?}; \textbf{NewellSimon1972a?}).
 
-\hypertarget{figures}{%
-\subsection{Figures}\label{figures}}
+\hypertarget{datasets}{%
+\subsection{Datasets}\label{datasets}}
 
-All artwork must be very dark for purposes of reproduction and should
-not be hand drawn. Number figures sequentially, placing the figure
-number and caption, in 10 point, after the figure with one line space
-above the caption and one line space below it. If necessary, leave extra
-white space at the bottom of the page to avoid splitting the figure and
-figure caption. You may float figures to the top or bottom of a column,
-or set wide figures across both columns.
+\begin{table}[H]
+\centering
+\begin{tabular}{lrrrr}
+  \hline
+Language & WS items & WS N & WG items & WG N \\ 
+  \hline
+Norwegian & 731 & 9304 & 395 & 2926 \\ 
+  English (American) & 680 & 8645 & 396 & 4130 \\ 
+  Danish & 725 & 3714 & 410 & 2398 \\ 
+  Portuguese (European) & 639 & 3012 & 293 & 1314 \\ 
+  Turkish & 711 & 2422 & 418 & 1115 \\ 
+  Mandarin (Taiwanese) & 696 & 1897 & 354 & 757 \\ 
+  Spanish (Mexican) & 680 & 1853 & 428 & 833 \\ 
+  English (Australian) & 558 & 1520 &  &  \\ 
+  Korean & 641 & 1376 & 284 & 618 \\ 
+  Cantonese & 804 & 1295 &  &  \\ 
+  German & 588 & 1181 &  &  \\ 
+  Slovak & 609 & 1066 & 307 & 657 \\ 
+  Mandarin (Beijing) & 799 & 1056 & 227 & 230 \\ 
+  Russian & 728 & 1037 & 424 & 768 \\ 
+  French (Quebecois) & 664 & 929 & 366 & 598 \\ 
+  Swedish & 710 & 900 & 341 & 464 \\ 
+  Spanish (Argentinian) & 699 & 784 &  &  \\ 
+  Italian & 670 & 752 & 408 & 648 \\ 
+  French (French) & 690 & 665 & 212 & 222 \\ 
+  Spanish (European) & 588 & 593 & 277 & 412 \\ 
+  Hebrew & 605 & 518 & 439 & 62 \\ 
+  Latvian & 723 & 500 & 402 & 183 \\ 
+  Czech & 553 & 493 &  &  \\ 
+  Croatian & 717 & 377 & 380 & 250 \\ 
+  Hungarian & 802 & 363 &  &  \\ 
+  Dutch & 704 & 303 & 160 & 317 \\ 
+  Greek (Cypriot) & 815 & 176 &  &  \\ 
+  Spanish (Peruvian) & 600 & 105 & 112 & 87 \\ 
+  Kigiriama & 696 & 100 & 260 & 132 \\ 
+  English (Irish) & 660 & 99 &  &  \\ 
+  Irish & 691 & 99 &  &  \\ 
+  Kiswahili & 705 & 90 & 216 & 51 \\ 
+  Finnish & 581 & 70 &  &  \\ 
+  Persian & 558 & 50 & 367 & 115 \\ 
+   \hline
+\end{tabular}
+\caption{Number of CDI:WG and CDI:WS items and subjects (N) per language.} 
+\end{table}
 
-\hypertarget{two-column-images}{%
-\subsection{Two-column images}\label{two-column-images}}
+We report analyses for twenty-four languages from Wordbank (Frank et
+al., 2017), comprising production data from CDI:WG vocabulary
+checklists. The languages are: British Sign Language, Croatian, Danish,
+Dutch, English (U.S.), French (France), French (Quebec), Hebrew,
+Italian, Kigiriama, Kiswahili, Korean, Latvian, Mandarin (Taiwan),
+Norwegian, Persian, Portuguese (Portugal), Russian, Slovak, Spanish
+(Chile), Spanish (Mexico), Spanish (Spain), Swedish, and Turkish.
 
-You can read local images using png package for example and plot it like
-a regular plot using grid.raster from the grid package. With this method
-you have full control of the size of your image. \textbf{Note: Image
-must be in .png file format for the readPNG function to work.}
+\hypertarget{participants}{%
+\subsubsection{Participants}\label{participants}}
 
-You might want to display a wide figure across both columns. To do this,
-you change the \texttt{fig.env} chunk option to \texttt{figure*}. To
-align the image in the center of the page, set \texttt{fig.align} option
-to \texttt{center}. To format the width of your caption text, you set
-the \texttt{num.cols.cap} option to \texttt{2}.
+The CDI:WG production dataset consists of the combined Wordbank
+production data for 21055 children aged 12-18 months on 9805 items
+across 28 forms. The CDI:WS production dataset consists of the combined
+Wordbank production data for 47344 children aged 16-30 months on 23020
+items across 34 forms. Figure 1C and 1D shows children's production
+scores vs.~age for the CDI:WG and CDI:WS datasets respectively. Note
+that the socioeconomic distributions of these datasets are not matched.
+(See Frank et al. (2021) for a discussion of possible effects of
+socioeconomic status on vocabulary development.)
 
-\begin{CodeChunk}
-\begin{figure*}[h]
+\hypertarget{instruments}{%
+\subsubsection{Instruments}\label{instruments}}
 
-{\centering \includegraphics{figs/2-col-image-1} 
+The 680-item vocabulary checklist of the English CDI:WS form is
+organized into 22 semantic categories (e.g., furniture, games and
+routines, people). The Spanish CDI:WS vocabulary checklist consists of
+680 words, organized into 23 semantic categories. The English CDI:WG
+vocabulary checklist is comprised of XXX of the easier vocabulary items
+from the English CDI:WS, and the Spanish CDI:WG is a subset of XXX of
+the items from the Spanish CDI:WS.
 
-}
+When a CDI:WG form was administered, caregivers were asked to indicate
+for each vocabulary item whether their child 1) understands that word
+(``comprehends'') or 2) both understands and says (``produces'') that
+word. Leaving the item blank indicates that the child neither
+comprehends nor produces that word. When a CDI:WS forms was
+administered, caregivers were asked to indicate for each vocabulary item
+on the instrument whether or not their child can recognizably produce
+(say) the given word.
 
-\caption[This image spans both columns]{This image spans both columns. And the caption text is limited to 0.8 of the width of the document.}\label{fig:2-col-image}
-\end{figure*}
-\end{CodeChunk}
+The current study solely investigates production, thus ``produces''
+responses were coded as 1 and all other responses were coded as 0. Our
+datasets consist of a dichotomous-valued response matrix for each
+language, of size \(N\) subjects \(\times\) \(W\) words.
 
-\hypertarget{one-column-images}{%
-\subsection{One-column images}\label{one-column-images}}
+\hypertarget{results}{%
+\section{Results}\label{results}}
 
-Single column is the default option, but if you want set it explicitly,
-set \texttt{fig.env} to \texttt{figure}. Notice that the
-\texttt{num.cols} option for the caption width is set to \texttt{1}.
+All models, simulations, and other materials are available on
+OSF\footnote{OSF repository: \url{https://osf.io/XXX/}.}.
 
 \begin{CodeChunk}
 \begin{figure}[H]
@@ -224,15 +336,6 @@ set \texttt{fig.env} to \texttt{figure}. Notice that the
 \end{figure}
 \end{CodeChunk}
 
-\hypertarget{r-plots}{%
-\subsection{R Plots}\label{r-plots}}
-
-You can use R chunks directly to plot graphs. And you can use latex
-floats in the fig.pos chunk option to have more control over the
-location of your plot on the page. For more information on latex
-placement specifiers see
-\textbf{\href{https://en.wikibooks.org/wiki/LaTeX/Floats,_Figures_and_Captions}{here}}
-
 \begin{CodeChunk}
 \begin{figure}[H]
 
@@ -244,34 +347,16 @@ placement specifiers see
 \end{figure}
 \end{CodeChunk}
 
-\hypertarget{tables}{%
-\subsection{Tables}\label{tables}}
-
-Number tables consecutively; place the table number and title (in 10
-point) above the table with one line space above the caption and one
-line space below it, as in Table 1. You may float tables to the top or
-bottom of a column, set wide tables across both columns.
-
-You can use the xtable function in the xtable package.
-
-\begin{table}[H]
-\centering
-\begin{tabular}{rrrrr}
-  \hline
- & Estimate & Std. Error & t value & Pr($>$$|$t$|$) \\ 
-  \hline
-(Intercept) & 0.10 & 0.10 & 1.0 & 0.32 \\ 
-  x & 2.12 & 0.11 & 20.0 & 0.00 \\ 
-   \hline
-\end{tabular}
-\caption{This table prints across one column.} 
-\end{table}
+\hypertarget{discussion}{%
+\section{Discussion}\label{discussion}}
 
 \hypertarget{acknowledgements}{%
 \section{Acknowledgements}\label{acknowledgements}}
 
-Place acknowledgments (including funding information) in a section at
-the end of the paper.
+We would like to thank all of the contributors to Wordbank, from the
+researchers who created and adapted the CDIs to those who collected the
+data (as well as the participants), to those who have created and
+maintained Wordbank over the years.
 
 \hypertarget{references}{%
 \section{References}\label{references}}
@@ -283,15 +368,65 @@ the end of the paper.
 
 \hypertarget{refs}{}
 \begin{CSLReferences}{1}{0}
-\leavevmode\vadjust pre{\hypertarget{ref-ChalnickBillman1988a}{}}%
-Chalnick, A., \& Billman, D. (1988). Unsupervised learning of
-correlational structure. In \emph{Proceedings of the tenth annual
-conference of the cognitive science society} (pp. 510--516). Hillsdale,
-NJ: Lawrence Erlbaum Associates.
+\leavevmode\vadjust pre{\hypertarget{ref-Baker2001}{}}%
+Baker, F. B. (2001). \emph{The basics of item response theory}. ERIC.
 
-\leavevmode\vadjust pre{\hypertarget{ref-NewellSimon1972a}{}}%
-Newell, A., \& Simon, H. A. (1972). \emph{Human problem solving}.
-Englewood Cliffs, NJ: Prentice-Hall.
+\leavevmode\vadjust pre{\hypertarget{ref-bates1994}{}}%
+Bates, E., Marchman, V., Thal, D., Fenson, L., Dale, P., Reznick, J. S.,
+\ldots{} Hartung, J. (1994). Developmental and stylistic variation in
+the composition of early vocabulary. \emph{Journal of Child Language},
+\emph{21}(1), 85--123.
+
+\leavevmode\vadjust pre{\hypertarget{ref-chai2020}{}}%
+Chai, J. H., Lo, C. H., \& Mayor, J. (2020). A {B}ayesian-inspired item
+response theory-based framework to produce very short versions of
+{M}ac{A}rthur-{B}ates {C}ommunicative {D}evelopment {I}nventories.
+\emph{Journal of Speech, Language, and Hearing Research}, \emph{63}(10),
+3488--3500.
+
+\leavevmode\vadjust pre{\hypertarget{ref-embretson2013}{}}%
+Embretson, S. E., \& Reise, S. P. (2013). \emph{Item response theory}.
+Psychology Press.
+
+\leavevmode\vadjust pre{\hypertarget{ref-fenson1994}{}}%
+Fenson, Larry, Dale, P. S., Reznick, J. S., Bates, E., Thal, D. J.,
+Pethick, S. J., \ldots{} Stiles, J. (1994). Variability in early
+communicative development. \emph{Monographs of the Society for Research
+in Child Development}, i--185.
+
+\leavevmode\vadjust pre{\hypertarget{ref-Fenson2007}{}}%
+Fenson, L., Marchman, V. A., Thal, D. J., Dale, P. S., Reznick, J. S.,
+\& Bates, E. (2007). \emph{{M}ac{A}rthur-{B}ates {C}ommunicative
+{D}evelopment {I}nventories: User's guide and technical manual (2nd
+ed.)}. Baltimore, MD: Brookes.
+
+\leavevmode\vadjust pre{\hypertarget{ref-Fenson2000}{}}%
+Fenson, L., Pethick, S., Renda, C., Cox, J. L., Dale, P. S., \& Reznick,
+J. S. (2000). Short-form versions of the {M}ac{A}rthur {C}ommunicative
+{D}evelopment {I}nventories, \emph{21}, 95--116.
+
+\leavevmode\vadjust pre{\hypertarget{ref-frank2017}{}}%
+Frank, M. C., Braginsky, M., Yurovsky, D., \& Marchman, V. A. (2017).
+Wordbank: An open repository for developmental vocabulary data.
+\emph{Journal of Child Language}, \emph{44}(3), 677.
+
+\leavevmode\vadjust pre{\hypertarget{ref-frank2021}{}}%
+Frank, M. C., Braginsky, M., Yurovsky, D., \& Marchman, V. A. (2021).
+\emph{Variability and consistency in early language learning: The
+wordbank project}. MIT Press.
+
+\leavevmode\vadjust pre{\hypertarget{ref-Makransky2016}{}}%
+Makransky, G., Dale, P. S., Havmose, P., \& Bleses, D. (2016). An item
+response theory-based, computerized adaptive testing version of the
+{M}ac{A}rthur-{B}ates {C}ommunicative {D}evelopment {I}nventory: {W}ords
+\& {S}entences ({CDI:WS}). \emph{Journal of Speech, Language, and
+Hearing Research}, \emph{59}(2), 281--289.
+
+\leavevmode\vadjust pre{\hypertarget{ref-mayor2019}{}}%
+Mayor, J., \& Mani, N. (2019). A short version of the
+{M}ac{A}rthur-{B}ates {C}ommunicative {D}evelopment {I}nventories with
+high validity. \emph{Behavior Research Methods}, \emph{51}(5),
+2248--2255.
 
 \end{CSLReferences}
 

@@ -118,39 +118,63 @@ separate them by semicolons [@ChalnickBillman1988a; @NewellSimon1972a].
 
 ## Datasets
 
-```{r, load-wg-data, echo=F, results="asis"}
+```{r, load-wg-data, echo=F}
+get_item_n_subject_counts <- function(models) {
+  tab <- tibble()
+  for(lang in names(coefs)) {
+    nitems = models[[lang]]@Data$nitems
+    N = models[[lang]]@Data$N
+    tab = bind_rows(tab, tibble(Language = lang, items = nitems, N = N))
+  }
+  return(tab)
+}
+
 # WG production fits
 load(here("data/multiling_2pl_WG_prod_fits.Rdata"))
 wg_coefs = coefs
 languages = names(coefs)
+wg_tab <- get_item_n_subject_counts(models)
 #sort(languages)
 
 #load(here("data/xling_WG_abilities.Rdata"))
 load(here("data/xling-WGprod-IRTparms.Rdata"))
 # 24 languages, 9611 parameters
 wg_parms <- xldf
-items_tab <- wg_parms %>% group_by(language) %>%
-  summarise(WG = n())
 
-tab1 <- xtable::xtable(items_tab, digits=c(0), 
-                       caption = "Number of CDI items per language.")
-print(tab1, type="latex", comment = F, table.placement = "H")
 ```
 
-```{r, load-ws-data, echo=F}
+```{r, load-ws-data, echo=F, results="asis"}
 # WS production fits - can we stitch WG+WS for all of these?
 load(here("data/multiling_2pl_WS_prod_fits.Rdata"))
 ws_coefs = coefs
+
+ws_tab <- get_item_n_subject_counts(models)
+
+# WG langs that don't have WS: British Sign Language, Spanish (Chilean), American Sign Language, English (British)
+
+it_tab <- ws_tab %>% rename(`WS items`=items, `WS N`=N) %>%
+  left_join(wg_tab %>% rename(`WG items`=items, `WG N`=N)) %>%
+  arrange(desc(`WS N`))
+
+tab1 <- xtable::xtable(it_tab, digits=c(0), 
+                       caption = "Number of CDI:WG and CDI:WS items and subjects (N) per language.")
+print(tab1, type="latex", comment = F, table.placement = "H", include.rownames=FALSE)
 ```
 
 
-We report analyses for twenty-four languages from Wordbank [@frank2017], comprising production data from both CDI:WG vocabulary checklists and CDI:WS vocabulary checklists.
+We report analyses for twenty-four languages from Wordbank [@frank2017], comprising production data from CDI:WG vocabulary checklists.
 The languages are: British Sign Language, Croatian, Danish, Dutch, English (U.S.), 
 French (France), French (Quebec), Hebrew, Italian, Kigiriama, Kiswahili, Korean, Latvian, Mandarin (Taiwan),
 Norwegian, Persian, Portuguese (Portugal), Russian, Slovak, Spanish (Chile), Spanish (Mexico), Spanish (Spain),
 Swedish, and Turkish.
 
 ### Participants
+
+
+```{r count-wg-participants, eval=F}
+
+```
+
 
 ```{r, count-participants, eval=F}
 count_na <- function(vec) {
@@ -169,15 +193,16 @@ sp_ws_subjs = length(which(numna_sp<222)) # 1146
 ```
 
 
-The English production dataset consists of the combined production data from Wordbank for `r eng_wg_subjs` children aged 12-18 months from the American English CDI:WG, data from `r eng_ws_subjs` children aged 16-30 months from the English CDI:WS, and data from 69 children aged 31-36 months from the English CDI-III, for a total of `r nrow(d_demo_en)` participants.
-The Spanish production dataset consists of the combined production data for `r sp_wg_subjs` children from the Mexican Spanish CDI:WG (aged 12 or more months) as well as data from `r sp_ws_subjs` children from the Spanish CDI:WS form (16-30 months), for a total of 1691 participants.
-Figure 1C and 1D shows children's production scores vs. age for the English and Spanish production datasets, respectively.
+The CDI:WG production dataset consists of the combined Wordbank production data for `r sum(wg_tab$N)` children aged 12-18 months on `r sum(wg_tab$items)` items across `r nrow(wg_tab)` forms.
+The CDI:WS production dataset consists of the combined Wordbank production data for `r sum(ws_tab$N)` children aged 16-30 months on `r sum(ws_tab$items)` items across `r nrow(ws_tab)` forms.
+Figure 1C and 1D shows children's production scores vs. age for the CDI:WG and CDI:WS datasets respectively.
 Note that the socioeconomic distributions of these datasets are not matched. 
-(See @frank2021 for a discussion of possible effects of socioeconomic status on vocabulary development.)
+(See @frank2021 for a discussion of possible effects of socioeconomic status on vocabulary development.) 
 
 [^1]: [http://wordbank.stanford.edu/contributors](http://wordbank.stanford.edu/contributors)
+-->
 
-```{r, plot-production, echo=F, warning=F, fig.width=6.5, fig.height=5.5, fig.cap="Children's CDI vocabulary plotted by age and sex in each dataset: (A) English comprehension, (B) Spanish comprehension, (C) English production, and (D) Spanish production. Note that we plot fitted quadratics showing extrapolated vocabulary sizes beyond the maximum CDI score, rather than an asymptotic logistic."}
+```{r, plot-production, echo=F, warning=F, eval=F, fig.width=6.5, fig.height=5.5, fig.cap="Children's CDI vocabulary plotted by age and sex in each dataset: (A) English comprehension, (B) Spanish comprehension, (C) English production, and (D) Spanish production. Note that we plot fitted quadratics showing extrapolated vocabulary sizes beyond the maximum CDI score, rather than an asymptotic logistic."}
 
 en_prod <- d_demo_en %>% 
   mutate(sex = as.character(sex),
@@ -204,22 +229,10 @@ ggarrange(en_prod, sp_prod,
 
 ### Instruments
 
-```{r form-overlap}
-sp_wg_ws_intersect = length(intersect(sp_wg_items$definition, sp_ws_items$definition))
-# 388 / 428 match
-
-sp_wg_not_ws = setdiff(sp_wg_items$definition, sp_ws_items$definition)
-# 40 items -- but many of these match, yes? (just plural/parens/etc)
-
-eng_wg_ws_intersect = length(intersect(eng_wg_items$definition, eng_ws_items$definition))
-# 394 / 396 match
-eng_wg_not_ws = setdiff(eng_wg_items$definition, eng_ws_items$definition)
-# WG: "in" / "inside" -> a single WS item ("inside/in")
-```
 
 The 680-item vocabulary checklist of the English CDI:WS form is organized into 22 semantic categories (e.g., furniture, games and routines, people). 
 The Spanish CDI:WS vocabulary checklist consists of 680 words, organized into 23 semantic categories.
-The English CDI:WG vocabulary checklist is comprised of `r nrow(eng_wg_items)` of the easier vocabulary items from the English CDI:WS, and the Spanish CDI:WG is a subset of `r nrow(sp_wg_items)` of the items from the Spanish CDI:WS. 
+The English CDI:WG vocabulary checklist is comprised of XXX of the easier vocabulary items from the English CDI:WS, and the Spanish CDI:WG is a subset of XXX of the items from the Spanish CDI:WS. 
 
 When a CDI:WG form was administered, caregivers were asked to indicate for each vocabulary item whether their child 1) understands that word ("comprehends") or 2) both understands and says ("produces") that word. 
 Leaving the item blank indicates that the child neither comprehends nor produces that word.
