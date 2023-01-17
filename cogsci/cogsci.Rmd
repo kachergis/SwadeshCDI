@@ -240,7 +240,7 @@ All models, simulations, and other materials are available on OSF[^2].
 We look at the Spearman correlation between the item difficulty of each language compared to each other language. 
 We might expect this to recapitulate the historical relationship between languages, with more similar languages having more similar item difficulties (e.g., Quebecois and European French).
 
-```{r 2-col-image, fig.env = "figure*", fig.pos = "h", fig.width=4, fig.height=2, fig.align = "center", set.cap.width=T, num.cols.cap=2, fig.cap = "Cross-linguistic similarity (Spearman correlation) of IRT item difficulty from the CDI:WS."}
+```{r xling-sim, fig.env = "figure*", fig.pos = "h", fig.width=7.5, fig.height=7.5, fig.align = "center", set.cap.width=T, num.cols.cap=2, fig.cap = "Cross-linguistic similarity (Spearman correlation) of IRT item difficulty from the CDI:WS."}
 xldf_lowd <- xldf %>% filter(is.element(language, low_data_langs$Language)) # 5464
 xldf <- xldf %>% filter(!is.element(language, low_data_langs$Language)) # 17714
 
@@ -285,7 +285,7 @@ heatmap.2(prod_cors, col=Colors)
 Which categories are hardest? Easiest?
 Which categories show the greatest variability? The least?
 
-```{r 2-col-image, fig.env = "figure*", fig.pos = "h", fig.width=4, fig.height=2, fig.align = "center", set.cap.width=T, num.cols.cap=2, fig.cap = "Mean difficulty of CDI words by semantic category. Bars represent bootstrapped 95% confidence intervals."}
+```{r 2-col-image, fig.env = "figure*", fig.pos = "h", fig.width=7.5, fig.height=7, fig.align = "center", set.cap.width=T, num.cols.cap=2, fig.cap = "Mean difficulty of CDI words by semantic category. Bars represent bootstrapped 95% confidence intervals."}
 # Russian has descriptive adjectives and adverbs
 xldf[which(xldf$category=="descriptive_words (adjectives)"),]$category = "descriptive_words"
 xldf[which(xldf$category=="outside_places"),]$category = "outside"
@@ -461,15 +461,16 @@ run_swadesh_comparisons <- function(xldf, languages) {
 
 xx <- run_swadesh_comparisons(xldf, languages)
 
-mean(xx$`Rand r`) # .993
-mean(xx$`Swadesh r`) # .990
+#mean(xx$`Rand r`) # .993
+#mean(xx$`Swadesh r`) # .990
 
 gen_xx <- run_swadesh_comparisons(xldf_lowd, gen_test_langs)
-mean(gen_xx$`Rand r`) # .985
-mean(gen_xx$`Swadesh r`) # .978
+#mean(gen_xx$`Rand r`) # .985
+#mean(gen_xx$`Swadesh r`) # .978
 ```
 
 compare to short form 
+use average IRT parameter per item to calculate ability rather than sumscore
 
 ```{r swadesh-comparison, echo=F}
 # https://en.wikipedia.org/wiki/Swadesh_list
