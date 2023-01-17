@@ -108,11 +108,6 @@ for(lang in languages) {
            })
 }
 
-
-# warnings:
-#1: In load(paste("data/", language, "_WG_data.Rdata", sep = "")) :
-#  input string '面包' cannot be translated to UTF-8, is it valid in 'CP1252'?
-
 # now WS data
 #wg_langs <- instr %>% filter(form=="WG")
 ws_langs <- instr %>% filter(form=="WS") 
@@ -132,10 +127,10 @@ get_ws_data <- function(language, save=T, form="WS") {
   
   if(!"" %in% unique(d_long$value)) print(paste("No blank responses in",language,"-- replace NAs with ''?"))
   
-  # ToDo: are Danish and Norwegian missing values fixed?
-  if(language=="Danish" | language=="Norwegian") {
-    d_long <- d_long %>% mutate(value = replace_na(value, ""))
-  }
+  # Danish and Norwegian no longer full of NAs
+  #if(language=="Danish" | language=="Norwegian") {
+  #  d_long <- d_long %>% mutate(value = replace_na(value, ""))
+  #}
   
   d_long <- d_long %>%
     mutate(produces = as.numeric(value == "produces"))
@@ -169,10 +164,10 @@ for(lang in ws_langs$language) {
            })
 }
 
-# "retrieved data for 1295 Cantonese participants"
+# "retrieved data for 1295 Cantonese participants" # remove Tardif data??
 # "retrieved data for 377 Croatian participants"
 # "retrieved data for 3714 Danish participants"
-# "retrieved data for 8650 English (American) participants"
+# "retrieved data for 8650 English (American) participants" # now 8853
 # "retrieved data for 930 French (Quebecois) participants"
 # "retrieved data for 1181 German participants"
 # "retrieved data for 520 Hebrew participants"

@@ -5,7 +5,8 @@ csl: apa6.csl
 document-params: "10pt, letterpaper"
 
 author-information: > 
-    \author{{\large \bf George Kachergis (kachergis@stanford.edu)} \\ Department of Psychology, 450 Jane Stanford Way \\ Stanford, CA 94305 USA
+    \author{{\large \bf George Kachergis (kachergis@stanford.edu)} 
+    \AND {\large \bf Virginia A. Marchman (marchman@stanford.edu)} 
     \AND {\large \bf Michael C. Frank (mcfrank@stanford.edu)} \\ Department of Psychology, 450 Jane Stanford Way \\ Stanford, CA 94305 USA}
 
 abstract: >
@@ -50,7 +51,7 @@ require(here)
 Children's early language skill is predictive of educational outcomes, other developmental milestones, etc.
 
 <!-- REWRITE INTRO -->
-Measuring children's early language is important for parents, clinicians and researchers.
+Assessing children's early language skill is important for researchers, clinicians and parents, as early language skill is predictive of educational outcomes years later.
 The MacArthur-Bates Communicative Development Inventories [CDIs; @Fenson2007] are a set of parent report forms that offer a holistic assessment of children's productive and receptive language skills.
 CDIs are low-cost to administer and produce reliable and valid estimates of early vocabulary and other aspects of early language [@fenson1994]. 
 The CDIs offer more comprehensive data than a short interaction in the lab with a child [@Fenson2000], because they ask parents to report on vocabulary comprehension as well as production, and other milestones, such as communicative gesture use and use of word combinations. 
@@ -59,17 +60,22 @@ Because of these properties, CDI forms have been adapted to dozens of languages.
 Data from CDIs are archived in a central repository [Wordbank; @frank2017], and insights from these data have been used to inform theories of early language learning [@frank2021]. 
 
 Although CDIs measure a variety of other constructs related to early language, our focus here is on vocabulary assessment. 
-Across languages, measures of vocabulary on the CDIs are very tightly correlated with other aspects of early language like gesture and grammatical competence [@bates1994;@frank2021]. 
-From the perspective of the CDI, it is justifiable to say that the language system is "tightly woven" [@frank2021], meaning that precise measures of early vocabulary provide a good proxy measurement of the language system as a whole. 
+Across languages, measures of vocabulary on the CDIs are very tightly correlated with other aspects of early language like gesture and grammatical competence [@bates1994; @frank2021]. 
+These studies indicate that the language system looks to be "tightly woven" [@frank2021], in the sense that early vocabulary size serves as a good proxy measure of children's overall language skill. 
 
+
+The CDI:WS form is comprised of 22 semantic categories representing common early-learned words, including nouns (subdivided into e.g., Body Parts, Toys, and Clothing), action words (e.g. verbs), descriptive words (e.g. adjectives), and closed-class words such as pronouns. 
+
+<!--
 In American English and Mexican Spanish (two of the original languages in which the CDIs were developed), there are two long-form CDI instruments that focus on different ages.
 The 396-item vocabulary checklist on the CDI: Words & Gestures (CDI:WG) was designed for children ages 8--16 months and measures both comprehension and production.
 The 680-item vocabulary checklist on the CDI: Words & Sentences (CDI:WS) targets children ages 16--30 months, and includes nearly all of the items from the CDI:WG form, but only measures production. 
 All CDI forms include words from a range of semantic and syntactic categories. 
-For example, the CDI:WS form is comprised of 22 semantic categories representing common early-learned words, including nouns (subdivided into e.g., Body Parts, Toys, and Clothing), action words (e.g. verbs), descriptive words (e.g. adjectives), and closed-class words such as pronouns. 
+For example, 
+-->
 
-Although the CDIs have many advantages, one clear drawback is the long length of the vocabulary checklists, which make them time-consuming for parents to complete.
-The length of the CDIs also makes it difficult to include them in studies requiring a battery of tasks, as is often the case in both clinical and research settings.
+Although the CDIs have many advantages, one drawback is that it is difficult for researchers to adapt a CDI for a new language.
+
 Due to these challenges, there have been a variety of efforts to create shortened versions of the CDI. 
 The 100-item short-form CDIs [@Fenson2000; @Fenson2007] are derived from the 680-item CDI:WS form, with items selected based on difficulty and item-to-full score correlations, while also attempting to represent the diversity of semantic and linguistic categories.
 While the scores of the short-form CDI:WS are highly correlated with scores on the full CDI:WS, there is evidence for a ceiling effect for children older than 27 or 28 months of age. 
@@ -108,12 +114,6 @@ Thus, children with high latent ability ($\theta$) will be more likely to produc
 The discrimination ($a_i$) modifies the slope of the logistic (in the classic Rasch or 1PL model, the slope is always 1):
 <!-- define D (review CATpaper explanation: ogive) --> 
 
-If the authors' names are
-included in the sentence, place only the year in parentheses, as in
-[-@NewellSimon1972a], but otherwise place the entire reference in
-parentheses with the authors and year separated by a comma
-[@NewellSimon1972a]. List multiple references alphabetically and
-separate them by semicolons [@ChalnickBillman1988a; @NewellSimon1972a]. 
 
 
 ## Datasets
@@ -150,50 +150,36 @@ ws_coefs = coefs
 
 ws_tab <- get_item_n_subject_counts(models)
 
+load(here("data/xling-WSprod-IRTparms.Rdata"))
+ws_parms <- xldf # 23179
+
 # WG langs that don't have WS: British Sign Language, Spanish (Chilean), American Sign Language, English (British)
 
 it_tab <- ws_tab %>% rename(`WS items`=items, `WS N`=N) %>%
   left_join(wg_tab %>% rename(`WG items`=items, `WG N`=N)) %>%
   arrange(desc(`WS N`))
 
+low_data_langs <- it_tab %>% filter(`WS N`<200)
+
 tab1 <- xtable::xtable(it_tab, digits=c(0), 
                        caption = "Number of CDI:WG and CDI:WS items and subjects (N) per language.")
 print(tab1, type="latex", comment = F, table.placement = "H", include.rownames=FALSE)
+# ToDo: italicize final eight rows (to be used as generalization test)
 ```
 
 
-We report analyses for twenty-four languages from Wordbank [@frank2017], comprising production data from CDI:WG vocabulary checklists.
-The languages are: British Sign Language, Croatian, Danish, Dutch, English (U.S.), 
-French (France), French (Quebec), Hebrew, Italian, Kigiriama, Kiswahili, Korean, Latvian, Mandarin (Taiwan),
-Norwegian, Persian, Portuguese (Portugal), Russian, Slovak, Spanish (Chile), Spanish (Mexico), Spanish (Spain),
-Swedish, and Turkish.
+We report IRT analyses for twenty-six languages from Wordbank [@frank2017], comprising production data from CDI:WS vocabulary checklists.
+Data from the first twenty-six rows of Table 1 (Norwegian through Dutch) will be used to select a pool of words with approximately equal cross-linguistic difficulty.
+CDI:WS production data from an additional eight languages (Table 1: Greek (Cypriot) through Persian) had too few participants to be analyzed with IRT, but will be used to test how well the selected pool of generalize to new languages.
 
 ### Participants
 
-
-```{r count-wg-participants, eval=F}
+```{r}
 
 ```
 
 
-```{r, count-participants, eval=F}
-count_na <- function(vec) {
-  return(length(which(is.na(vec))))
-}
-
-numna_en = apply(d_mat_en, 1, count_na) 
-eng_ws_subjs = length(which(numna_en<285)) # 5573
-eng_cdi_iii_subjs = length(which(d_demo_en$age>30))
-#eng_wg_subjs = nrow(d_mat_en) - eng_ws_subjs - eng_cdi_iii_subjs # 1991 (lost some with missing data?)
-
-numna_sp = apply(d_mat_sp, 1, count_na) 
-sp_ws_subjs = length(which(numna_sp<222)) # 1146
-#sp_cdi_iii_subjs = length(which(d_demo_sp$age>30)) # only 12 words overlap...
-#sp_wg_subjs = nrow(d_mat_sp) - eng_ws_subjs - eng_cdi_iii_subjs
-```
-
-
-The CDI:WG production dataset consists of the combined Wordbank production data for `r sum(wg_tab$N)` children aged 12-18 months on `r sum(wg_tab$items)` items across `r nrow(wg_tab)` forms.
+<!-- The CDI:WG production dataset consists of the combined Wordbank production data for `r sum(wg_tab$N)` children aged 12-18 months on `r sum(wg_tab$items)` items across `r nrow(wg_tab)` forms. -->
 The CDI:WS production dataset consists of the combined Wordbank production data for `r sum(ws_tab$N)` children aged 16-30 months on `r sum(ws_tab$items)` items across `r nrow(ws_tab)` forms.
 Figure 1C and 1D shows children's production scores vs. age for the CDI:WG and CDI:WS datasets respectively.
 Note that the socioeconomic distributions of these datasets are not matched. 
@@ -247,13 +233,243 @@ All models, simulations, and other materials are available on OSF[^2].
 
 [^2]: OSF repository: [https://osf.io/XXX/](https://osf.io/XXX/).
 
-```{r generalization-test, echo=F}
-# lots of new Wordbank 2 languages
-gen_test_langs <- c("American Sign Language", "Cantonese", "Spanish (Peruvian)", 
-                    "English (Australian)", "English (British)", "Finnish",
-                    "Greek (Cypriot)", "Hungarian", "Czech", "Irish")
+
+
+## Cross-linguistic similarities 
+
+We look at the Spearman correlation between the item difficulty of each language compared to each other language. 
+We might expect this to recapitulate the historical relationship between languages, with more similar languages having more similar item difficulties (e.g., Quebecois and European French).
+
+```{r 2-col-image, fig.env = "figure*", fig.pos = "h", fig.width=4, fig.height=2, fig.align = "center", set.cap.width=T, num.cols.cap=2, fig.cap = "Cross-linguistic similarity (Spearman correlation) of IRT item difficulty from the CDI:WS."}
+xldf_lowd <- xldf %>% filter(is.element(language, low_data_langs$Language)) # 5464
+xldf <- xldf %>% filter(!is.element(language, low_data_langs$Language)) # 17714
+
+# parm diffs in low- vs. high-data langs
+t.test(xldf$d, xldf_lowd$d) # -.45 vs. -.02 (closer to prior of 0 in low-data langs)
+t.test(xldf$a1, xldf_lowd$a1) # higher discrim in high-data langs
+
+languages = unique(xldf$language)
+
+prod_cors <- matrix(0, nrow=length(languages), ncol=length(languages))
+prod_sims <- tibble()
+colnames(prod_cors) = languages
+rownames(prod_cors) = languages
+
+for(l1 in languages) {
+  for(l2 in languages) {
+    tmp <- xldf %>% filter(language==l1 | language==l2, !is.na(d)) %>%
+      select(uni_lemma, category, lexical_category, language, d) %>%
+      group_by(uni_lemma, language) %>%
+      slice(1) %>% 
+      pivot_wider(names_from = language, values_from = d) %>%
+      drop_na()
+    prod_cors[l1,l2] <- cor(tmp[,l1], tmp[,l2], method="spearman")
+    prod_sims <- bind_rows(prod_sims, tibble("Lang1" = l1, "Lang2" = l2, 
+                                             "r" = cor(tmp[,l1], tmp[,l2], method="spearman")[[1]], 
+                                             "N" = nrow(tmp)))
+  }
+}
+
+library(RColorBrewer)
+library(gplots)
+Colors = brewer.pal(11,"Spectral")
+diag(prod_cors) = NA
+#bad_lang = c("Mandarin (Taiwanese)")
+heatmap.2(prod_cors, col=Colors)
+
 ```
 
+
+## Difficulty by CDI Category
+
+Which categories are hardest? Easiest?
+Which categories show the greatest variability? The least?
+
+```{r 2-col-image, fig.env = "figure*", fig.pos = "h", fig.width=4, fig.height=2, fig.align = "center", set.cap.width=T, num.cols.cap=2, fig.cap = "Mean difficulty of CDI words by semantic category. Bars represent bootstrapped 95% confidence intervals."}
+# Russian has descriptive adjectives and adverbs
+xldf[which(xldf$category=="descriptive_words (adjectives)"),]$category = "descriptive_words"
+xldf[which(xldf$category=="outside_places"),]$category = "outside"
+
+
+# remove categories that only exist in 1 or 2 languages:
+prod_cat <- xldf %>% group_by(language, category) %>%
+  filter(!is.na(d), !is.na(category),
+         !is.element(category, c("final_particles", "directions", "numbers", "articles", "other",
+                                 "descriptive_words (adverbs)", "states", "unknown",
+                                 "verb_endings", "verb_modifiers",
+                                 "classifiers", "locations_quantities_adverbs"))) %>%
+  tidyboot::tidyboot_mean(d, na.rm=T)
+
+
+# color=language
+prod_cat %>% ggplot(aes(x=reorder(language, mean), y=mean)) + geom_point(alpha=.7) +
+  geom_linerange(aes(ymin=ci_lower, ymax=ci_upper), alpha=.7) +
+  facet_wrap(. ~ category) + coord_flip() + 
+  theme_classic() + ylab("Mean item easiness") + xlab("Language")
+#ggsave("xling_diff_by_category_WSprod.pdf", width=10, height=10)
+```
+
+### Candidate Items
+
+Shown below are the total number of items per language that also have uni-lemmas.
+
+```{r, echo=F, message=F}
+pars <- xldf %>% filter(!is.na(uni_lemma), !is.na(d)) 
+
+ul <- sort(table(pars$uni_lemma)) 
+
+long_list = ul[which(ul>1)] # 1312
+#short_list = ul[which(ul>5)] # 807
+short_list = ul[which(ul>9)] # 656 uni-lemmas defined in 10+ languages
+#short_list = ul[which(ul>12)] # 573 uni-lemmas defined in 10+ languages
+
+tab <- sort(table(pars$language))
+kableExtra::kable(tab, col.names=c("Language","Items"))
+```
+
+CDI:WS forms have a median of 693 uni-lemmas defined (range: 553 (Czech) to 804 (Cantonese)), and there are a total of `r length(unique(xldf$uni_lemma))` uni-lemmas defined across the 26 languages.
+Only `r nrow(na.omit(prod_pars))` uni-lemmas appear on all `r length(languages)` CDI:WS forms: too few to comprise a short form.
+To expand the pool of items, we consider thresholds on both 1) the variability of an item's difficulty across languages (lower is better), and 2) the number of CDI:WS forms on which it appears (more is better).
+Below we examine the standard deviation of uni-lemmas' cross-linguistic difficulty as a function of how many languages that uni-lemma is missing from.
+For now we consider items with less than median variability in difficulty that are included on 10 or more of the 26 CDI:WS forms.
+
+```{r, echo=F}
+# problem: some languages have multiple items matching a single uni_lemma
+# (e.g., Croatian has stric=uncle and ujak=uncle; Turkish has 3 "market"s )
+prod_pars <-
+  pars %>% arrange(desc(language), desc(uni_lemma), desc(a1)) %>% # get most discriminating uni_lemma per lang
+  filter(is.element(uni_lemma, names(short_list))) %>%
+  select(uni_lemma, category, lexical_category, language, d) %>%
+  group_by(uni_lemma, language) %>%
+  slice(1) %>% 
+  pivot_wider(names_from = language, values_from = d)
+
+prod_pars$sd = apply(prod_pars[,4:ncol(prod_pars)], 1, sd, na.rm=T)
+prod_pars$numNAs = apply(prod_pars[,4:ncol(prod_pars)], 1, function(x) { sum(is.na(x)) })
+
+# median SD of the item difficulty
+med_d = median(prod_pars$sd, na.rm=T) # 1.17
+# SD of the SD
+sd_d = sd(prod_pars$sd, na.rm=T) # .44
+
+prod_pars %>% ggplot(aes(x=jitter(numNAs), y=sd, color=lexical_category)) + 
+  geom_point(alpha=.7) + theme_classic() + 
+  xlab("# of languages without uni-lemma") +
+  ylab("SD of unilemma's cross-linguistic difficulty") +
+  geom_hline(aes(yintercept=med_d - .5*sd_d), linetype="dashed") + 
+  geom_vline(aes(xintercept=6.5), linetype="dashed")
+```
+
+
+```{r}
+# look at different numNA thresholds...
+gt_dat = tibble()
+for(i in 1:26) {
+  tmp <- prod_pars %>%
+    filter(numNAs < i) 
+  gt_dat <- gt_dat %>% 
+    bind_rows(tibble(`# NAs` = i, 
+                     `# Uni-lemmas` = nrow(tmp),
+                     `Median(SD)` = median(tmp$sd, na.rm=T), 
+                     `SD(d)` = sd(tmp$sd, na.rm=T)))
+}
+
+#View(gt_dat)
+
+gt_dat %>% ggplot(aes(x=`# NAs`, y=`SD(d)`)) + 
+  geom_point() + theme_classic()
+
+good_prod <- prod_pars %>% 
+  filter(numNAs < 16) %>%
+  filter(sd < (med_d - .5*sd_d)) %>% 
+  arrange(numNAs)
+  #arrange(lexical_category, desc(sd))
+```
+
+Of these, a total of `r length(long_list)` uni-lemmas are included in more than one language, and only `r length(short_list)` uni-lemmas are included in 10 or more of the languages.
+We will start by considering this more restricted list.
+
+To evaluate how variable items are in their cross-linguistic difficulty, we calculate the standard deviation (SD) of each uni-lemma's difficulty.
+The median SD is `r round(med_d, 2)` (SD=`r round(sd_d, 2)`), so we consider the items with SD less than half the median SD (i.e., SD < `r round(med_d - .5*sd_d, 2)`).
+These `r nrow(good_prod)` candidate "Swadesh CDI" items are summarized by semantic category below (see OSF for full list).
+52% of Swadesh CDI words are nouns, 21% are predicates, 22% are function words, and 5% are other.
+This breakdown is comparable to the lexical category percentages on the 680-item English CDI:WS (46% nouns, 24% predicates, %15 function words, and 15%), minimally suggesting that this method of selecting candidate items is not biased by lexical category.
+The candidate items, ultimately selected by lower variability, were also present on more forms than typical in the selection set: on average, each item appeared on `r 26-mean(good_prod$numNAs)` forms.
+
+The Swadesh CDI words did significantly differ in difficulty, compared to the other 
+
+
+```{r, echo=F, results='asis'}
+#sort(table(good_prod$category), decr=T)
+#sort(table(good_prod$lexical_category), decr=T)
+# c(50,20,5,21) / 96
+
+# table(subset(xldf, language=="English (American)")$lexical_category) / 680
+# function_words     nouns      other    predicates 
+#    0.15          0.46      0.1470588      0.24
+
+#kableExtra::kable(good_prod, digits=2)
+#good_prod %>% DT::datatable() %>%
+#  DT::formatRound(columns=4:24, digits=3)
+tab2 <- good_prod %>% group_by(category) %>%
+  summarise(n=n()) %>%
+  arrange(desc(n))
+
+tab2 <- xtable::xtable(tab2, digits=c(0), 
+                       caption = "Number of good cross-linguistic words by semantic category.")
+print(tab2, type="latex", comment = F, table.placement = "H", include.rownames=FALSE)
+```
+
+
+```{r, swadesh-vs-non-swadesh-diff, echo=F}
+xldf <- xldf %>% 
+  mutate(SwadeshCDI=ifelse(is.element(uni_lemma, good_prod$uni_lemma), 1, 0))
+
+tmp <- xldf %>% 
+  group_by(SwadeshCDI) %>% 
+  filter(!is.na(d)) %>%
+  summarise(sd_d = sd(d), d = mean(d), 
+            sd_a1 = sd(a1), a1 = mean(a1))
+# mean easiness of Swadesh words: 0.03; mean easiness of other words: -0.51
+# (mean of all: mean(xldf$d, na.rm=T) -0.45
+
+#t.test(subset(xldf, SwadeshCDI==1)$a1, subset(xldf, SwadeshCDI==0)$a1) # n.s. diff in discrimination
+t.test(subset(xldf, SwadeshCDI==1)$d, subset(xldf, SwadeshCDI==0)$d)
+```
+
+
+```{r generalization-test, echo=F}
+gen_test_langs <- low_data_langs$Language
+
+# use the good_prod words as a short CDI, and compare the correlation 
+# of these words to a random selection (might be worse, due to being biased towards easy words?)
+
+run_swadesh_comparisons <- function(xldf, languages) {
+  xx <- tibble()
+  for(lang in languages) {
+    load(here(paste("data/WS/",lang,"_WS_data.Rdata", sep='')))
+    swad_l <- subset(xldf, language==lang & is.element(uni_lemma, good_prod$uni_lemma)) # 
+    swad_cor = cor(rowSums(d_prod, na.rm=T), rowSums(d_prod[,swad_l$item_id], na.rm=T))
+    rand_inds = sample(1:ncol(d_prod), nrow(swad_l)) # N random words 
+    rand_cor = cor(rowSums(d_prod, na.rm=T), rowSums(d_prod[,rand_inds], na.rm=T))
+    xx <- xx %>% bind_rows(tibble(language = lang, `Swadesh r` = swad_cor, 
+                                  `Rand r` = rand_cor, N = nrow(swad_l)))
+  # d_demo, d_long, d_prod
+  }
+  return(xx)
+}
+
+xx <- run_swadesh_comparisons(xldf, languages)
+
+mean(xx$`Rand r`) # .993
+mean(xx$`Swadesh r`) # .990
+
+gen_xx <- run_swadesh_comparisons(xldf_lowd, gen_test_langs)
+mean(gen_xx$`Rand r`) # .985
+mean(gen_xx$`Swadesh r`) # .978
+```
+
+compare to short form 
 
 ```{r swadesh-comparison, echo=F}
 # https://en.wikipedia.org/wiki/Swadesh_list
@@ -274,28 +490,6 @@ asjp = c("eye","ear","nose","tongue","tooth","hand","knee","blood","bone","breas
 
 
 
-```{r 2-col-image, fig.env = "figure*", fig.pos = "h", fig.width=4, fig.height=2, fig.align = "center", set.cap.width=T, num.cols.cap=2, fig.cap = "This image spans both columns. And the caption text is limited to 0.8 of the width of the document."}
-#img <- png::readPNG("figs/walrus.png")
-#grid::grid.raster(img)
-```
-
-
-
-```{r image, fig.env = "figure", fig.pos = "H", fig.align='center', fig.width=2, fig.height=2, set.cap.width=T, num.cols.cap=1, fig.cap = "One column image."}
-img <- png::readPNG("figs/lab_logo_stanford.png")
-grid::grid.raster(img)
-```
-
-
-```{r plot, fig.env="figure", fig.pos = "H", fig.align = "center", fig.width=2, fig.height=2, fig.cap = "R plot" }
-x <- 0:100
-y <- 2 * (x + rnorm(length(x), sd = 3) + 3)
-
-ggplot2::ggplot(data = data.frame(x, y), 
-                aes(x = x, y = y)) + 
-  geom_point() + 
-  geom_smooth(method = "lm")
-```
 
 
 
