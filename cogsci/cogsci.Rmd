@@ -327,13 +327,7 @@ tab <- sort(table(pars$language))
 kableExtra::kable(tab, col.names=c("Language","Items"))
 ```
 
-CDI:WS forms have a median of 693 uni-lemmas defined (range: 553 (Czech) to 804 (Cantonese)), and there are a total of `r length(unique(xldf$uni_lemma))` uni-lemmas defined across the 26 languages.
-Only `r nrow(na.omit(prod_pars))` uni-lemmas appear on all `r length(languages)` CDI:WS forms: too few to comprise a short form.
-To expand the pool of items, we consider thresholds on both 1) the variability of an item's difficulty across languages (lower is better), and 2) the number of CDI:WS forms on which it appears (more is better).
-Below we examine the standard deviation of uni-lemmas' cross-linguistic difficulty as a function of how many languages that uni-lemma is missing from.
-For now we consider items with less than median variability in difficulty that are included on 10 or more of the 26 CDI:WS forms.
-
-```{r, echo=F}
+```{r}
 # problem: some languages have multiple items matching a single uni_lemma
 # (e.g., Croatian has stric=uncle and ujak=uncle; Turkish has 3 "market"s )
 prod_pars <-
@@ -343,7 +337,16 @@ prod_pars <-
   group_by(uni_lemma, language) %>%
   slice(1) %>% 
   pivot_wider(names_from = language, values_from = d)
+```
 
+
+CDI:WS forms have a median of 693 uni-lemmas defined (range: 553 (Czech) to 804 (Cantonese)), and there are a total of `r length(unique(xldf$uni_lemma))` uni-lemmas defined across the 26 languages.
+Only `r nrow(na.omit(prod_pars))` uni-lemmas appear on all `r length(languages)` CDI:WS forms: too few to comprise a short form.
+To expand the pool of items, we consider thresholds on both 1) the variability of an item's difficulty across languages (lower is better), and 2) the number of CDI:WS forms on which it appears (more is better).
+Below we examine the standard deviation of uni-lemmas' cross-linguistic difficulty as a function of how many languages that uni-lemma is missing from.
+For now we consider items with less than median variability in difficulty that are included on 10 or more of the 26 CDI:WS forms.
+
+```{r, echo=F}
 prod_pars$sd = apply(prod_pars[,4:ncol(prod_pars)], 1, sd, na.rm=T)
 prod_pars$numNAs = apply(prod_pars[,4:ncol(prod_pars)], 1, function(x) { sum(is.na(x)) })
 
@@ -396,8 +399,10 @@ These `r nrow(good_prod)` candidate "Swadesh CDI" items are summarized by semant
 This breakdown is comparable to the lexical category percentages on the 680-item English CDI:WS (46% nouns, 24% predicates, %15 function words, and 15%), minimally suggesting that this method of selecting candidate items is not biased by lexical category.
 The candidate items, ultimately selected by lower variability, were also present on more forms than typical in the selection set: on average, each item appeared on `r 26-mean(good_prod$numNAs)` forms.
 
-The Swadesh CDI words did significantly differ in difficulty, compared to the other 
-
+Comparing the IRT parameters of the Swadesh CDI words to the rest of the items showed that the candidate Swadesh items are significantly easier (mean Swadesh $d=0.03$, other items' mean $d=-0.51$, $t(2737)=12.74$, $p<.001$).
+If the Swadesh list is too focused on early-learned items, this may result in ceiling effects for older children.
+It may be prudent to consider expanding the Swadesh list to include some more difficult items.
+The discrimination parameter (i.e., slope) of the Swadesh items did not significantly differ from the other items.
 
 ```{r, echo=F, results='asis'}
 #sort(table(good_prod$category), decr=T)
@@ -435,12 +440,12 @@ tmp <- xldf %>%
 
 #t.test(subset(xldf, SwadeshCDI==1)$a1, subset(xldf, SwadeshCDI==0)$a1) # n.s. diff in discrimination
 t.test(subset(xldf, SwadeshCDI==1)$d, subset(xldf, SwadeshCDI==0)$d)
+
+gen_test_langs <- low_data_langs$Language
 ```
 
 
-```{r generalization-test, echo=F}
-gen_test_langs <- low_data_langs$Language
-
+```{r generalization-test, echo=F, eval=F}
 # use the good_prod words as a short CDI, and compare the correlation 
 # of these words to a random selection (might be worse, due to being biased towards easy words?)
 
@@ -467,7 +472,28 @@ xx <- run_swadesh_comparisons(xldf, languages)
 gen_xx <- run_swadesh_comparisons(xldf_lowd, gen_test_langs)
 #mean(gen_xx$`Rand r`) # .985
 #mean(gen_xx$`Swadesh r`) # .978
+
+save(xx, gen_xx, file=here("data/Swadesh_comparisons.Rdata"))
 ```
+
+```{r}
+load(here("data/Swadesh_comparisons.Rdata"))
+
+short_wsA <- read_csv(here("data/eng-ws-shortA.csv"))
+short_wsB <- read_csv(here("data/eng-ws-shortB.csv"))
+
+sort(intersect(short_wsA$word, good_prod$uni_lemma)) # 14
+# "airplane" "broom"    "cat"      "dog"      "meow"     "milk"     "necklace"      
+# "peas"     "school"   "shopping" "sky" "star"     "tonight"  "under"   
+sort(intersect(short_wsB$word, good_prod$uni_lemma)) # 8
+# "black"    "catch"    "dirty"    "hose"     
+# "mailman"  "nose"     "tomorrow" "tongue" 
+
+sort(short_wsA$word)
+sort(good_prod$uni_lemma)
+# remove: penis, vagina, 
+```
+
 
 compare to short form 
 use average IRT parameter per item to calculate ability rather than sumscore
@@ -486,6 +512,9 @@ asjp = c("eye","ear","nose","tongue","tooth","hand","knee","blood","bone","breas
          "sun","star","water (not beverage)","fire","stone","path","mountain","night", # Nature
          "drink (action)","die","see","hear","come", # Verbs and adjectives
          "new","full","one","two","I","you","we")
+
+intersect(asjp, good_prod$uni_lemma) 
+# "nose"   "tongue" "tooth"  "dog"    "star" 
 ```
 
 
