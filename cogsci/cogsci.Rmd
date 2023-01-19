@@ -94,9 +94,7 @@ However, for the youngest age group (16--18 month-olds), the correlation with th
 Our goal in the current work is to...
 In particular, our contributions are:
 
-We will first introduce the candidate Item Response Theory (IRT) models, fit them to the datasets, and assess which model is appropriate as the basis for the adaptive CDI. 
-Next, we will conduct various CAT simulations to assess the effects of different design choices on test performance, and choose a set of preferred CAT parameters. 
-Finally, we report results from a validation study.
+We will first introduce Item Response Theory (IRT), fit the models to the datasets, and then examine 
 We end by discussing the strengths and weaknesses of our approach. 
 
 # Methods
@@ -168,15 +166,11 @@ print(tab1, type="latex", comment = F, table.placement = "H", include.rownames=F
 ```
 
 
-We report IRT analyses for twenty-six languages from Wordbank [@frank2017], comprising production data from CDI:WS vocabulary checklists.
+We report IRT analyses for twenty-six languages from Wordbank [@frank2017], comprising production data from CDI:WS vocabulary checklists.[^1]
 Data from the first twenty-six rows of Table 1 (Norwegian through Dutch) will be used to select a pool of words with approximately equal cross-linguistic difficulty.
 CDI:WS production data from an additional eight languages (Table 1: Greek (Cypriot) through Persian) had too few participants to be analyzed with IRT, but will be used to test how well the selected pool of generalize to new languages.
 
 ### Participants
-
-```{r}
-
-```
 
 
 <!-- The CDI:WG production dataset consists of the combined Wordbank production data for `r sum(wg_tab$N)` children aged 12-18 months on `r sum(wg_tab$items)` items across `r nrow(wg_tab)` forms. -->
@@ -186,7 +180,7 @@ Note that the socioeconomic distributions of these datasets are not matched.
 (See @frank2021 for a discussion of possible effects of socioeconomic status on vocabulary development.) 
 
 [^1]: [http://wordbank.stanford.edu/contributors](http://wordbank.stanford.edu/contributors)
--->
+
 
 ```{r, plot-production, echo=F, warning=F, eval=F, fig.width=6.5, fig.height=5.5, fig.cap="Children's CDI vocabulary plotted by age and sex in each dataset: (A) English comprehension, (B) Spanish comprehension, (C) English production, and (D) Spanish production. Note that we plot fitted quadratics showing extrapolated vocabulary sizes beyond the maximum CDI score, rather than an asymptotic logistic."}
 
@@ -245,8 +239,8 @@ xldf_lowd <- xldf %>% filter(is.element(language, low_data_langs$Language)) # 54
 xldf <- xldf %>% filter(!is.element(language, low_data_langs$Language)) # 17714
 
 # parm diffs in low- vs. high-data langs
-t.test(xldf$d, xldf_lowd$d) # -.45 vs. -.02 (closer to prior of 0 in low-data langs)
-t.test(xldf$a1, xldf_lowd$a1) # higher discrim in high-data langs
+#t.test(xldf$d, xldf_lowd$d) # -.45 vs. -.02 (closer to prior of 0 in low-data langs)
+#t.test(xldf$a1, xldf_lowd$a1) # higher discrim in high-data langs
 
 languages = unique(xldf$language)
 
@@ -285,7 +279,7 @@ heatmap.2(prod_cors, col=Colors)
 Which categories are hardest? Easiest?
 Which categories show the greatest variability? The least?
 
-```{r 2-col-image, fig.env = "figure*", fig.pos = "h", fig.width=7.5, fig.height=7, fig.align = "center", set.cap.width=T, num.cols.cap=2, fig.cap = "Mean difficulty of CDI words by semantic category. Bars represent bootstrapped 95% confidence intervals."}
+```{r 2-col-image, fig.env = "figure*", fig.pos = "h", fig.width=7.5, fig.height=7, fig.align = "center", set.cap.width=T, num.cols.cap=2, fig.cap = "Mean difficulty of CDI words by semantic category. Bars represent bootstrapped 95\\% confidence intervals."}
 # Russian has descriptive adjectives and adverbs
 xldf[which(xldf$category=="descriptive_words (adjectives)"),]$category = "descriptive_words"
 xldf[which(xldf$category=="outside_places"),]$category = "outside"
@@ -306,7 +300,7 @@ prod_cat %>% ggplot(aes(x=reorder(language, mean), y=mean)) + geom_point(alpha=.
   geom_linerange(aes(ymin=ci_lower, ymax=ci_upper), alpha=.7) +
   facet_wrap(. ~ category) + coord_flip() + 
   theme_classic() + ylab("Mean item easiness") + xlab("Language")
-#ggsave("xling_diff_by_category_WSprod.pdf", width=10, height=10)
+#ggsave("xling_diff_by_category_WSprod.pdf", width=10, height=12)
 ```
 
 ### Candidate Items
@@ -346,7 +340,7 @@ To expand the pool of items, we consider thresholds on both 1) the variability o
 Below we examine the standard deviation of uni-lemmas' cross-linguistic difficulty as a function of how many languages that uni-lemma is missing from.
 For now we consider items with less than median variability in difficulty that are included on 10 or more of the 26 CDI:WS forms.
 
-```{r, echo=F}
+```{r, echo=F, include=F}
 prod_pars$sd = apply(prod_pars[,4:ncol(prod_pars)], 1, sd, na.rm=T)
 prod_pars$numNAs = apply(prod_pars[,4:ncol(prod_pars)], 1, function(x) { sum(is.na(x)) })
 
@@ -421,7 +415,7 @@ tab2 <- good_prod %>% group_by(category) %>%
   arrange(desc(n))
 
 tab2 <- xtable::xtable(tab2, digits=c(0), 
-                       caption = "Number of good cross-linguistic words by semantic category.")
+                       caption = "Number of proposed Swadesh CDI items by semantic category.")
 print(tab2, type="latex", comment = F, table.placement = "H", include.rownames=FALSE)
 ```
 
@@ -439,11 +433,19 @@ tmp <- xldf %>%
 # (mean of all: mean(xldf$d, na.rm=T) -0.45
 
 #t.test(subset(xldf, SwadeshCDI==1)$a1, subset(xldf, SwadeshCDI==0)$a1) # n.s. diff in discrimination
-t.test(subset(xldf, SwadeshCDI==1)$d, subset(xldf, SwadeshCDI==0)$d)
+#t.test(subset(xldf, SwadeshCDI==1)$d, subset(xldf, SwadeshCDI==0)$d)
 
 gen_test_langs <- low_data_langs$Language
 ```
 
+## Comparing Swadesh CDI to Full CDI:WS
+
+How well do sumscores from the Swadesh CDI items correlate with full CDI:WS scores?
+On average, for the 26 languages the IRT analysis was based on, the Swadesh CDI's sumscores were strongly correlated with the full CDI:WS scores ($r=0.990$; $min=0.976$, $max=0.996$).
+However, these correlations were slightly but significantly lower than scores based on randomly-selected items ($r=0.993$, $min=0.990$, $max=0.996$, paired $t(25) = -5.67$, $p<.001$).
+This is likely due to some ceiling effects for older children on the Swadesh CDI, since the randomly-selected items are likely somewhat easier on average than the Swadish items (see above results).
+
+For the eight low-data languages , a similar comparison again revealed 
 
 ```{r generalization-test, echo=F, eval=F}
 # use the good_prod words as a short CDI, and compare the correlation 
@@ -466,8 +468,12 @@ run_swadesh_comparisons <- function(xldf, languages) {
 
 xx <- run_swadesh_comparisons(xldf, languages)
 
-#mean(xx$`Rand r`) # .993
-#mean(xx$`Swadesh r`) # .990
+#summary(xx$`Swadesh r`)
+#   Min.  1st Qu.  Median    Mean 3rd Qu.    Max. 
+# 0.9760  0.9886  0.9904  0.9895  0.9921  0.9955 
+#summary(xx$`Rand r`)
+#  Min.  1st Qu.  Median    Mean 3rd Qu.    Max. 
+# 0.9898  0.9919  0.9936  0.9931  0.9944  0.9958 
 
 gen_xx <- run_swadesh_comparisons(xldf_lowd, gen_test_langs)
 #mean(gen_xx$`Rand r`) # .985
@@ -476,8 +482,16 @@ gen_xx <- run_swadesh_comparisons(xldf_lowd, gen_test_langs)
 save(xx, gen_xx, file=here("data/Swadesh_comparisons.Rdata"))
 ```
 
-```{r}
+
+
+```{r, include=F}
 load(here("data/Swadesh_comparisons.Rdata"))
+
+# are we any worse than random? slightly, but significantly...
+#t.test(xx$`Swadesh r` - xx$`Rand r`)
+# t(25) = -5.67, p<.001; diff=-.004
+#t.test(gen_xx$`Swadesh r` - gen_xx$`Rand r`) 
+# t(7) = -3.22, p=0.01;  diff=-.007
 
 short_wsA <- read_csv(here("data/eng-ws-shortA.csv"))
 short_wsB <- read_csv(here("data/eng-ws-shortB.csv"))
@@ -513,7 +527,7 @@ asjp = c("eye","ear","nose","tongue","tooth","hand","knee","blood","bone","breas
          "drink (action)","die","see","hear","come", # Verbs and adjectives
          "new","full","one","two","I","you","we")
 
-intersect(asjp, good_prod$uni_lemma) 
+#intersect(asjp, good_prod$uni_lemma) 
 # "nose"   "tongue" "tooth"  "dog"    "star" 
 ```
 
