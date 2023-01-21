@@ -264,7 +264,7 @@ prod_cat %>% group_by(category) %>%
   tidyboot::tidyboot_mean(mean, na.rm=T) %>%
   ggplot(aes(x=reorder(category, mean), y=mean)) + geom_point(alpha=.7) +
   geom_linerange(aes(ymin=ci_lower, ymax=ci_upper), alpha=.7) +
-  coord_flip() + theme_classic() + ylab("Mean item easiness") + xlab("Language")
+  coord_flip() + theme_classic() + ylab("Mean item easiness") + xlab("Category")
 ```
 
 
