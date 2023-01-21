@@ -66,8 +66,27 @@ These studies indicate that the language system looks to be "tightly woven" [@fr
 The American English CDI Words & Sentences (CDI:WS) form, targeting children 16-30 months of age, is comprised of 680 words from 22 semantic categories representing common early-learned words, including nouns (subdivided into e.g., Body Parts, Toys, and Clothing), action words (e.g. verbs), descriptive words (e.g. adjectives), and closed-class words such as pronouns.
 Researchers have adapted the CDI:WS to many other languages: to date, Wordbank contains contributed datasets from 34 CDI:WS adaptations, and 28 adaptations of the CDI Words & Gestures (CDI:WG) form, which target younger children (8- to 16-month-olds) and are typically $\sim400$ words.
 
+```{r cdi-overlap, echo=F, include=F}
+# long data-frame of all WS production parameters
+load(here("data/xling-WSprod-IRTparms.Rdata"))
+nas <- xldf %>% filter(uni_lemma=="NA") # how did these end up with string "NA" values?
+# distributed fairly well across languages; Slovak and Hungarian have >50
+sort(table(nas$language))
+
+xldf <- xldf %>% mutate(uni_lemma = ifelse(uni_lemma=="NA", NA, uni_lemma))
+
+source(here("cross-ling-comparison-helpers.R"))
+
+olap <- get_uni_lemma_overlap(xldf)
+olap["English (American)","Spanish (Mexican)"] # 463 overlap
+#load(here("data/WS/Spanish (Mexican)_WS_data.Rdata"))
+```
+
 Although the CDIs have many advantages, one drawback is that it is difficult for researchers to adapt a CDI for a new language.
 Indeed, there is no standardized process for adapting a CDI, but the process usually requires years of effort by researchers who are native speakers of a language for which there is no CDI, to first select and translate words that are appropriate for the intended language, and to then iteratively add, refine, and pilot the nascent CDI. [any testimonial on how long this can take, or how many pilot subjects might be needed?]
+Due to the need to include vocabulary that is appropriate to the target language context, CDIs in different languages do not even necessarily overlap to a great extent.
+For example, the American English CDI:WS and Mexican Spanish CDI:WS forms -- two of the first CDIs created -- each have 680 words, but only have 463 overlapping concepts (68%). 
+While it is possible that there is no set of early-learned words that are universal across all languages, it does seem reasonable to expect that some words are more universal than others.
 
 Shortened versions of the CDI have been proposed, and might seem a good place to start when looking for essential words to include on a CDI.
 The 100-item short-form CDIs [@Fenson2000; @Fenson2007] are derived from the 680-item American English CDI:WS form, with items selected based on difficulty and item-to-full score correlations, while also attempting to represent the diversity of semantic and linguistic categories.
@@ -80,10 +99,12 @@ CAT-based CDIs presenting 50 or fewer items have been found strongly correlate w
 However, the IRT model driving each CAT needs to be trained on a large and normative dataset, which may not be available in a given language.
 To date, the IRT models are also fitted separately for each language, and the fitted parameters (e.g., word difficulty) are likely to vary across languages.
 
-The goal of the current study is to examine whether there might be a core set of concepts that are frequently included on CDIs, and--importantly--that are of roughly equal difficulty across many languages.
+The goal of the current study is to examine whether there might be a core set of concepts that are frequently included on CDIs, and--importantly--whether many of them are of roughly equal difficulty across many languages.
 Taking inspiration from the fields of lexicostatistics and glottochronology, where researchers [notably, @Swadesh1971] have proposed a list of 'universal concepts'--concepts that exist in all catalogued languages--in order to quantify the genealogical relatedness and dates of divergence of languages.
 For example, the original Swadesh list contains 100 words, comprised of categories including common pronouns ("I", "you", "we"), animals ("man", "fish", "bird", "dog"), objects ("tree", "leaf", "sun", "mountain"), and verbs ("kill", "die", "see", "sleep").
 An analogous Swadesh CDI would include all of the concepts that researchers have chosen to include on the vast majority of CDI:WS adaptations, and which have relatively similar difficulty across many languages.\footnote{Low variability in difficulty is important: consider for example 'hat', which is higher difficulty in Spanish ('sombrero'), which would lead to underestimation of language ability Spanish and overestimation in English.}
+More broadly, examining which types of concepts have more or less similarity across languages in terms of the ease with which they are learned may reveal commonalities as well as idiosyncrasies in children's early experiences: Which semantic categories are most consistent across languages: animals, household objects, food and drink, or another category? Which are more variable? 
+These cross-linguistic comparisons may give new insight into theoretical questions surrounding the similarity and differences between language experience and development in different cultural and linguistic contexts.
 
 In particular, our contributions are 1) to fit IRT models to 28 CDI:WS datasets, 2) to identify 96 candidate "Swadesh CDI" items from a cross-linguistic comparison of concept difficulty and inclusion, and 3) to test how well this Swadesh CDI generalizes to a set of 8 additional low-data languages.
 We end by making a concrete proposal for how this Swadesh CDI list could be used in creating future CDI adaptations, and by discussing the strengths and weaknesses of our approach. 
@@ -99,11 +120,11 @@ In the 2PL model, the probability of child $j$ producing a given item $i$ is
  
  $$P_{i}(x_i = 1 | b_{i},a_{i},\theta_j ) = \frac{1}{1 + e^{-D a_{i}(\theta_j - b_i )}}$$
 
-Thus, children with high latent ability ($\theta$) will be more likely to produce any given item than children with lower latent ability, and more difficult items will be produced by fewer children (at any given $\theta$) than easier items.
-The discrimination ($a_i$) modifies the slope of the logistic (in the classic Rasch or 1PL model, the slope is always 1):
-<!-- define D (review CATpaper explanation: ogive) --> 
-
-
+where $D$ is a scaling parameter ($D=1.702$) which makes the logistic more closely match the ogive function used in a standard factor analysis [@R-mirt; @reckase2009].
+Children with high latent ability ($\theta$) will be more likely to produce any given item than children with lower latent ability, and more difficult items will be produced by fewer children (at any given $\theta$) than easier items.
+The discrimination ($a_i$) adjusts the slope of the logistic (in the classic 1-parameter logistic (1PL or Rasch) model, the slope is always 1). 
+Items with higher discrimination (i.e. slopes) better distinguish children above vs. below that item's difficulty level, and hence are generally more useful.
+While other standard IRT models exist (e.g., the 3-parameter logistic model adds a 'guessing' parameter for each test item), we have found elsewhere [@Kachergis2022] that the 2PL model is best supported by the Wordbank data.
 
 ## Datasets
 
@@ -167,35 +188,12 @@ CDI:WS production data from an additional eight languages (Table 1: Greek (Cypri
 <!-- The CDI:WG production dataset consists of the combined Wordbank production data for `r sum(wg_tab$N)` children aged 12-18 months on `r sum(wg_tab$items)` items across `r nrow(wg_tab)` forms. -->
 The CDI:WS production dataset consists of the combined Wordbank production data for `r sum(ws_tab$N)` children aged 16-30 months on `r sum(ws_tab$items)` items across `r nrow(ws_tab)` forms.
 Figure 1C and 1D shows children's production scores vs. age for the CDI:WG and CDI:WS datasets respectively.
-Note that the socioeconomic distributions of these datasets are not matched. 
-(See @frank2021 for a discussion of possible effects of socioeconomic status on vocabulary development.) 
+Note that the distributions of demographic variables (age, sex, maternal education, etc.) of these datasets are not matched, so comparing overall language ability estimates across languages would be impossible. 
+(See @frank2021 for a discussion of effects of demographic variables on vocabulary development.) 
+Thus, we will focus only on the estimated item parameters, and in particular the variability of item difficulty ($b_i$).
 
 [^1]: [http://wordbank.stanford.edu/contributors](http://wordbank.stanford.edu/contributors)
 
-
-```{r, plot-production, echo=F, warning=F, eval=F, fig.width=6.5, fig.height=5.5, fig.cap="Children's CDI vocabulary plotted by age and sex in each dataset: (A) English comprehension, (B) Spanish comprehension, (C) English production, and (D) Spanish production. Note that we plot fitted quadratics showing extrapolated vocabulary sizes beyond the maximum CDI score, rather than an asymptotic logistic."}
-
-en_prod <- d_demo_en %>% 
-  mutate(sex = as.character(sex),
-         sex = ifelse(sex=="Other", NA, sex)) %>%
-  filter(!is.na(sex)) %>%
-  ggplot(aes(x = age, y = production, group = sex, color = sex)) + 
-  geom_jitter(alpha = .2) + theme_bw() + 
-  stat_smooth(method = "glm", formula = y ~ 0 + x + I(x^2), size = 1) +
-  xlab("Age (months)") + ylab("Words Produced") + xlim(11, 37) + ylim(0, 700) +
-  ggtitle("English Production")
-
-sp_prod <- ggplot(d_demo_sp, aes(x = age, y = production, group = sex, color = sex)) + 
-  geom_jitter(alpha = .3) + theme_bw() + 
-  xlab("Age (months)") + ylab("Words Produced") + xlim(11, 32) + ylim(0, 700) +
-  stat_smooth(method = "glm", formula = y ~ 0 + x + I(x^2), size = 1) +
-  ggtitle("Spanish Production")
-
-
-ggarrange(en_prod, sp_prod,
-          labels = c("A", "B"), 
-          ncol=1, nrow=2, common.legend = T)
-```
 
 
 ### Instruments
@@ -210,67 +208,47 @@ Our datasets consist of a dichotomous-valued response matrix for each language, 
 
 # Results
 
-All models, simulations, and other materials are available on OSF[^2].
+```{r}
+xldf <- xldf %>% filter(!is.na(uni_lemma)) # only want the words with defined uni-lemmas
+xldf_lowd <- xldf %>% filter(is.element(language, low_data_langs$Language)) # 5464
+xldf <- xldf %>% filter(!is.element(language, low_data_langs$Language)) # 17715
+
+# align some categories: Russian has descriptive adjectives and adverbs
+xldf[which(xldf$category=="descriptive_words (adjectives)"),]$category = "descriptive_words"
+xldf[which(xldf$category=="outside_places"),]$category = "outside"
+```
+
+
+All models, data, code for reproducing this paper are available on OSF[^2].
+Across the 26 IRT models for different CDI:WS forms, parameters for a total of `r nrow(xldf)` items were obtained.
+Figure 1 shows the average difficulty of items in each language, but as mentioned above these differences should not be interpreted, as they may be related to differences in the samples.
+However, it is useful to show them to emphasize once more that our main focus will be on the cross-linguistic *variability* in words' difficulty (which should be immune to random effects from sample differences across languages), rather than differences in mean difficulties.
+
+```{r fig-mean-item-diff, fig.cap=c("Mean word difficulty per language. Bars represent bootstrapped 95\\% confidence intervals."), fig.height=3.5}
+# re: Philip's question of are item difficulties comparable across languages:
+lang_d_m <- xldf %>% filter(!is.na(d)) %>% # one Slovak word has NA parms..
+  group_by(language) %>% 
+  tidyboot::tidyboot_mean(d, na.rm=T) %>%
+  arrange(desc(mean))
+
+lang_d_m %>% ggplot(aes(x=reorder(language, -mean), y=mean)) + coord_flip() + 
+  geom_point() + theme_classic() +
+  geom_linerange(aes(ymin=ci_lower, ymax=ci_upper), alpha=.7) +
+  xlab("Language") + ylab("Mean word easiness")
+# should we look at correlation of average item difficulty with mean age of the sample?
+# (if it's very high we should probably include age as a covariate in model, and really be doing hierarchical fit..)
+```
+
 
 [^2]: OSF repository: [https://osf.io/XXX/](https://osf.io/XXX/).
 
 
+<!-- ## Difficulty by Semantic Category -->
 
-## Cross-linguistic similarities 
+Figure 2 shows the average cross-linguistic difficulty of CDI items by semantic category.
+Sounds (e.g., animal noises), body parts, and common nouns tend to be early-learned, and thus have higher easiness values, while abstract words such as time words and morphologically complex helping verbs are later-learned (i.e., difficult).
 
-We look at the Spearman correlation between the item difficulty of each language compared to each other language. 
-We might expect this to recapitulate the historical relationship between languages, with more similar languages having more similar item difficulties (e.g., Quebecois and European French).
-
-```{r xling-sim, fig.env = "figure*", fig.pos = "h", fig.width=7.5, fig.height=7.5, fig.align = "center", set.cap.width=T, num.cols.cap=2, fig.cap = "Cross-linguistic similarity (Spearman correlation) of IRT item difficulty from the CDI:WS."}
-xldf_lowd <- xldf %>% filter(is.element(language, low_data_langs$Language)) # 5464
-xldf <- xldf %>% filter(!is.element(language, low_data_langs$Language)) # 17714
-
-# parm diffs in low- vs. high-data langs
-#t.test(xldf$d, xldf_lowd$d) # -.45 vs. -.02 (closer to prior of 0 in low-data langs)
-#t.test(xldf$a1, xldf_lowd$a1) # higher discrim in high-data langs
-
-languages = unique(xldf$language)
-
-prod_cors <- matrix(0, nrow=length(languages), ncol=length(languages))
-prod_sims <- tibble()
-colnames(prod_cors) = languages
-rownames(prod_cors) = languages
-
-for(l1 in languages) {
-  for(l2 in languages) {
-    tmp <- xldf %>% filter(language==l1 | language==l2, !is.na(d)) %>%
-      select(uni_lemma, category, lexical_category, language, d) %>%
-      group_by(uni_lemma, language) %>%
-      slice(1) %>% 
-      pivot_wider(names_from = language, values_from = d) %>%
-      drop_na()
-    prod_cors[l1,l2] <- cor(tmp[,l1], tmp[,l2], method="spearman")
-    prod_sims <- bind_rows(prod_sims, tibble("Lang1" = l1, "Lang2" = l2, 
-                                             "r" = cor(tmp[,l1], tmp[,l2], method="spearman")[[1]], 
-                                             "N" = nrow(tmp)))
-  }
-}
-
-library(RColorBrewer)
-library(gplots)
-Colors = brewer.pal(11,"Spectral")
-diag(prod_cors) = NA
-#bad_lang = c("Mandarin (Taiwanese)")
-heatmap.2(prod_cors, col=Colors)
-
-```
-
-
-## Difficulty by CDI Category
-
-Which categories are hardest? Easiest?
-Which categories show the greatest variability? The least?
-
-```{r 2-col-image, fig.env = "figure*", fig.pos = "h", fig.width=7.5, fig.height=9, fig.align = "center", set.cap.width=T, num.cols.cap=2, fig.cap = "Mean difficulty of CDI words by semantic category. Bars represent bootstrapped 95\\% confidence intervals."}
-# Russian has descriptive adjectives and adverbs
-xldf[which(xldf$category=="descriptive_words (adjectives)"),]$category = "descriptive_words"
-xldf[which(xldf$category=="outside_places"),]$category = "outside"
-
+```{r difficulty-by-category, fig.env = "figure", fig.pos = "h", fig.height=3.5, fig.align = "center", fig.cap = "Mean cross-linguistic difficulty of CDI words by semantic category. Bars represent bootstrapped 95\\% confidence intervals."}
 
 # remove categories that only exist in 1 or 2 languages:
 prod_cat <- xldf %>% group_by(language, category) %>%
@@ -281,14 +259,58 @@ prod_cat <- xldf %>% group_by(language, category) %>%
                                  "classifiers", "locations_quantities_adverbs"))) %>%
   tidyboot::tidyboot_mean(d, na.rm=T)
 
+# mean variability of each category, across languages
+prod_cat %>% group_by(category) %>%
+  tidyboot::tidyboot_mean(mean, na.rm=T) %>%
+  ggplot(aes(x=reorder(category, mean), y=mean)) + geom_point(alpha=.7) +
+  geom_linerange(aes(ymin=ci_lower, ymax=ci_upper), alpha=.7) +
+  coord_flip() + theme_classic() + ylab("Mean item easiness") + xlab("Language")
+```
 
-# color=language
+
+```{r 2-col-image, include=F, fig.env = "figure*", fig.pos = "h", fig.width=7.5, fig.height=9, fig.align = "center", set.cap.width=T, num.cols.cap=2, fig.cap = "Mean difficulty of CDI words by semantic category and language. Bars represent bootstrapped 95\\% confidence intervals."}
+# big plot for online supplement
+
 prod_cat %>% ggplot(aes(x=reorder(language, mean), y=mean)) + geom_point(alpha=.7) +
   geom_linerange(aes(ymin=ci_lower, ymax=ci_upper), alpha=.7) +
   facet_wrap(. ~ category) + coord_flip() + 
   theme_classic() + ylab("Mean item easiness") + xlab("Language")
-#ggsave("xling_diff_by_category_WSprod.pdf", width=10, height=12)
+#ggsave("xling_diff_by_category_WSprod.pdf", width=10, height=16)
 ```
+
+
+## Cross-linguistic similarities 
+
+We look at the Spearman correlation between the item difficulty of each language compared to each other language. 
+We might expect this to recapitulate the historical relationship between languages, with more similar languages having more similar item difficulties (e.g., Quebecois and European French).
+(cut/move to appendix?)
+
+```{r xling-sim, include=F, fig.env = "figure*", fig.pos = "h", fig.width=7.5, fig.height=7.5, fig.align = "center", set.cap.width=T, num.cols.cap=2, fig.cap = "Cross-linguistic similarity (Spearman correlation) of IRT item difficulty from the CDI:WS."}
+# parm diffs in low- vs. high-data langs
+#t.test(xldf$d, xldf_lowd$d) # -.45 vs. -.02 (closer to prior of 0 in low-data langs)
+#t.test(xldf$a1, xldf_lowd$a1) # higher discrim in high-data langs
+
+tmp <- get_cross_ling_difficulty_cors(xldf)
+prod_cors = tmp$prod_cors
+prod_sims = tmp$prod_sims
+
+library(RColorBrewer)
+library(gplots)
+Colors = brewer.pal(11,"Spectral")
+diag(prod_cors) = NA
+
+pdf(file="xling_difficulty_similarity_WSprod.pdf", width=13, height=13)
+heatmap.2(prod_cors, col=Colors, margins=c(10,10))
+dev.off()
+
+# compare to one of these?
+# http://www.elinguistics.net/
+# https://www.ezglot.com/most-similar-languages.php
+# 28 x 28 = 784 values...scrape?
+
+```
+
+
 
 ### Identifying Swadesh CDI Candidates
 
@@ -381,7 +403,7 @@ If the Swadesh list is too focused on early-learned items, this may result in ce
 It may be prudent to consider expanding the Swadesh list to include some more difficult items.
 The discrimination parameter (i.e., slope) of the Swadesh items did not significantly differ from the other items.
 
-```{r, echo=F, results='asis'}
+```{r, echo=F, results='asis', include=F}
 #sort(table(good_prod$category), decr=T)
 #sort(table(good_prod$lexical_category), decr=T)
 # c(50,20,5,21) / 96
@@ -426,30 +448,16 @@ gen_test_langs <- low_data_langs$Language
 How well do sumscores from the Swadesh CDI items correlate with full CDI:WS scores?
 On average, for the 26 languages the IRT analysis was based on, the Swadesh CDI's sumscores were strongly related to the full CDI:WS scores (mean $r=0.990$; $min=0.976$, $max=0.996$).
 However, these correlations were slightly but significantly lower than scores based on randomly-selected items (mean $r=0.993$, $min=0.990$, $max=0.996$, paired $t(25) = 5.67$, $p<.001$).
-This is likely due to some ceiling effects for older children on the Swadesh CDI, since the randomly-selected items are likely somewhat easier on average than the Swadish items (see above results).
+This is likely due to some ceiling effects for older children on the Swadesh CDI, since the randomly-selected items are likely somewhat easier on average than the Swadesh items (see above results).
 
 For the eight low-data languages, a similar comparison revealed that the Swadesh CDI's sumscores were again strongly related to the full CDI:WS scores (mean $r=0.978$; $min=0.959$, $max=0.992$).
 As with the training set, however, the Swadesh list correlations were slightly but significantly lower than scores based on randomly-selected items (mean $r=0.985$; $min=0.972$, $max=0.992$; $t(7) = 3.22$, $p=.01$).
 
+(Maybe show plot of Swadesh vs. full CDI scores, by age? color by language? might be overwhelming..)
 
 ```{r generalization-test, echo=F, eval=F}
 # use the good_prod words as a short CDI, and compare the correlation 
 # of these words to a random selection (might be worse, due to being biased towards easy words?)
-
-run_swadesh_comparisons <- function(xldf, languages) {
-  xx <- tibble()
-  for(lang in languages) {
-    load(here(paste("data/WS/",lang,"_WS_data.Rdata", sep='')))
-    swad_l <- subset(xldf, language==lang & is.element(uni_lemma, good_prod$uni_lemma)) # 
-    swad_cor = cor(rowSums(d_prod, na.rm=T), rowSums(d_prod[,swad_l$item_id], na.rm=T))
-    rand_inds = sample(1:ncol(d_prod), nrow(swad_l)) # N random words 
-    rand_cor = cor(rowSums(d_prod, na.rm=T), rowSums(d_prod[,rand_inds], na.rm=T))
-    xx <- xx %>% bind_rows(tibble(language = lang, `Swadesh r` = swad_cor, 
-                                  `Rand r` = rand_cor, N = nrow(swad_l)))
-  # d_demo, d_long, d_prod
-  }
-  return(xx)
-}
 
 xx <- run_swadesh_comparisons(xldf, languages)
 
@@ -495,10 +503,13 @@ sort(intersect(short_wsB$word, good_prod$uni_lemma)) # 8
 
 sort(short_wsA$word)
 sort(good_prod$uni_lemma)
-# remove: penis, vagina, 
+# maybe remove? penis, vagina, on the basis of DIF
 ```
 
 
+```{r, out.width="\\linewidth", include=TRUE, fig.align="center", fig.cap=c("The 96 proposed Swadesh CDI words by semantic category."), echo=FALSE}
+knitr::include_graphics("figs/SwadeshCDI_list.pdf")
+```
 
 
 ToDo: 
@@ -506,6 +517,7 @@ use average IRT parameter per item to calculate ability rather than sumscore?
 propose a way of picking more difficult items? or maybe the value here is in finding the universal (easy) words, and it is up to expert native speakers to choose the more difficult (and idiosyncratic) words for each language.
 
 If I had to find another way of getting the best cross-linguistic words, I would 1) run simulated CATs in all of the languages, and 2) pick the words that cropped up the most often across all languages. 
+
 
 ```{r swadesh-comparison, echo=F}
 # https://en.wikipedia.org/wiki/Swadesh_list
