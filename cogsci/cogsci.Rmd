@@ -49,18 +49,15 @@ require(here)
 
 # Introduction
 
-
-<!-- REWRITE INTRO -->
-Tools that enable valid assessments of children’s early language abilities are invaluable for researchers, clinicians and parents, as early language skill is predictive of educational outcomes years later. 
+Tools that enable valid assessments of children’s early language abilities are invaluable for researchers, clinicians and parents, as early language skill is predictive of educational outcomes years later [e.g., @bleses2016]. 
 The MacArthur-Bates Communicative Development Inventories [CDIs; @Fenson2007; @marchman2023] are parent report assessments that provide reliable and valid estimates of children's early vocabulary size and other aspects of early communicative development, such as gesture use and early use of word combinations. 
-Parent report is a relatively quick and low-cost method to assess early language skills since it takes advantage of the fact that parents are "natural observers" of their child's skills and does not depend on a child engaging with an (unfamiliar) experimenter. <!-- [@Fenson2000] -->
+Parent report is a relatively quick and low-cost method to assess early language skills since it takes advantage of the fact that parents are "natural observers" of their child's skills and does not depend on a child engaging with an (unfamiliar) experimenter.
 Over the years, the CDIs have been adapted to dozens of languages, with forms now available in English, Spanish, French, Hebrew, and Mandarin, to name just a few.
-Recently, data from more than 85,000 CDIs in >30 languages have been archived in a central repository [Wordbank; @frank2017]. 
+Recently, data from more than 85,000 CDIs in 38 languages have been archived in a central repository [Wordbank; @frank2017]. 
 These data have revealed both cross-linguistic consistency and variability in early language skills, with insights from these patterns informing theories of early language learning [@frank2021]. 
 For example, cross-linguistic analyses indicate that measures of vocabulary size are tightly correlated with other aspects of early language skill, like gesture and grammatical competence. 
 Thus, over development, the language system is "tightly woven" [@bates1994; @frank2021] and early vocabulary size serves as a good proxy measure of children's overall language skill.
 
-<!-- to here -->
 On the CDIs, vocabulary size is assessed via a checklist format, which enables caregivers to scan and recognize words their child produces or understands, rather than relying on recall alone. 
 For example, the American English CDI Words & Sentences (CDI:WS) form, targeting children 16-30 months of age, is comprised of 680 words from 22 semantic categories, including nouns (e.g., Body Parts, Toys, and Clothing), action words (e.g. verbs), descriptive words (e.g. adjectives), and closed-class words such as pronouns. 
 The vocabulary checklist from the American English CDI Words & Gestures (CDI:WG) form, targeting younger children ages 8 to 18 months, is comprised of ~400 words from a similar set of categories. 
@@ -92,17 +89,17 @@ olap["English (American)","Spanish (Mexican)"] # 463 overlap
 ```
 
 Given that it is well-established that, all over the world, early learned words reflect the people and things that children are likely to experience, that is, words for family members, animals, and common household objects [@frank2021], it is reasonable to ask: Is there a single set of translation equivalents that would meet the criteria for inclusion on CDIs from multiple languages? 
-To facilitate this effort, it is useful to leverage recent work in Item-Response Theory [IRT; @embretson2013] models. 
+To facilitate this effort, it is useful to leverage recent work using Item-Response Theory [IRT; @embretson2013] models. 
 IRT models infer both the abilities of test takers and the difficulty of individual test items (i.e., words), along standardized dimensions. 
-Recent work using IRT models have facilitated our understanding of the psychometric properties of CDIs instruments. 
-As such, they offer the potential to not only yield more accurate measures of children’s language ability, but also to enable the construction of Computerized Adaptive Tests (CATs), which choose the next test item based on the responses to the previous items, and thus quickly hone in on the test-takers language ability. 
+Recent work using IRT models have facilitated our understanding of the psychometric properties of CDI instruments. 
+As such, they offer the potential to not only yield more accurate measures of children's language ability, but also to enable the construction of Computerized Adaptive Tests (CATs), which choose the next test item based on the responses to the previous items, and thus quickly hone in on the test-takers language ability. 
 CAT-based CDIs presenting 50 or fewer items have been found to strongly correlate with scores on the full CDI:WS [@chai2020;@mayor2019;@Makransky2016]. 
 A general method for creating CDI CATs that work well across a broader age range (12-36 months) has been proposed, and tested for American English and Mexican Spanish [@Kachergis2022]. 
 However, the IRT model driving each CAT needs to be trained on a large and normative dataset, which may not be available in a given language. 
 To date, the IRT models are also fitted separately for each language, and the fitted parameters (e.g., word difficulty) are likely to vary across languages.
 
 The goal of the current study is to use IRT modeling in conjunction with data from Wordbank to examine whether there might be a core set of concepts that are frequently included on CDIs, and--importantly--whether many of them are of roughly equal difficulty across many languages. 
-This work takes its inspiration from the fields of lexicostatistics and glottochronology, where researchers [notably, @1971] have proposed a list of 'universal concepts'--concepts that exist in all catalogued languages–in order to quantify the genealogical relatedness and dates of divergence of languages. 
+This work takes its inspiration from the fields of lexicostatistics and glottochronology, where researchers [notably, @Swadesh1971] have proposed a list of 'universal concepts'--concepts that exist in all catalogued languages--in order to quantify the genealogical relatedness and dates of divergence of languages. 
 For example, the original Swadesh list contains 100 words, comprised of categories including common pronouns (“I”, “you”, “we”), animals (“man”, “fish”, “bird”, “dog”), objects (“tree”, “leaf”, “sun”, “mountain”), and verbs (“kill”, “die”, “see”, “sleep”). 
 Extending this work to the development of a universal CDI, or “Swadesh CDI,” would include all of the concepts that researchers have chosen to include on the vast majority of CDI:WS adaptations, and which have relatively similar difficulty across many languages. 
 More broadly, this work examines which types of words (and their corresponding concepts) are more or less similar across languages in terms of the ease with which they are learned, revealing commonalities as well as idiosyncrasies in children’s early experiences. 
