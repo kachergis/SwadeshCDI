@@ -179,16 +179,38 @@ print(tab1, type="latex", comment = F, table.placement = "H", include.rownames=F
 ```
 
 
-We report IRT analyses for twenty-six languages from Wordbank [@frank2017], comprising production data from CDI:WS vocabulary checklists.[^1]
+We report IRT analyses for twenty-six languages from Wordbank [@frank2017], comprising production data from CDI:WS vocabulary checklists that have at least 200 administrations.[^1]
 Data from the first twenty-six rows of Table 1 (Norwegian through Dutch) will be used to select a pool of words with approximately equal cross-linguistic difficulty.
 CDI:WS production data from an additional eight languages (Table 1: Greek (Cypriot) through Persian) had too few participants to be analyzed with IRT, but will be used to test how well the selected pool of generalize to new languages.
 
 ### Participants
 
 
+```{r participant-data, eval=F, echo=F}
+languages = subset(ws_tab, N>=200)$Language
+
+demo <- tibble()
+for(lang in languages) {
+  load(here(paste("data/WS/",lang,"_WS_data.Rdata", sep='')))
+  demo <- bind_rows(demo, d_demo %>% 
+                      select(data_id, age, production, language))
+}
+
+save(demo, file=here("data/WS_combined_demo.Rdata"))
+```
+
+```{r combined-demo-data, echo=F}
+load(here("data/WS_combined_demo.Rdata"))
+# cor.test(demo$age, demo$production, na.rm=T) # r=.70
+
+# 45402 in the 26 high-data languages
+demo_age <- demo %>% group_by(language) %>%
+  summarise(n = n(), age = mean(age))
+```
+
+
 <!-- The CDI:WG production dataset consists of the combined Wordbank production data for `r sum(wg_tab$N)` children aged 12-18 months on `r sum(wg_tab$items)` items across `r nrow(wg_tab)` forms. -->
 The CDI:WS production dataset consists of the combined Wordbank production data for `r sum(ws_tab$N)` children aged 16-30 months on `r sum(ws_tab$items)` items across `r nrow(ws_tab)` forms.
-Figure 1C and 1D shows children's production scores vs. age for the CDI:WG and CDI:WS datasets respectively.
 Note that the distributions of demographic variables (age, sex, maternal education, etc.) of these datasets are not matched, so comparing overall language ability estimates across languages would be impossible. 
 (See @frank2021 for a discussion of effects of demographic variables on vocabulary development.) 
 Thus, we will focus only on the estimated item parameters, and in particular the variability of item difficulty ($b_i$).
@@ -232,6 +254,10 @@ lang_d_m <- xldf %>% filter(!is.na(d)) %>% # one Slovak word has NA parms..
   tidyboot::tidyboot_mean(d, na.rm=T) %>%
   arrange(desc(mean))
 
+lang_d_m <- lang_d_m %>% left_join(demo_age %>% select(language, age))
+# problem: average item difficulty per language is strongly related to mean sample age
+# cor.test(lang_d_m$mean, lang_d_m$age) # r=.57  t(24) = 3.44, p = 0.002
+
 lang_d_m %>% ggplot(aes(x=reorder(language, -mean), y=mean)) + coord_flip() + 
   geom_point() + theme_classic() +
   geom_linerange(aes(ymin=ci_lower, ymax=ci_upper), alpha=.7) +
@@ -269,7 +295,7 @@ prod_cat %>% group_by(category) %>%
 ```
 
 
-```{r 2-col-image, include=F, fig.env = "figure*", fig.pos = "h", fig.width=7.5, fig.height=9, fig.align = "center", set.cap.width=T, num.cols.cap=2, fig.cap = "Mean difficulty of CDI words by semantic category and language. Bars represent bootstrapped 95\\% confidence intervals."}
+```{r 2-col-image, eval=F, fig.env = "figure*", fig.pos = "h", fig.width=7.5, fig.height=9, fig.align = "center", set.cap.width=T, num.cols.cap=2, fig.cap = "Mean difficulty of CDI words by semantic category and language. Bars represent bootstrapped 95\\% confidence intervals."}
 # big plot for online supplement
 
 prod_cat %>% ggplot(aes(x=reorder(language, mean), y=mean)) + geom_point(alpha=.7) +
@@ -286,7 +312,7 @@ We look at the Spearman correlation between the item difficulty of each language
 We might expect this to recapitulate the historical relationship between languages, with more similar languages having more similar item difficulties (e.g., Quebecois and European French).
 (cut/move to appendix?)
 
-```{r xling-sim, include=F, fig.env = "figure*", fig.pos = "h", fig.width=7.5, fig.height=7.5, fig.align = "center", set.cap.width=T, num.cols.cap=2, fig.cap = "Cross-linguistic similarity (Spearman correlation) of IRT item difficulty from the CDI:WS."}
+```{r xling-sim, eval=F, fig.env = "figure*", fig.pos = "h", fig.width=7.5, fig.height=7.5, fig.align = "center", set.cap.width=T, num.cols.cap=2, fig.cap = "Cross-linguistic similarity (Spearman correlation) of IRT item difficulty from the CDI:WS."}
 # parm diffs in low- vs. high-data langs
 #t.test(xldf$d, xldf_lowd$d) # -.45 vs. -.02 (closer to prior of 0 in low-data langs)
 #t.test(xldf$a1, xldf_lowd$a1) # higher discrim in high-data langs
@@ -364,7 +390,7 @@ prod_pars %>% ggplot(aes(x=jitter(numNAs), y=sd, color=lexical_category)) +
 ```
 
 
-```{r}
+```{r missing-by-sd, fig.env = "figure", fig.pos = "h", fig.height=3.5, fig.align = "center", fig.cap = "Mean cross-linguistic difficulty of CDI words by semantic category."}
 # look at different numNA thresholds...
 gt_dat = tibble()
 for(i in 1:26) {
@@ -380,13 +406,18 @@ for(i in 1:26) {
 #View(gt_dat)
 
 gt_dat %>% ggplot(aes(x=`# NAs`, y=`SD(d)`)) + 
-  geom_point() + theme_classic()
+  geom_point() + theme_classic() +
+  xlab("# of languages without uni-lemma") #+
+  #ylab("SD of unilemma's cross-linguistic difficulty") 
 
 good_prod <- prod_pars %>% 
   filter(numNAs < 16) %>%
   filter(sd < (med_d - .5*sd_d)) %>% 
   arrange(numNAs)
   #arrange(lexical_category, desc(sd))
+
+#sort(table(good_prod$category)) / nrow(good_prod)
+sort(table(good_prod$lexical_category)) / nrow(good_prod)
 ```
 
 Of these, a total of `r length(long_list)` uni-lemmas are included in more than one language, and only `r length(short_list)` uni-lemmas are included in 10 or more of the languages.
@@ -395,8 +426,8 @@ We will start by considering this more restricted list.
 To evaluate how variable items are in their cross-linguistic difficulty, we calculate the standard deviation (SD) of each uni-lemma's difficulty.
 The median SD is `r round(med_d, 2)` (SD=`r round(sd_d, 2)`), so we consider the items with SD less than half the median SD (i.e., SD < `r round(med_d - .5*sd_d, 2)`).
 These `r nrow(good_prod)` candidate "Swadesh CDI" items are summarized by semantic category below (see OSF for full list).
-52% of Swadesh CDI words are nouns, 21% are predicates, 22% are function words, and 5% are other.
-This breakdown is comparable to the lexical category percentages on the 680-item English CDI:WS (46% nouns, 24% predicates, %15 function words, and 15%), minimally suggesting that this method of selecting candidate items is not biased by lexical category.
+54% of Swadesh CDI words are nouns, 20% are predicates, 5% are function words, and 21% are other.
+This breakdown is comparable to the lexical category percentages on the 680-item English CDI:WS (46% nouns, 24% predicates, %15 function words, and 15% other), minimally suggesting that this method of selecting candidate items is not biased by lexical category.
 The candidate items, ultimately selected by lower variability, were also present on more forms than typical in the selection set: on average, each item appeared on `r 26-mean(good_prod$numNAs)` forms.
 
 Comparing the IRT parameters of the Swadesh CDI words to the rest of the items showed that the candidate Swadesh items are significantly easier (mean Swadesh $d=0.03$, other items' mean $d=-0.51$, $t(2737)=12.74$, $p<.001$).
@@ -435,11 +466,12 @@ tmp <- xldf %>%
   filter(!is.na(d)) %>%
   summarise(sd_d = sd(d), d = mean(d), 
             sd_a1 = sd(a1), a1 = mean(a1))
-# mean easiness of Swadesh words: 0.03; mean easiness of other words: -0.51
+# mean easiness of Swadesh words: 0.10; mean easiness of other words: -0.53
 # (mean of all: mean(xldf$d, na.rm=T) -0.45
 
 #t.test(subset(xldf, SwadeshCDI==1)$a1, subset(xldf, SwadeshCDI==0)$a1) # n.s. diff in discrimination
 #t.test(subset(xldf, SwadeshCDI==1)$d, subset(xldf, SwadeshCDI==0)$d)
+# t = 15.627, df = 3122.9, p-value < 2.2e-16
 
 gen_test_langs <- low_data_langs$Language
 ```
