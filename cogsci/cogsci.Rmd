@@ -20,7 +20,7 @@ abstract: >
     that are frequently included on CDIs, with the goal of identifying a short list of
     concepts that are of similar learning difficulty in the majority of the languages, in order
     to propose a pool list of 'universal' words that can be used as a starting point for future CDI adaptations.
-    After identifying a list of 96 items, we test how well this list generalizes to an additional 8 languages.
+    After identifying a list of 106 items, we test how well this list generalizes to an additional 8 languages.
     
 keywords: >
     early language learning; CDI; psychometrics; cross-linguistic comparison; Swadesh vocabulary;
@@ -45,6 +45,8 @@ require(tidyverse)
 require(ggpubr)
 require(tidyboot)
 require(here)
+
+source(here("cross-ling-comparison-helpers.R"))
 ```
 
 # Introduction
@@ -73,6 +75,11 @@ For example, the American English CDI:WS and Mexican Spanish CDI:WS forms – tw
 [^1]: [https://mb-cdi.stanford.edu/adaptations.htm](https://mb-cdi.stanford.edu/adaptations.htm)
 
 ```{r cdi-overlap, echo=F, include=F}
+# WS production params with AGE
+#load(here("data/xling-age-WS-prod-IRTparms.Rdata"))
+#xldf <- xldf %>% mutate(uni_lemma = ifelse(uni_lemma=="NA", NA, uni_lemma))
+#xldf_age <- xldf
+
 # long data-frame of all WS production parameters
 load(here("data/xling-WSprod-IRTparms.Rdata"))
 nas <- xldf %>% filter(uni_lemma=="NA") # how did these end up with string "NA" values?
@@ -81,10 +88,11 @@ sort(table(nas$language))
 
 xldf <- xldf %>% mutate(uni_lemma = ifelse(uni_lemma=="NA", NA, uni_lemma))
 
-source(here("cross-ling-comparison-helpers.R"))
+# compare age and regular
+#xlxl <- xldf %>% left_join(xldf_age %>% select(item_id, language, a1, d) %>% rename(a1_age = a1, d_age = d))
 
 olap <- get_uni_lemma_overlap(xldf)
-olap["English (American)","Spanish (Mexican)"] # 463 overlap
+#olap["English (American)","Spanish (Mexican)"] # 463 overlap
 #load(here("data/WS/Spanish (Mexican)_WS_data.Rdata"))
 ```
 
@@ -106,7 +114,7 @@ More broadly, this work examines which types of words (and their corresponding c
 We can ask: Which semantic categories, e.g., animals, household objects, food and drink, or another category, are most consistently learned across languages? Which are more variable? 
 These types of cross-linguistic comparisons may give new insight into theoretical questions surrounding the similarity and differences between language experience and development in different cultural and linguistic contexts.
 
-In particular, our contributions are 1) to fit IRT models to 28 CDI:WS datasets, 2) to identify 96 candidate "Swadesh CDI" items from a cross-linguistic comparison of concept difficulty and inclusion, and 3) to test how well this Swadesh CDI generalizes to a set of 8 additional low-data languages. 
+In particular, our contributions are 1) to fit IRT models to 28 CDI:WS datasets, 2) to identify 106 candidate "Swadesh CDI" items from a cross-linguistic comparison of concept difficulty and inclusion, and 3) to test how well this Swadesh CDI generalizes to a set of 8 additional low-data languages. 
 We end by making a concrete proposal for how this Swadesh CDI list could be used in creating future CDI adaptations, and by discussing the strengths and weaknesses of our approach.
 
 
@@ -129,17 +137,7 @@ While other standard IRT models exist (e.g., the 3-parameter logistic model adds
 
 ## Datasets
 
-```{r, load-wg-data, echo=F}
-get_item_n_subject_counts <- function(models) {
-  tab <- tibble()
-  for(lang in names(coefs)) {
-    nitems = models[[lang]]@Data$nitems
-    N = models[[lang]]@Data$N
-    tab = bind_rows(tab, tibble(Language = lang, items = nitems, N = N))
-  }
-  return(tab)
-}
-
+```{r, load-wg-data, eval=F, echo=F}
 # WG production fits
 load(here("data/multiling_2pl_WG_prod_fits.Rdata"))
 wg_coefs = coefs
@@ -186,7 +184,7 @@ CDI:WS production data from an additional eight languages (Table 1: Greek (Cypri
 ### Participants
 
 
-```{r participant-data, eval=F, echo=F}
+```{r participant-data, echo=F}
 languages = subset(ws_tab, N>=200)$Language
 
 demo <- tibble()
@@ -206,6 +204,10 @@ load(here("data/WS_combined_demo.Rdata"))
 # 45402 in the 26 high-data languages
 demo_age <- demo %>% group_by(language) %>%
   summarise(n = n(), age = mean(age))
+
+#demo %>% 
+#  ggplot(aes(x=age, fill=language, color=language)) + 
+#    geom_histogram(position="identity", alpha=0.2)
 ```
 
 
@@ -244,10 +246,12 @@ xldf[which(xldf$category=="outside_places"),]$category = "outside"
 
 All models, data, code for reproducing this paper are available on OSF[^2].
 Across the 26 IRT models for different CDI:WS forms, parameters for a total of `r nrow(xldf)` items were obtained.
-Figure 1 shows the average difficulty of items in each language, but as mentioned above these differences should not be interpreted, as they may be related to differences in the samples.
-However, it is useful to show them to emphasize once more that our main focus will be on the cross-linguistic *variability* in words' difficulty (which should be immune to random effects from sample differences across languages), rather than differences in mean difficulties.
+Figure 1 shows the average difficulty of items in each language, but as mentioned above these differences should not be interpreted, as they are at least in part related to differences in the samples.
+Indeed, the average age of the sample was significantly related to the average difficulty of words on a CDI:WS form ($r$=.57; $t(24)=3.44$, $p=.002$).
+However, even with balanced samples in terms of age, sex, and maternal education, there may well be differences in overall difficulty of words on the CDI:WS. 
+Fortunately, all that is required for our current goals is to be able to rank the words in terms of their cross-linguistic variability in difficulty, which should not be systematically influenced by random effects of sample or language.
 
-```{r fig-mean-item-diff, fig.cap=c("Mean word difficulty per language. Bars represent bootstrapped 95\\% confidence intervals."), fig.height=3.5}
+```{r fig-mean-item-diff, fig.cap=c("Mean word difficulty per language. Bars represent bootstrapped 95\\% confidence intervals. Dot size shows mean age (months) of the sample, which is correlated with mean word difficulty (r=.57)."), fig.height=3.5}
 # re: Philip's question of are item difficulties comparable across languages:
 lang_d_m <- xldf %>% filter(!is.na(d)) %>% # one Slovak word has NA parms..
   group_by(language) %>% 
@@ -259,11 +263,9 @@ lang_d_m <- lang_d_m %>% left_join(demo_age %>% select(language, age))
 # cor.test(lang_d_m$mean, lang_d_m$age) # r=.57  t(24) = 3.44, p = 0.002
 
 lang_d_m %>% ggplot(aes(x=reorder(language, -mean), y=mean)) + coord_flip() + 
-  geom_point() + theme_classic() +
+  geom_point(aes(size=age)) + theme_classic() +
   geom_linerange(aes(ymin=ci_lower, ymax=ci_upper), alpha=.7) +
   xlab("Language") + ylab("Mean word easiness")
-# should we look at correlation of average item difficulty with mean age of the sample?
-# (if it's very high we should probably include age as a covariate in model, and really be doing hierarchical fit..)
 ```
 
 
@@ -341,6 +343,38 @@ dev.off()
 
 ### Identifying Swadesh CDI Candidates
 
+```{r}
+# 1840
+uni_ag <- xldf %>% filter(uni_lemma!="NA") %>%
+  group_by(uni_lemma) %>%
+  summarise(d_m=mean(d), a1_m=mean(a1), d_sd = sd(d), a1_sd = sd(a1), n=n())
+
+# The more languages a word is in, the easier it tends to be:
+cor.test(uni_ag$d_m, uni_ag$n)
+# r=.37, t = 16.947, df = 1836, p-value < 2.2e-16
+plot(uni_ag$d_m, uni_ag$n)
+
+# variability in difficulty also correlated number of forms uni-lemma is on
+cor.test(uni_ag$d_sd, uni_ag$n) 
+# r=.15, t = 5.5937, df = 1308, p-value = 2.703e-08
+
+# 528 singletons
+uni1 <- uni_ag %>% filter(n==1) 
+mean(uni1$d_m) # -1.44
+
+uni_ag <- uni_ag %>% filter(n>1)
+
+# no cor bw difficulty and variability -- good
+cor.test(uni_ag$d_m, uni_ag$d_sd)
+
+
+
+xldf %>% group_by(language, uni_lemma)
+
+# regression to control for per-language mean shift in difficulty?
+```
+
+
 ```{r, echo=F, message=F, results='asis'}
 pars <- xldf %>% filter(!is.na(uni_lemma), !is.na(d)) 
 
@@ -350,7 +384,6 @@ long_list = ul[which(ul>1)] # 1312
 #short_list = ul[which(ul>5)] # 807
 short_list = ul[which(ul>9)] # 656 uni-lemmas defined in 10+ languages
 #short_list = ul[which(ul>12)] # 573 uni-lemmas defined in 10+ languages
-
 ```
 
 ```{r}

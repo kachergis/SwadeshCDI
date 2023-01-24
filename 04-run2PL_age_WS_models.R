@@ -9,6 +9,10 @@ languages = instr <- wordbankr::get_instruments() %>%
   filter(form=="WS") %>%
   arrange(desc(unilemma_coverage))
 
+low_data_langs <- c("Kiswahili", "Kigiriama", "Irish", "Persian", "Finnish",
+                    "English (Irish)", "Spanish (Peruvian)", "Greek (Cypriot)")
+
+languages = setdiff(languages$language, low_data_langs)
 
 # fit WS production
 mirtCluster()
@@ -16,7 +20,7 @@ mirtCluster()
 #coefs = list()
 load("data/multiling_2pl_age_WS_prod_fits.Rdata")
 # production
-for(lang in languages$language) {
+for(lang in languages) {
   if(!is.element(lang, names(models))) { # skip if already fitted
     load(paste("data/WS/",lang,"_WS_data.Rdata", sep=''))
     d_demo$age_sc = (d_demo$age - 23)  # center to target age range (16-30)..scale? (/23)
@@ -26,6 +30,7 @@ for(lang in languages$language) {
     
     print(paste("Fitting",nrow(d_prod),"subjects and",ncol(d_prod),"words in",lang))
     mod_string = paste0('G = 1-',ncol(d_prod),',
+                COV = F1
                 LBOUND = (1-',ncol(d_prod),', a1, 0),
                 PRIOR = (1-',ncol(d_prod),', d, norm, 0, 3)')
     mod <- mirt.model(mod_string)

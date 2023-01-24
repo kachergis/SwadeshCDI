@@ -1,5 +1,15 @@
 # helper functions for cross-linguistic wordbank/IRT analyses
 
+get_item_n_subject_counts <- function(models) {
+  tab <- tibble()
+  for(lang in names(coefs)) {
+    nitems = models[[lang]]@Data$nitems
+    N = models[[lang]]@Data$N
+    tab = bind_rows(tab, tibble(Language = lang, items = nitems, N = N))
+  }
+  return(tab)
+}
+
 # given long dataframe of uni_lemmas by language,
 # return # of pairwise overlapping uni-lemmas
 get_uni_lemma_overlap <- function(xldf) {

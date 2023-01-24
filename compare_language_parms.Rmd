@@ -65,6 +65,14 @@ check_models(models) # all converged
 
 xldf <- join_lang_coefs(names(coefs), coefs, form="WS")
 save(xldf, file="data/xling-WSprod-IRTparms.Rdata")
+
+
+# WS prod with age
+load("data/multiling_2pl_age_WS_prod_fits.Rdata")
+check_models(models) # all converged
+
+xldf <- join_lang_coefs(names(coefs), coefs, form="WS")
+save(xldf, file="data/xling-age-WS-prod-IRTparms.Rdata")
 ```
 
 ```{r}
