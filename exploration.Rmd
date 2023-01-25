@@ -147,7 +147,7 @@ t.test(xx_sum |> filter(language != "French (French)", sublist == "Swadesh") |> 
 
 
 From the plot, we consider theta in range [-4, 4]. Plot Swadesh vs random test information over this theta range.
-```{r}
+```{r message=F}
 theta_range <- matrix(seq(-4,4,.01))
 tinfo <- tibble()
 form <- "WS"
