@@ -74,12 +74,21 @@ run_swadesh_comparisons_theta <- function(xldf, languages, form='WS') {
     load(here(paste("data/",form,"/",lang,"_",form,"_data.Rdata", sep='')))
     swad_l <- subset(xldf, language==lang & is.element(uni_lemma, good_prod$uni_lemma)) 
     thetas <- all_thetas |> filter(language == lang)
-    
     swad_cor = cor(thetas$G, rowSums(d_prod[,swad_l$item_id], na.rm=T), use = "complete.obs")
-    rand_inds = sample(1:ncol(d_prod), nrow(swad_l)) # N random words 
-    rand_cor = cor(thetas$G, rowSums(d_prod[,rand_inds], na.rm=T), use = "complete.obs")
-    xx <- xx |> bind_rows(tibble(language = lang, `Swadesh r` = swad_cor, 
-                                  `Rand r` = rand_cor, N = nrow(swad_l)))
+    
+    rand_cors <- sapply(1:1000, \(x) {
+      rand_inds = sample(1:ncol(d_prod), nrow(swad_l)) # N random words 
+      rand_cor = cor(thetas$G, rowSums(d_prod[,rand_inds], na.rm=T), use = "complete.obs")
+      rand_cor
+    })
+    
+    xx <- xx |> bind_rows(tibble(language = lang, sublist = "Swadesh", 
+                                 run = NA, cor = swad_cor, N = nrow(swad_l)))
+    xx <- xx |> bind_rows(tibble(language = lang, sublist = "random", 
+                                 run = 1:1000, cor = rand_cors, N = nrow(swad_l)))
+    
+    # xx <- xx |> bind_rows(tibble(language = lang, `Swadesh r` = swad_cor, 
+    #                               `Rand r` = rand_cor, N = nrow(swad_l)))
     # d_demo, d_long, d_prod
   }
   return(xx)
@@ -124,7 +133,16 @@ xx <- run_swadesh_comparisons_theta(xldf, languages)
 ```
 
 ```{r}
-t.test(xx$`Swadesh r`, xx$`Rand r`, paired=T)
+xx_sum <- xx |> 
+  group_by(language, sublist, N) |> 
+  summarise(r = mean(cor))
+```
+
+
+```{r}
+t.test(xx_sum |> filter(language != "French (French)", sublist == "Swadesh") |> pull(r),
+       xx_sum |> filter(language != "French (French)", sublist == "random") |> pull(r),
+       paired=T)
 ```
 
 
@@ -134,26 +152,38 @@ theta_range <- matrix(seq(-4,4,.01))
 tinfo <- tibble()
 form <- "WS"
 for(lang in languages) {
+  message(glue("Processing {lang}\r"))
   load(here(paste("data/",form,"/",lang,"_",form,"_data.Rdata", sep='')))
   xldf_l <- subset(xldf, language==lang)
   good_idx <- is.element(xldf_l$uni_lemma, good_prod$uni_lemma) |> which()
-  rand_idx = sample(1:nrow(xldf_l), length(good_idx))
+  
   swad_tinfo <- testinfo(models[[lang]], theta_range,
                          which.items = good_idx)
-  rand_tinfo <- testinfo(models[[lang]], theta_range,
-                         which.items = rand_idx)
-  tinfo <- tinfo |> bind_rows(tibble(Swadesh = swad_tinfo,
-                                     random = rand_tinfo,
-                                     language = lang,
-                                     theta = theta_range[,1]))
+  
+  rand_tinfos <- sapply(1:1000, \(x) {
+    rand_idx = sample(1:nrow(xldf_l), length(good_idx))
+    rand_tinfo <- testinfo(models[[lang]], theta_range,
+                           which.items = rand_idx)
+    rand_tinfo
+  }) |> as_tibble()
+  
+  tinfo <- tinfo |> bind_rows(tibble(language = lang,
+                                     theta = theta_range[,1],
+                                     Swadesh = swad_tinfo) |> 
+                                cbind(rand_tinfos) |> 
+                                pivot_longer(cols = -c(language, theta),
+                                             names_to = "run",
+                                             values_to = "tinfo") |> 
+                                mutate(sublist = ifelse(run == "Swadesh",
+                                                        "Swadesh", "random")))
 }
 
-tinfo_plotting <- tinfo |> pivot_longer(cols = c(Swadesh, random),
-                                        names_to = "sublist",
-                                        values_to = "value")
+tinfo_sum <- tinfo |> 
+  group_by(language, theta, sublist) |> 
+  summarise(tinfo = mean(tinfo))
 
-tinfo_plot <- ggplot(tinfo_plotting |> filter(language != "French (French)"), 
-       aes(x = theta, y = value, col = language, lty = sublist)) +
+tinfo_plot <- ggplot(tinfo_sum |> filter(language != "French (French)"), 
+       aes(x = theta, y = tinfo, col = language, lty = sublist)) +
   geom_line() +
   theme_classic()
 
@@ -162,30 +192,30 @@ ggplotly(tinfo_plot)
 
 Compare total test information (area under curve). (Note that this value seems to be quite contingent on the specific random subset; probably good to run multiple simulations)
 ```{r}
-total_tinfo <- tinfo_plotting |> 
+total_tinfo <- tinfo_sum |> 
   group_by(language, sublist) |> 
-  summarise(total_testinfo = sum(value)) |> 
+  summarise(total_tinfo = sum(tinfo)) |> 
   filter(language != "French (French)")
 
-t.test(total_tinfo |> filter(sublist == "Swadesh") |> pull(total_testinfo),
-       total_tinfo |> filter(sublist == "random") |> pull(total_testinfo),
+t.test(total_tinfo |> filter(sublist == "Swadesh") |> pull(total_tinfo),
+       total_tinfo |> filter(sublist == "random") |> pull(total_tinfo),
        paired=T)
 ```
 
 Compare total test information only for tails (defined loosely as values at ≤20% of the peak of the curve). (Note that this value seems to be quite contingent on the specific random subset; probably good to run multiple simulations)
 ```{r}
-tinfo_max <- tinfo_plotting |> group_by(language, sublist) |> 
-  summarise(max = max(value))
+tinfo_max <- tinfo_sum |> group_by(language, sublist) |> 
+  summarise(max = max(tinfo))
 
-tinfo_tails <- tinfo_plotting |> 
+tinfo_tails <- tinfo_sum |> 
   left_join(tinfo_max, by = c("language", "sublist")) |> 
-  filter(value <= 0.2 * max) |> 
+  filter(tinfo <= 0.2 * max) |> 
   group_by(language, sublist) |> 
-  summarise(area = sum(value)) |> 
+  summarise(tail_tinfo = sum(tinfo)) |> 
   filter(language != "French (French)")
 
-t.test(tinfo_tails |> filter(sublist == "Swadesh") |> pull(area),
-       tinfo_tails |> filter(sublist == "random") |> pull(area),
+t.test(tinfo_tails |> filter(sublist == "Swadesh") |> pull(tail_tinfo),
+       tinfo_tails |> filter(sublist == "random") |> pull(tail_tinfo),
        paired=T)
 ```
 
