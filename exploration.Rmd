@@ -1,0 +1,191 @@
+---
+title: "Swadesh CDI: Exploratory analyses"
+author: "Alvin Tan"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(mirt)
+library(glue)
+library(here)
+library(plotly)
+options(dplyr.summarise.inform = FALSE)
+set.seed(42)
+```
+
+Calculate all theta values and plot by age; French (French) behaves weirdly with an unusual peak near 19mo.
+```{r}
+calc_theta <- function(xldf, languages, form='WS') {
+  xx <- tibble()
+  for(lang in languages) {
+    # if(lang %in% c("Spanish (Mexican)", "French (French)")) next
+    message(glue("Processing {lang}\r"))
+    load(here(paste("data/",form,"/",lang,"_",form,"_data.Rdata", sep='')))
+    ids <- d_prod |> rownames() |> as_tibble() |> 
+      rename(data_id = value) |> 
+      mutate(data_id = as.double(data_id)) |> 
+      left_join(d_demo |> select(data_id, age), by = "data_id")
+    
+    thetas <- fscores(models[[lang]], method = "MAP")
+    thetas <- cbind(ids, thetas) |> 
+      mutate(language = lang)
+    
+    saveRDS(thetas, glue("data/thetas/{lang}.rds"))
+    xx <- xx |> bind_rows(thetas)
+  }
+  return(xx)
+}
+```
+
+```{r eval=F}
+all_thetas <- calc_theta(xldf, languages)
+saveRDS(all_thetas, "data/thetas/all_thetas.rds")
+```
+
+```{r}
+all_thetas <- readRDS("data/thetas/all_thetas.rds")
+```
+
+```{r}
+theta_plot <- ggplot(all_thetas, aes(x=age, y=G, col=language)) +
+  theme_classic()
+
+theta_plot +
+  geom_point(alpha = .1, position="jitter") + 
+  geom_smooth(method="loess", alpha=.5)
+```
+
+```{r}
+# No scatter, but with hover tooltips
+ggplotly(theta_plot + 
+  geom_smooth(method="loess", se=F))
+```
+
+
+Compare Swadesh correlations with theta against random sublist correlations with theta
+```{r}
+run_swadesh_comparisons_theta <- function(xldf, languages, form='WS') {
+  xx <- tibble()
+  for(lang in languages) {
+    # if(lang %in% c("Spanish (Mexican)", "French (French)")) next
+    message(glue("Processing {lang}\r"))
+    load(here(paste("data/",form,"/",lang,"_",form,"_data.Rdata", sep='')))
+    swad_l <- subset(xldf, language==lang & is.element(uni_lemma, good_prod$uni_lemma)) 
+    thetas <- all_thetas |> filter(language == lang)
+    
+    swad_cor = cor(thetas$G, rowSums(d_prod[,swad_l$item_id], na.rm=T), use = "complete.obs")
+    rand_inds = sample(1:ncol(d_prod), nrow(swad_l)) # N random words 
+    rand_cor = cor(thetas$G, rowSums(d_prod[,rand_inds], na.rm=T), use = "complete.obs")
+    xx <- xx |> bind_rows(tibble(language = lang, `Swadesh r` = swad_cor, 
+                                  `Rand r` = rand_cor, N = nrow(swad_l)))
+    # d_demo, d_long, d_prod
+  }
+  return(xx)
+}
+```
+
+```{r}
+load(here("data/xling-WSprod-IRTparms.Rdata"))
+load("data/multiling_2pl_age_WS_prod_fits.Rdata")
+xldf <- xldf |> 
+  mutate(uni_lemma = ifelse(uni_lemma=="NA", NA, uni_lemma)) |> 
+  filter(!is.na(uni_lemma))
+xldf[which(xldf$category=="descriptive_words (adjectives)"),]$category = "descriptive_words"
+xldf[which(xldf$category=="outside_places"),]$category = "outside"
+languages = names(coefs) |> sort()
+low_data_langs <- c("Kiswahili", "Kigiriama", "Irish", "Persian", "Finnish",
+                    "English (Irish)", "Spanish (Peruvian)", "Greek (Cypriot)")
+languages <- setdiff(languages, low_data_langs)
+
+pars <- xldf |> filter(!is.na(uni_lemma), !is.na(d)) 
+ul <- sort(table(pars$uni_lemma)) 
+short_list = ul[which(ul>9)]
+prod_pars <-
+  pars |> arrange(desc(language), desc(uni_lemma), desc(a1)) |> # get most discriminating uni_lemma per lang
+  filter(is.element(uni_lemma, names(short_list))) |>
+  select(uni_lemma, category, lexical_category, language, d) |>
+  group_by(uni_lemma, language) |>
+  slice(1) |> 
+  pivot_wider(names_from = language, values_from = d)
+prod_pars$sd = apply(prod_pars[,4:ncol(prod_pars)], 1, sd, na.rm=T)
+prod_pars$numNAs = apply(prod_pars[,4:ncol(prod_pars)], 1, function(x) { sum(is.na(x)) })
+med_d = median(prod_pars$sd, na.rm=T) # 1.17
+sd_d = sd(prod_pars$sd, na.rm=T) # .44
+good_prod <- prod_pars |> 
+  filter(numNAs < 16) |>
+  filter(sd < (med_d - .5*sd_d)) |> 
+  arrange(numNAs)
+```
+
+```{r message=F}
+xx <- run_swadesh_comparisons_theta(xldf, languages)
+```
+
+```{r}
+t.test(xx$`Swadesh r`, xx$`Rand r`, paired=T)
+```
+
+
+From the plot, we consider theta in range [-4, 4]. Plot Swadesh vs random test information over this theta range.
+```{r}
+theta_range <- matrix(seq(-4,4,.01))
+tinfo <- tibble()
+form <- "WS"
+for(lang in languages) {
+  load(here(paste("data/",form,"/",lang,"_",form,"_data.Rdata", sep='')))
+  xldf_l <- subset(xldf, language==lang)
+  good_idx <- is.element(xldf_l$uni_lemma, good_prod$uni_lemma) |> which()
+  rand_idx = sample(1:nrow(xldf_l), length(good_idx))
+  swad_tinfo <- testinfo(models[[lang]], theta_range,
+                         which.items = good_idx)
+  rand_tinfo <- testinfo(models[[lang]], theta_range,
+                         which.items = rand_idx)
+  tinfo <- tinfo |> bind_rows(tibble(Swadesh = swad_tinfo,
+                                     random = rand_tinfo,
+                                     language = lang,
+                                     theta = theta_range[,1]))
+}
+
+tinfo_plotting <- tinfo |> pivot_longer(cols = c(Swadesh, random),
+                                        names_to = "sublist",
+                                        values_to = "value")
+
+tinfo_plot <- ggplot(tinfo_plotting |> filter(language != "French (French)"), 
+       aes(x = theta, y = value, col = language, lty = sublist)) +
+  geom_line() +
+  theme_classic()
+
+ggplotly(tinfo_plot)
+```
+
+Compare total test information (area under curve). (Note that this value seems to be quite contingent on the specific random subset; probably good to run multiple simulations)
+```{r}
+total_tinfo <- tinfo_plotting |> 
+  group_by(language, sublist) |> 
+  summarise(total_testinfo = sum(value)) |> 
+  filter(language != "French (French)")
+
+t.test(total_tinfo |> filter(sublist == "Swadesh") |> pull(total_testinfo),
+       total_tinfo |> filter(sublist == "random") |> pull(total_testinfo),
+       paired=T)
+```
+
+Compare total test information only for tails (defined loosely as values at ≤20% of the peak of the curve). (Note that this value seems to be quite contingent on the specific random subset; probably good to run multiple simulations)
+```{r}
+tinfo_max <- tinfo_plotting |> group_by(language, sublist) |> 
+  summarise(max = max(value))
+
+tinfo_tails <- tinfo_plotting |> 
+  left_join(tinfo_max, by = c("language", "sublist")) |> 
+  filter(value <= 0.2 * max) |> 
+  group_by(language, sublist) |> 
+  summarise(area = sum(value)) |> 
+  filter(language != "French (French)")
+
+t.test(tinfo_tails |> filter(sublist == "Swadesh") |> pull(area),
+       tinfo_tails |> filter(sublist == "random") |> pull(area),
+       paired=T)
+```
+
