@@ -277,7 +277,7 @@ lang_d_m %>% ggplot(aes(x=reorder(language, -mean), y=mean)) + coord_flip() +
 ```
 
 
-[^3]: OSF repository: [https://osf.io/XXX/](https://osf.io/XXX/).
+[^3]: OSF repository: [https://osf.io/8swhb/](https://osf.io/8swhb/?view_only=6f6ab9818f2a4bb288e05ca9e12f540c).
 
 
 <!-- ## Difficulty by Semantic Category -->
@@ -516,7 +516,7 @@ low_var <- uni_ag %>%
 ## Comparing Swadesh CDI to Full CDI:WS
 
 How well do raw scores from the Swadesh CDI items correlate with full CDI:WS scores?
-On average, for the 26 languages the IRT analysis was based on, the Swadesh CDI's sumscores were strongly related to the full CDI:WS scores (mean $r=0.990$; $min=0.976$, $max=0.996$).
+On average, for the 26 languages the IRT analysis was based on, the Swadesh CDI's sumscores were strongly related to the full CDI:WS scores (mean $r=0.990$; $min=0.976$, $max=0.996$; full table on [OSF](https://osf.io/8swhb/?view_only=6f6ab9818f2a4bb288e05ca9e12f540c)).
 However, these correlations were slightly but significantly lower than scores based on randomly-selected items (mean $r=0.993$, $min=0.990$, $max=0.996$, paired $t(25) = 5.67$, $p<.001$).
 This is likely due to some ceiling effects for older children on the Swadesh CDI, since the randomly-selected items are likely somewhat easier on average than the Swadesh items (see above results).
 

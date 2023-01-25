@@ -1,0 +1,238 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+%
+\documentclass[
+]{article}
+\usepackage{amsmath,amssymb}
+\usepackage{lmodern}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math}
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{xcolor}
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+% Set default figure placement to htbp
+\makeatletter
+\def\fps@figure{htbp}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+\ifLuaTeX
+  \usepackage{selnolig}  % disable illegal ligatures
+\fi
+\IfFileExists{bookmark.sty}{\usepackage{bookmark}}{\usepackage{hyperref}}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same} % disable monospaced font for URLs
+\hypersetup{
+  pdftitle={Appendix},
+  pdfauthor={George Kachergis},
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+
+\title{Appendix}
+\author{George Kachergis}
+\date{2023-01-25}
+
+\begin{document}
+\maketitle
+
+\hypertarget{overlap-of-uni-lemmas}{%
+\subsection{Overlap of Uni-lemmas}\label{overlap-of-uni-lemmas}}
+
+\hypertarget{word-difficulty-by-semantic-category-and-language}{%
+\subsection{Word Difficulty by Semantic Category and
+Language}\label{word-difficulty-by-semantic-category-and-language}}
+
+\begin{verbatim}
+## Warning: `as_data_frame()` was deprecated in tibble 2.0.0.
+## i Please use `as_tibble()` instead.
+## i The signature and semantics have changed, see `?as_tibble`.
+## i The deprecated feature was likely used in the purrr package.
+##   Please report the issue at <]8;;https://github.com/tidyverse/purrr/issueshttps://github.com/tidyverse/purrr/issues]8;;>.
+\end{verbatim}
+
+\begin{verbatim}
+## Warning: `cols` is now required when using unnest().
+## Please use `cols = c(strap)`
+\end{verbatim}
+
+\begin{figure}
+
+{\centering \includegraphics{appendix_files/figure-latex/semantic-cats-by-lang-1} 
+
+}
+
+\caption{Mean difficulty of CDI words by semantic category and language. Bars represent bootstrapped 95\% confidence intervals.}\label{fig:semantic-cats-by-lang}
+\end{figure}
+
+\hypertarget{cross-linguistic-similarities}{%
+\subsection{Cross-linguistic
+similarities}\label{cross-linguistic-similarities}}
+
+We look at the Spearman correlation between the item difficulty of each
+language compared to each other language. We might expect this to
+recapitulate the historical relationship between languages, with more
+similar languages having more similar item difficulties (e.g., Quebecois
+and European French).
+
+\begin{verbatim}
+## 
+## Attaching package: 'gplots'
+\end{verbatim}
+
+\begin{verbatim}
+## The following object is masked from 'package:stats':
+## 
+##     lowess
+\end{verbatim}
+
+\begin{figure}
+\centering
+\includegraphics{appendix_files/figure-latex/xling-sim-1.pdf}
+\caption{Cross-linguistic similarity (Spearman correlation) of IRT item
+difficulty from the CDI:WS.}
+\end{figure}
+
+\hypertarget{swadesh-cdi-vs.-full-cdiws}{%
+\subsection{Swadesh CDI vs.~Full
+CDI:WS}\label{swadesh-cdi-vs.-full-cdiws}}
+
+For the 26 languages that the IRT models were trained on:
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lrrr}
+  \hline
+language & Swadesh r & Rand r & N \\ 
+  \hline
+Cantonese & 0.991 & 0.993 &   75 \\ 
+  Croatian & 0.987 & 0.990 &   89 \\ 
+  Danish & 0.993 & 0.996 &   95 \\ 
+  English (American) & 0.991 & 0.995 &   92 \\ 
+  French (Quebecois) & 0.991 & 0.993 &   90 \\ 
+  German & 0.993 & 0.994 &   81 \\ 
+  Hebrew & 0.989 & 0.990 &   71 \\ 
+  Italian & 0.990 & 0.993 &   84 \\ 
+  Mandarin (Beijing) & 0.994 & 0.994 &   69 \\ 
+  Norwegian & 0.992 & 0.995 &   87 \\ 
+  Russian & 0.989 & 0.992 &   75 \\ 
+  Slovak & 0.986 & 0.991 &   58 \\ 
+  Spanish (Mexican) & 0.986 & 0.994 &   82 \\ 
+  Swedish & 0.992 & 0.994 &   89 \\ 
+  Turkish & 0.989 & 0.994 &   65 \\ 
+  Czech & 0.992 & 0.994 &   75 \\ 
+  English (Australian) & 0.992 & 0.995 &   80 \\ 
+  Latvian & 0.989 & 0.992 &   75 \\ 
+  Korean & 0.990 & 0.994 &   75 \\ 
+  French (French) & 0.989 & 0.993 &   94 \\ 
+  Spanish (European) & 0.983 & 0.992 &   59 \\ 
+  Portuguese (European) & 0.976 & 0.991 &   61 \\ 
+  Mandarin (Taiwanese) & 0.993 & 0.994 &   85 \\ 
+  Dutch & 0.995 & 0.995 &   92 \\ 
+  Hungarian & 0.992 & 0.995 &   93 \\ 
+  Spanish (Argentinian) & 0.984 & 0.990 &   79 \\ 
+   \hline
+\end{tabular}
+\caption{Swadesh CDI vs. Full CDI:WS scores for 26 training languages.} 
+\end{table}
+
+With the additional 10 difficult words:
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lrrr}
+  \hline
+language & Swadesh r & Rand r & N \\ 
+  \hline
+Cantonese & 0.992 & 0.994 &   88 \\ 
+  Croatian & 0.989 & 0.992 &  103 \\ 
+  Danish & 0.993 & 0.996 &  110 \\ 
+  English (American) & 0.994 & 0.996 &  110 \\ 
+  French (Quebecois) & 0.991 & 0.994 &  101 \\ 
+  German & 0.993 & 0.995 &   88 \\ 
+  Hebrew & 0.989 & 0.991 &   78 \\ 
+  Italian & 0.991 & 0.994 &   94 \\ 
+  Mandarin (Beijing) & 0.995 & 0.994 &   78 \\ 
+  Norwegian & 0.993 & 0.995 &  101 \\ 
+  Russian & 0.991 & 0.992 &   87 \\ 
+  Slovak & 0.986 & 0.993 &   64 \\ 
+  Spanish (Mexican) & 0.987 & 0.994 &   94 \\ 
+  Swedish & 0.993 & 0.996 &  103 \\ 
+  Turkish & 0.989 & 0.995 &   75 \\ 
+  Czech & 0.993 & 0.994 &   84 \\ 
+  English (Australian) & 0.991 & 0.996 &   89 \\ 
+  Latvian & 0.992 & 0.996 &   92 \\ 
+  Korean & 0.990 & 0.994 &   83 \\ 
+  French (French) & 0.990 & 0.991 &  108 \\ 
+  Spanish (European) & 0.989 & 0.994 &   72 \\ 
+  Portuguese (European) & 0.979 & 0.991 &   70 \\ 
+  Mandarin (Taiwanese) & 0.995 & 0.996 &  101 \\ 
+  Dutch & 0.996 & 0.996 &  106 \\ 
+  Hungarian & 0.993 & 0.994 &  108 \\ 
+  Spanish (Argentinian) & 0.987 & 0.992 &   92 \\ 
+   \hline
+\end{tabular}
+\caption{Swadesh CDI with difficult words vs. Full CDI:WS scores for 26 training languages.} 
+\end{table}
+
+\hypertarget{generalization-test}{%
+\subsubsection{Generalization Test}\label{generalization-test}}
+
+Comparison to the eight low-data languages, with the 10 additional
+difficult words added. Note that many proposed Swadesh items are not
+actually on the CDI:WS forms available to test generalization.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lrrr}
+  \hline
+language & Swadesh r & Rand r & N \\ 
+  \hline
+Greek (Cypriot) & 0.975 & 0.991 &   77 \\ 
+  Spanish (Peruvian) & 0.983 & 0.992 &   71 \\ 
+  Kigiriama & 0.992 & 0.993 &   98 \\ 
+  English (Irish) & 0.987 & 0.989 &   86 \\ 
+  Irish & 0.983 & 0.992 &   88 \\ 
+  Kiswahili & 0.989 & 0.988 &   95 \\ 
+  Finnish & 0.993 & 0.996 &   91 \\ 
+  Persian & 0.967 & 0.980 &   64 \\ 
+   \hline
+\end{tabular}
+\caption{Swadesh CDI with difficult words vs. Full CDI:WS scores for 8 generalization languages.} 
+\end{table}
+
+\end{document}

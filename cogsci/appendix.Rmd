@@ -2,11 +2,12 @@
 title: "Appendix"
 author: "George Kachergis"
 date: "2023-01-25"
-output: html_document
+output:
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = FALSE)
 
 library(png)
 library(grid)
@@ -16,6 +17,8 @@ require(tidyverse)
 require(ggpubr)
 require(tidyboot)
 require(here)
+library(RColorBrewer)
+library(gplots)
 
 source(here("cross-ling-comparison-helpers.R"))
 
@@ -29,11 +32,14 @@ olap <- get_uni_lemma_overlap(xldf)
 
 ## Overlap of Uni-lemmas
 
+```{r}
+# show heatmap of overlap between each CDI:WS
+```
 
 
 ## Word Difficulty by Semantic Category and Language
 
-```{r semantic-cats-by-lang, fig.width=7.5, fig.height=9, fig.align = "center", set.cap.width=T, num.cols.cap=2, fig.cap = "Mean difficulty of CDI words by semantic category and language. Bars represent bootstrapped 95\\% confidence intervals."}
+```{r semantic-cats-by-lang, fig.width=10, fig.height=16, fig.align = "center", set.cap.width=T, num.cols.cap=2, fig.cap = "Mean difficulty of CDI words by semantic category and language. Bars represent bootstrapped 95\\% confidence intervals."}
 prod_cat <- xldf %>% group_by(language, category) %>%
   filter(!is.na(d), !is.na(category),
          !is.element(category, c("final_particles", "directions", "numbers", "articles", "other",
@@ -56,7 +62,7 @@ prod_cat %>% ggplot(aes(x=reorder(language, mean), y=mean)) + geom_point(alpha=.
 We look at the Spearman correlation between the item difficulty of each language compared to each other language. 
 We might expect this to recapitulate the historical relationship between languages, with more similar languages having more similar item difficulties (e.g., Quebecois and European French).
 
-```{r xling-sim, fig.width=7.5, fig.height=7.5, set.cap.width=T, num.cols.cap=2, fig.cap = "Cross-linguistic similarity (Spearman correlation) of IRT item difficulty from the CDI:WS."}
+```{r xling-sim, fig.width=10, fig.height=10, set.cap.width=T, num.cols.cap=2, fig.cap = "Cross-linguistic similarity (Spearman correlation) of IRT item difficulty from the CDI:WS."}
 # parm diffs in low- vs. high-data langs
 #t.test(xldf$d, xldf_lowd$d) # -.45 vs. -.02 (closer to prior of 0 in low-data langs)
 #t.test(xldf$a1, xldf_lowd$a1) # higher discrim in high-data langs
@@ -65,14 +71,12 @@ tmp <- get_cross_ling_difficulty_cors(xldf)
 prod_cors = tmp$prod_cors
 prod_sims = tmp$prod_sims
 
-library(RColorBrewer)
-library(gplots)
 Colors = brewer.pal(11,"Spectral")
 diag(prod_cors) = NA
 
-pdf(file="xling_difficulty_similarity_WSprod.pdf", width=13, height=13)
+#pdf(file="xling_difficulty_similarity_WSprod.pdf", width=13, height=13)
 heatmap.2(prod_cors, col=Colors, margins=c(10,10))
-dev.off()
+#dev.off()
 
 # compare to one of these?
 # http://www.elinguistics.net/
@@ -81,12 +85,40 @@ dev.off()
 
 ```
 
-## Including Plots
+## Swadesh CDI vs. Full CDI:WS
 
-You can also embed plots, for example:
+For the 26 languages that the IRT models were trained on:
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+```{r, results='asis'}
+load(here("data/Swadesh_comparisons.Rdata"))
+
+
+xx_tab <- xtable::xtable(xx, digits=c(3), 
+                       caption = "Swadesh CDI vs. Full CDI:WS scores for 26 training languages.")
+print(xx_tab, type="html", comment = F, table.placement = "H",
+      include.rownames=FALSE)
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+With the additional 10 difficult words:
+
+```{r, results='asis'}
+xx_ext_tab <- xtable::xtable(xx_ext, digits=c(3), 
+                       caption = "Swadesh CDI with difficult words vs. Full CDI:WS scores for 26 training languages.")
+print(xx_ext_tab, type="html", comment = F, table.placement = "H",
+      include.rownames=FALSE)
+```
+
+
+
+### Generalization Test
+
+Comparison to the eight low-data languages, with the 10 additional difficult words added.
+Note that many proposed Swadesh items are not actually on the CDI:WS forms available to test generalization. 
+
+```{r, results='asis'}
+gen_ext_tab <- xtable::xtable(gen_xx_ext, digits=c(3), 
+                       caption = "Swadesh CDI with difficult words vs. Full CDI:WS scores for 8 generalization languages.")
+print(gen_ext_tab, type="html", comment = F, table.placement = "H",
+      include.rownames=FALSE)
+```
