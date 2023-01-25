@@ -56,11 +56,11 @@ get_cross_ling_difficulty_cors <- function(xldf) {
 }
 
 
-run_swadesh_comparisons <- function(xldf, languages, form='WS') {
+run_swadesh_comparisons <- function(xldf, languages, swad_list, form='WS') {
   xx <- tibble()
   for(lang in languages) {
     load(here(paste("data/",form,"/",lang,"_",form,"_data.Rdata", sep='')))
-    swad_l <- subset(xldf, language==lang & is.element(uni_lemma, good_prod$uni_lemma)) # 
+    swad_l <- subset(xldf, language==lang & is.element(uni_lemma, swad_list)) # 
     swad_cor = cor(rowSums(d_prod, na.rm=T), rowSums(d_prod[,swad_l$item_id], na.rm=T))
     rand_inds = sample(1:ncol(d_prod), nrow(swad_l)) # N random words 
     rand_cor = cor(rowSums(d_prod, na.rm=T), rowSums(d_prod[,rand_inds], na.rm=T))
