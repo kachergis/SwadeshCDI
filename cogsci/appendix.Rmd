@@ -1,0 +1,92 @@
+---
+title: "Appendix"
+author: "George Kachergis"
+date: "2023-01-25"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(png)
+library(grid)
+library(xtable)
+require(mirt)
+require(tidyverse)
+require(ggpubr)
+require(tidyboot)
+require(here)
+
+source(here("cross-ling-comparison-helpers.R"))
+
+# long data-frame of all WS production parameters
+load(here("data/xling-WSprod-IRTparms.Rdata"))
+
+xldf <- xldf %>% mutate(uni_lemma = ifelse(uni_lemma=="NA", NA, uni_lemma))
+
+olap <- get_uni_lemma_overlap(xldf)
+```
+
+## Overlap of Uni-lemmas
+
+
+
+## Word Difficulty by Semantic Category and Language
+
+```{r semantic-cats-by-lang, fig.width=7.5, fig.height=9, fig.align = "center", set.cap.width=T, num.cols.cap=2, fig.cap = "Mean difficulty of CDI words by semantic category and language. Bars represent bootstrapped 95\\% confidence intervals."}
+prod_cat <- xldf %>% group_by(language, category) %>%
+  filter(!is.na(d), !is.na(category),
+         !is.element(category, c("final_particles", "directions", "numbers", "articles", "other",
+                                 "descriptive_words (adverbs)", "states", "unknown",
+                                 "verb_endings", "verb_modifiers",
+                                 "classifiers", "locations_quantities_adverbs"))) %>%
+  tidyboot::tidyboot_mean(d, na.rm=T)
+
+# big plot for online supplement
+prod_cat %>% ggplot(aes(x=reorder(language, mean), y=mean)) + geom_point(alpha=.7) +
+  geom_linerange(aes(ymin=ci_lower, ymax=ci_upper), alpha=.7) +
+  facet_wrap(. ~ category) + coord_flip() + 
+  theme_classic() + ylab("Mean item easiness") + xlab("Language")
+#ggsave("xling_diff_by_category_WSprod.pdf", width=10, height=16)
+```
+
+
+## Cross-linguistic similarities 
+
+We look at the Spearman correlation between the item difficulty of each language compared to each other language. 
+We might expect this to recapitulate the historical relationship between languages, with more similar languages having more similar item difficulties (e.g., Quebecois and European French).
+
+```{r xling-sim, fig.width=7.5, fig.height=7.5, set.cap.width=T, num.cols.cap=2, fig.cap = "Cross-linguistic similarity (Spearman correlation) of IRT item difficulty from the CDI:WS."}
+# parm diffs in low- vs. high-data langs
+#t.test(xldf$d, xldf_lowd$d) # -.45 vs. -.02 (closer to prior of 0 in low-data langs)
+#t.test(xldf$a1, xldf_lowd$a1) # higher discrim in high-data langs
+
+tmp <- get_cross_ling_difficulty_cors(xldf)
+prod_cors = tmp$prod_cors
+prod_sims = tmp$prod_sims
+
+library(RColorBrewer)
+library(gplots)
+Colors = brewer.pal(11,"Spectral")
+diag(prod_cors) = NA
+
+pdf(file="xling_difficulty_similarity_WSprod.pdf", width=13, height=13)
+heatmap.2(prod_cors, col=Colors, margins=c(10,10))
+dev.off()
+
+# compare to one of these?
+# http://www.elinguistics.net/
+# https://www.ezglot.com/most-similar-languages.php
+# 28 x 28 = 784 values...scrape?
+
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
