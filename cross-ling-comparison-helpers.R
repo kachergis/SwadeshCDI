@@ -62,11 +62,26 @@ run_swadesh_comparisons <- function(xldf, languages, swad_list, form='WS') {
     load(here(paste("data/",form,"/",lang,"_",form,"_data.Rdata", sep='')))
     swad_l <- subset(xldf, language==lang & is.element(uni_lemma, swad_list)) # 
     swad_cor = cor(rowSums(d_prod, na.rm=T), rowSums(d_prod[,swad_l$item_id], na.rm=T))
-    rand_inds = sample(1:ncol(d_prod), nrow(swad_l)) # N random words 
-    rand_cor = cor(rowSums(d_prod, na.rm=T), rowSums(d_prod[,rand_inds], na.rm=T))
-    xx <- xx %>% bind_rows(tibble(language = lang, `Swadesh r` = swad_cor, 
-                                  `Rand r` = rand_cor, N = nrow(swad_l)))
+    
+    rand_cors <- sapply(1:1000, \(x) {
+      rand_inds = sample(1:ncol(d_prod), nrow(swad_l)) # N random words 
+      rand_cor = cor(rowSums(d_prod, na.rm=T), rowSums(d_prod[,rand_inds], na.rm=T))
+      rand_cor
+    })
+    
+    xx <- xx %>% bind_rows(tibble(language = lang, sublist = "Swadesh", 
+                                 run = NA, cor = swad_cor, N = nrow(swad_l)))
+    xx <- xx %>% bind_rows(tibble(language = lang, sublist = "random", 
+                                 run = 1:1000, cor = rand_cors, N = nrow(swad_l)))
+    # xx <- xx %>% bind_rows(tibble(language = lang, `Swadesh r` = swad_cor, 
+    #                               `Rand r` = rand_cor, N = nrow(swad_l)))
     # d_demo, d_long, d_prod
   }
-  return(xx)
+  
+  xx_sum <- xx %>% 
+    group_by(language, sublist, N) %>%
+    summarise(r = mean(cor)) %>%
+    pivot_wider(names_from = sublist, values_from = r) %>%
+    rename(`Swadesh r` = Swadesh, `Rand r` = random)
+  return(xx_sum)
 }
