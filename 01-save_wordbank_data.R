@@ -168,7 +168,7 @@ for(lang in ws_langs$language) {
 # "retrieved data for 377 Croatian participants"
 # "retrieved data for 3714 Danish participants"
 # "retrieved data for 8650 English (American) participants" # now 8853
-# "retrieved data for 930 French (Quebecois) participants"
+# "retrieved data for 930 French (Quebecois) participants" 
 # "retrieved data for 1181 German participants"
 # "retrieved data for 520 Hebrew participants"
 # "retrieved data for 752 Italian participants"
@@ -185,7 +185,7 @@ for(lang in ws_langs$language) {
 # "retrieved data for 1520 English (Australian) participants"
 # "retrieved data for 500 Latvian participants"
 # "retrieved data for 1376 Korean participants"
-# "retrieved data for 665 French (French) participants"
+# "retrieved data for 665 French (French) participants" <- more French participants added in 01-new-French-data.R
 # "retrieved data for 593 Spanish (European) participants"
 # "retrieved data for 3012 Portuguese (European) participants"
 # "retrieved data for 1897 Mandarin (Taiwanese) participants"

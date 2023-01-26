@@ -89,8 +89,8 @@ For example, the American English CDI:WS and Mexican Spanish CDI:WS forms – tw
 # long data-frame of all WS production parameters
 load(here("data/xling-WSprod-IRTparms.Rdata"))
 nas <- xldf %>% filter(uni_lemma=="NA") # how did these end up with string "NA" values?
-# distributed fairly well across languages; Slovak and Hungarian have >50
-sort(table(nas$language))
+# distributed fairly well across languages; Slovak and Hungarian have >50 -- Persian has 277!
+sort(table(nas$language)) 
 
 xldf <- xldf %>% mutate(uni_lemma = ifelse(uni_lemma=="NA", NA, uni_lemma))
 
@@ -99,7 +99,6 @@ xldf <- xldf %>% mutate(uni_lemma = ifelse(uni_lemma=="NA", NA, uni_lemma))
 
 olap <- get_uni_lemma_overlap(xldf)
 #olap["English (American)","Spanish (Mexican)"] # 463 overlap
-#load(here("data/WS/Spanish (Mexican)_WS_data.Rdata"))
 ```
 
 Given that it is well-established that, all over the world, early learned words reflect the people and things that children are likely to experience, that is, words for family members, animals, and common household objects [@tardif2008baby; @frank2021], it is reasonable to ask: Is there a single set of translation equivalents that would meet the criteria for inclusion on CDIs from multiple languages? 
@@ -162,12 +161,12 @@ wg_parms <- xldf
 ```{r, load-ws-data, echo=F, results="asis"}
 # WS production fits - can we stitch WG+WS for all of these?
 load(here("data/multiling_2pl_WS_prod_fits.Rdata"))
-ws_coefs = coefs
+#ws_coefs = coefs
 
 ws_tab <- get_item_n_subject_counts(models)
 
 load(here("data/xling-WSprod-IRTparms.Rdata"))
-ws_parms <- xldf # 23179
+#ws_parms <- xldf # 23179
 
 xldf <- xldf %>% mutate(d = -d) # easiness -> difficulty
 
