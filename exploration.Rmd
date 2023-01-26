@@ -219,3 +219,35 @@ t.test(tinfo_tails |> filter(sublist == "Swadesh") |> pull(tail_tinfo),
        paired=T)
 ```
 
+Check whether test information peak (i.e., mode) is reliably lower in Swadesh than random
+```{r}
+tinfo_peaks <- tinfo_sum |> 
+  left_join(tinfo_max |> mutate(is_max = 1),
+            by = c("language", "sublist", "tinfo" = "max")) |> 
+  filter(!is.na(is_max))
+
+t.test(tinfo_peaks |> filter(sublist == "Swadesh") |> pull(theta),
+       tinfo_peaks |> filter(sublist == "random") |> pull(theta),
+       paired=T)
+```
+
+Visualisations of relationship between number of languages and item difficulty
+```{r}
+uni_all <- xldf %>% filter(uni_lemma!="NA", ! language %in% low_data_langs) %>%
+  group_by(uni_lemma, category) %>%
+  summarise(d_m=mean(d), a1_m=mean(a1), d_sd = sd(d), a1_sd = sd(a1), 
+            n=n(), n_lang = length(unique(language)))
+
+n_sd <- ggplot(uni_all, aes(x = n_lang, y = d_sd)) + 
+  geom_point(alpha = .1) + 
+  geom_smooth() + theme_classic()
+
+n_m <- ggplot(uni_all, aes(x = n_lang, y = d_m)) + 
+  geom_point(alpha = .1) + 
+  geom_smooth() + theme_classic()
+
+m_sd <- ggplot(uni_all, aes(x = d_m, y = d_sd)) + 
+  geom_point(alpha = .1) + 
+  geom_smooth() + theme_classic()
+```
+
