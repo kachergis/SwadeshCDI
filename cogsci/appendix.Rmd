@@ -7,7 +7,7 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(echo = FALSE, warning=F, message=F)
 
 library(png)
 library(grid)
@@ -25,21 +25,35 @@ source(here("cross-ling-comparison-helpers.R"))
 # long data-frame of all WS production parameters
 load(here("data/xling-WSprod-IRTparms.Rdata"))
 
+low_data_langs = c("Persian","Finnish","Kiswahili","Irish",
+                   "English (Irish)","Kigiriama","Spanish (Peruvian)","Greek (Cypriot)")
+
 xldf <- xldf %>% mutate(uni_lemma = ifelse(uni_lemma=="NA", NA, uni_lemma))
+xldf <- xldf %>% filter(!is.na(uni_lemma)) # only want the words with defined uni-lemmas
+xldf_lowd <- xldf %>% filter(is.element(language, low_data_langs)) # 5464
+xldf <- xldf %>% filter(!is.element(language, low_data_langs)) # 17715
+
+# align some categories: Russian has descriptive adjectives and adverbs
+xldf[which(xldf$category=="descriptive_words (adjectives)"),]$category = "descriptive_words"
+xldf[which(xldf$category=="outside_places"),]$category = "outside"
+
 
 olap <- get_uni_lemma_overlap(xldf)
 ```
 
-## Overlap of Uni-lemmas
+## Uni-lemma Overlap on CDI:WS Forms
 
-```{r}
+Number of overlapping items on each pair of CDI:WS forms.
+
+```{r, fig.width=10, fig.height=10}
 # show heatmap of overlap between each CDI:WS
+heatmap.2(olap, dendrogram = "none", margins=c(10,10))
 ```
 
 
 ## Word Difficulty by Semantic Category and Language
 
-```{r semantic-cats-by-lang, fig.width=10, fig.height=16, fig.align = "center", set.cap.width=T, num.cols.cap=2, fig.cap = "Mean difficulty of CDI words by semantic category and language. Bars represent bootstrapped 95\\% confidence intervals."}
+```{r semantic-cats-by-lang, fig.width=10, fig.height=18, fig.align = "center", set.cap.width=T, num.cols.cap=2, fig.cap = "Mean difficulty of CDI words by semantic category and language. Bars represent bootstrapped 95\\% confidence intervals."}
 prod_cat <- xldf %>% group_by(language, category) %>%
   filter(!is.na(d), !is.na(category),
          !is.element(category, c("final_particles", "directions", "numbers", "articles", "other",

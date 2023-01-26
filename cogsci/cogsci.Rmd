@@ -71,6 +71,7 @@ Items on these original forms were chosen to reflect a range of difficulty level
 Short versions of each of these forms are also available, each with about 100 items [e.g., @Fenson2000], consisting of a set of items that generate scores that more strongly correlate with scores on the long forms, while retaining representation across a broad set of semantic categories.
 
 <!-- gap! -->
+Creating a new CDI requires a lot of effort and resources, presenting a daunting barrier to increasing the diversity of languages studied.
 Following the guidelines[^1] from the MacArthur-Bates CDI Advisory Board, the process of adapting a CDI for a language other than American English goes well beyond simply translating items on these forms to that new language. 
 While the process can begin with identifying translation equivalents (i.e., items that capture the same general concept in both languages, e.g., "dog" in English, and "perro" in Spanish), the final item set must then be filtered so that all items appropriately reflect the linguistic and sociocultural context of the children learning that language. 
 This process usually requires considerable time and effort by researchers who are native speakers of a language, to first select and identify translation equivalents and to then iteratively add, refine, and pilot the new CDI in the target language. 
@@ -120,7 +121,7 @@ More broadly, this work examines which types of words (and their corresponding c
 We can ask: Which semantic categories, e.g., animals, household objects, food and drink, or another category, are most consistently learned across languages? Which are more variable? 
 These types of cross-linguistic comparisons may give new insight into theoretical questions surrounding the similarity and differences between language experience and development in different cultural and linguistic contexts.
 
-In particular, our contributions are 1) to fit IRT models to 28 CDI:WS datasets, 2) to identify 106 candidate "Swadesh CDI" items from a cross-linguistic comparison of concept difficulty and inclusion, and 3) to test how well this Swadesh CDI generalizes to a set of 8 additional low-data languages. 
+In particular, our contributions are 1) to revise and extend a set of translation-equivalent concepts ("universal lemmas", i.e. uni-lemmas) in Wordbank, 2) to fit IRT models to 28 CDI:WS datasets, 3) to identify 106 candidate "Swadesh CDI" items from a cross-linguistic comparison of concept difficulty and inclusion, and 4) to test how well this Swadesh CDI generalizes to a set of 8 additional low-data languages. 
 We end by making a concrete proposal for how this Swadesh CDI list could be used in creating future CDI adaptations, and by discussing the strengths and weaknesses of our approach.
 
 
@@ -190,6 +191,15 @@ We report IRT analyses for twenty-six languages from Wordbank [@frank2017], comp
 Data from the first twenty-six rows of Table 1 (Norwegian through Dutch) will be used to select a pool of words with approximately equal cross-linguistic difficulty.
 CDI:WS production data from an additional eight languages (bottom of Table 1: Greek (Cypriot) through Persian) had too few participants to be analyzed with IRT.
 Datasets for these languages will be used to test how well the selected pool of words generalize can be expected to new languages.
+
+### Uni-lemmas
+
+In order to do so, we need a method to map between words across languages that correspond to broadly similar concepts. 
+As such, we mapped each item on the CDI:WS for each language onto a set of “universal lemmas” or “unilemmas”, which are approximate cross-linguistic conceptual mappings of words. 
+For example, “dog” (English) and “perro” (Spanish) both correspond to the same unilemma, dog. 
+These mappings were recently updated for Wordbank 2.0 to improve their quality and systematicity, and to increase coverage across items and languages. 
+This new set of unilemmas was constructed based on glosses provided by the original contributors of the Wordbank datasets, which were then verified by native or advanced proficient speakers of the language, and cleaned to increase their consistency across languages. 
+All unilemmas are accessible from Wordbank; details about the recent update can be found at [https://github.com/langcog/update_unilemmas](https://github.com/langcog/update_unilemmas).
 
 ### Participants
 
@@ -282,7 +292,7 @@ lang_d_m %>% ggplot(aes(x=reorder(language, -mean), y=mean)) + coord_flip() +
 
 <!-- ## Difficulty by Semantic Category -->
 
-Figure 2 shows the average cross-linguistic difficulty of CDI items by semantic category.
+Figure 1 shows the average cross-linguistic difficulty of CDI items by semantic category.
 Sounds (e.g., animal noises), body parts, and common nouns tend to be early-learned, and thus have lower difficulty values, while abstract words such as time words and morphologically complex helping verbs are later-learned (i.e., more difficult).
 
 ```{r difficulty-by-category, fig.env = "figure", fig.pos = "h", fig.height=3.5, fig.align = "center", fig.cap = "Mean cross-linguistic difficulty of CDI words by semantic category. Bars represent bootstrapped 95\\% confidence intervals."}
@@ -417,7 +427,6 @@ good_prod <- prod_pars %>%
 
 #sort(table(good_prod$category)) / nrow(good_prod)
 #sort(table(good_prod$lexical_category)) / nrow(good_prod)
-
 ```
 
 ```{r fig-mean-swadesh-item-diff, fig.cap=c("Mean item difficulty of Swadesh CDI items per language. Bars represent bootstrapped 95\\% confidence intervals."), fig.height=3.5, fig.width=3.4}
@@ -537,11 +546,11 @@ Adding the 10 difficult uni-lemmas improved the relationship (mean $r=.984$).
 # just the Swadesh 106
 xx <- run_swadesh_comparisons(xldf, languages, good_prod$uni_lemma)
 #summary(xx$`Swadesh r`)
-#   Min.  1st Qu.  Median    Mean 3rd Qu.    Max. 
-# 0.9760  0.9886  0.9904  0.9895  0.9921  0.9955 
+# Min.    1st Qu.  Median   Mean 3rd Qu.    Max. 
+# 0.9788  0.9877  0.9900  0.989  0.992  0.996
 #summary(xx$`Rand r`)
-#  Min.  1st Qu.  Median    Mean 3rd Qu.    Max. 
-# 0.9898  0.9919  0.9936  0.9931  0.9944  0.9958 
+#  Min.  1st Qu.  Median Mean  3rd Qu.    Max. 
+# 0.991  0.993  0.994   0.994  0.995   0.996 
 
 # Swadesh 106 + 10 harder words 
 xx_ext <- run_swadesh_comparisons(xldf, languages, c(good_prod$uni_lemma, low_var$uni_lemma))
@@ -568,7 +577,7 @@ gen_xx_ext <- run_swadesh_comparisons(xldf_lowd, gen_test_langs, c(good_prod$uni
 
 # summary(gen_xx_ext$`Rand r`)
 #    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-# 0.9799  0.9888  0.9914  0.9901  0.9923  0.9956
+# 0.9784  0.9889  0.9901  0.9891  0.9910  0.9940 
 
 save(xx, gen_xx, xx_ext, gen_xx_ext,  
      file=here("data/Swadesh_comparisons.Rdata"))
@@ -589,10 +598,17 @@ print(gen_tab, type="latex", comment = F, table.placement = "H",
 ```{r, include=F}
 
 # are we any worse than random? slightly, but significantly...
-#t.test(xx$`Swadesh r` - xx$`Rand r`)
-# t(25) = -5.67, p<.001; diff=-.004
-#t.test(gen_xx$`Swadesh r` - gen_xx$`Rand r`) 
-# t(7) = -3.22, p=0.01;  diff=-.007
+t.test(xx$`Swadesh r` - xx$`Rand r`)
+# t(25) = -8.06, p<.001; diff=-.004
+
+t.test(xx_ext$`Swadesh r` - xx_ext$`Rand r`)
+# t(25) = -6.38, p<.001, diff=-.003
+
+t.test(gen_xx$`Swadesh r` - gen_xx$`Rand r`) 
+# t(7) = -4.83, p=0.002;  diff=-.01
+
+t.test(gen_xx_ext$`Swadesh r` - gen_xx_ext$`Rand r`) 
+# t(6) = -3.23 diff=-.005
 
 short_wsA <- read_csv(here("data/eng-ws-shortA.csv"))
 short_wsB <- read_csv(here("data/eng-ws-shortB.csv"))
@@ -614,12 +630,6 @@ sort(good_prod$uni_lemma)
 knitr::include_graphics("figs/SwadeshCDI_list.pdf")
 ```
 
-
-ToDo: 
-use average IRT parameter per item to calculate ability rather than sumscore?
-propose a way of picking more difficult items? or maybe the value here is in finding the universal (easy) words, and it is up to expert native speakers to choose the more difficult (and idiosyncratic) words for each language.
-
-If I had to find another way of getting the best cross-linguistic words, I would 1) run simulated CATs in all of the languages, and 2) pick the words that cropped up the most often across all languages. 
 
 
 ```{r swadesh-comparison, echo=F}
@@ -643,14 +653,25 @@ asjp = c("eye","ear","nose","tongue","tooth","hand","knee","blood","bone","breas
 
 
 
-
-
-
 # Discussion
 
+This study compared psychometric models fitted to 26 CDI datasets in order to find concepts that have low variability in their cross-linguistic difficulty, and that are frequently included on parent-reported measures of children's early vocabulary. 
+We identified 106 concepts that appeared on at least 10 of the CDIs, and which have more consistent cross-linguistic difficulty than the majority of the concepts appearing on multiple CDIs.
+We showed that using this set of "Swadesh CDI" items as a short assessment would generate scores that are strongly related to full CDI:WS scores, both for the original 26 datasets, and in a generalization test to eight low-data languages.
+However, the Swadesh CDI items were also significantly easier than other items, meaning that older children may perform at ceiling if given only the Swadesh CDI items.
+(This may be unsurprising from the perspective that Swadesh words are meant to be universal, and are therefore more frequent and basic--both within and across individual children's experiences.)
+
+Thus, our suggested use case for the Swadesh CDI list is as a starting point for researchers seeking to develop a CDI in a new language, rather than as a complete short-form CDI.
+In particular, researchers should seek to add contextually appropriate items from the categories that were notably absent from the Swadesh list: quantifiers, .. 
 
 
-A word of caution: parent report in new populations is difficult. For example, Katie Alcock’s Kiswahili work [@alcock2017production] and Anne Weber's Wolof work [@weber2018]
+Another potential limitation of this work is that most existing CDIs (and most datsets available in Wordbank) target languages in the Indo-European language family.
+It is not clear to what extent this bias in the existing data might interfere with generalizing to non-Indo-European languages.
+
+Developing a list of appropriate vocabulary words is not the only challenge researchers face when seeking to develop and use parent report measures in a new language and culture. The pragmatics of language between children and adults can differ greatly across cultures, and has been found to interfere with administration of parent-report measures of early vocabulary, for example in Kiswahili [@alcock2017production] and Wolof [@weber2018].
+
+Despite the myriad challenges that remain in creating new measures of early language development, we believe that the proposed Swadesh CDI list will give researchers a solid foundation to start from.
+Certainly, increasing the diversity of languages studied is a critical step towards developing a truly general understanding of how young children learn language.
 
 # Acknowledgements
 
