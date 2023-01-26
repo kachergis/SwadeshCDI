@@ -246,8 +246,143 @@ n_m <- ggplot(uni_all, aes(x = n_lang, y = d_m)) +
   geom_point(alpha = .1) + 
   geom_smooth() + theme_classic()
 
-m_sd <- ggplot(uni_all, aes(x = d_m, y = d_sd)) + 
+m_sd <- ggplot(uni_all, aes(x = d_sd, y = d_m)) + 
   geom_point(alpha = .1) + 
   geom_smooth() + theme_classic()
+```
+
+Random unilemmas as a baseline
+```{r}
+rand_idxs <- sapply(1:1000, \(x) {sample(1:nrow(ul), length(good_prod))})
+
+run_swadesh_comparisons_theta_ul <- function(xldf, languages, form='WS') {
+  xx <- tibble()
+  for(lang in languages) {
+    # if(lang %in% c("Spanish (Mexican)", "French (French)")) next
+    message(glue("Processing {lang}\r"))
+    load(here(paste("data/",form,"/",lang,"_",form,"_data.Rdata", sep='')))
+    swad_l <- subset(xldf, language==lang & is.element(uni_lemma, good_prod$uni_lemma)) 
+    thetas <- all_thetas |> filter(language == lang)
+    swad_cor = cor(thetas$G, rowSums(d_prod[,swad_l$item_id], na.rm=T), use = "complete.obs")
+    
+    rand_cors <- sapply(1:1000, \(x) {
+      rand_inds = rand_idxs[,x]
+      rand_ul <- ul[rand_inds] |> as.data.frame() |> pull(Var1)
+      rand_l <- subset(xldf, language==lang & is.element(uni_lemma, rand_ul)) 
+      rand_cor = cor(thetas$G, rowSums(d_prod[,rand_l$item_id], na.rm=T), use = "complete.obs")
+      rand_cor
+    })
+    
+    xx <- xx |> bind_rows(tibble(language = lang, sublist = "Swadesh", 
+                                 run = NA, cor = swad_cor, N = nrow(swad_l)))
+    xx <- xx |> bind_rows(tibble(language = lang, sublist = "random", 
+                                 run = 1:1000, cor = rand_cors, N = nrow(swad_l)))
+    
+    # xx <- xx |> bind_rows(tibble(language = lang, `Swadesh r` = swad_cor, 
+    #                               `Rand r` = rand_cor, N = nrow(swad_l)))
+    # d_demo, d_long, d_prod
+  }
+  return(xx)
+}
+```
+
+```{r}
+xx_ul <- run_swadesh_comparisons_theta_ul(xldf, languages)
+
+xx_sum_ul <- xx_ul |> 
+  group_by(language, sublist, N) |> 
+  summarise(r = mean(cor))
+
+t.test(xx_sum_ul |> filter(language != "French (French)", sublist == "Swadesh") |> pull(r),
+       xx_sum_ul |> filter(language != "French (French)", sublist == "random") |> pull(r),
+       paired=T)
+```
+
+```{r}
+tinfo_ul <- tibble()
+for(lang in languages) {
+  message(glue("Processing {lang}\r"))
+  load(here(paste("data/",form,"/",lang,"_",form,"_data.Rdata", sep='')))
+  xldf_l <- subset(xldf, language==lang)
+  good_idx <- is.element(xldf_l$uni_lemma, good_prod$uni_lemma) |> which()
+  
+  swad_tinfo <- testinfo(models[[lang]], theta_range,
+                         which.items = good_idx)
+  
+  rand_tinfos <- sapply(1:1000, \(x) {
+    rand_inds = rand_idxs[,x]
+    rand_ul <- ul[rand_inds] |> as.data.frame() |> pull(Var1)
+    rand_idx <- is.element(xldf_l$uni_lemma, rand_ul) |> which()
+    rand_tinfo <- testinfo(models[[lang]], theta_range,
+                           which.items = rand_idx)
+    rand_tinfo
+  }) |> as_tibble()
+  
+  tinfo_ul <- tinfo_ul |> bind_rows(tibble(language = lang,
+                                           theta = theta_range[,1],
+                                           Swadesh = swad_tinfo) |> 
+                                      cbind(rand_tinfos) |> 
+                                      pivot_longer(cols = -c(language, theta),
+                                                   names_to = "run",
+                                                   values_to = "tinfo") |> 
+                                      mutate(sublist = ifelse(run == "Swadesh",
+                                                              "Swadesh", "random")))
+}
+
+tinfo_sum_ul <- tinfo_ul |> 
+  group_by(language, theta, sublist) |> 
+  summarise(tinfo = mean(tinfo))
+```
+
+```{r}
+total_tinfo_ul <- tinfo_sum_ul |> 
+  group_by(language, sublist) |> 
+  summarise(total_tinfo = sum(tinfo)) |> 
+  filter(language != "French (French)")
+
+t.test(total_tinfo_ul |> filter(sublist == "Swadesh") |> pull(total_tinfo),
+       total_tinfo_ul |> filter(sublist == "random") |> pull(total_tinfo),
+       paired=T)
+```
+
+```{r}
+run_swadesh_comparisons_ul <- function(xldf, languages, swad_list, form='WS') {
+  xx <- tibble()
+  for(lang in languages) {
+    load(here(paste("data/",form,"/",lang,"_",form,"_data.Rdata", sep='')))
+    swad_l <- subset(xldf, language==lang & is.element(uni_lemma, good_prod$uni_lemma)) # 
+    swad_cor = cor(rowSums(d_prod, na.rm=T), rowSums(d_prod[,swad_l$item_id], na.rm=T))
+    
+    rand_cors <- sapply(1:1000, \(x) {
+      rand_inds = rand_idxs[,x]
+      rand_ul <- ul[rand_inds] |> as.data.frame() |> pull(Var1)
+      rand_l <- subset(xldf, language==lang & is.element(uni_lemma, rand_ul)) 
+      rand_cor = cor(rowSums(d_prod, na.rm=T), rowSums(d_prod[,rand_l$item_id], na.rm=T))
+      rand_cor
+    })
+    
+    xx <- xx %>% bind_rows(tibble(language = lang, sublist = "Swadesh", 
+                                 run = NA, cor = swad_cor, N = nrow(swad_l)))
+    xx <- xx %>% bind_rows(tibble(language = lang, sublist = "random", 
+                                 run = 1:1000, cor = rand_cors, N = nrow(swad_l)))
+    # xx <- xx %>% bind_rows(tibble(language = lang, `Swadesh r` = swad_cor, 
+    #                               `Rand r` = rand_cor, N = nrow(swad_l)))
+    # d_demo, d_long, d_prod
+  }
+  return(xx)
+}
+
+```
+
+```{r}
+xx_ul_ss <- run_swadesh_comparisons_ul(xldf, languages)
+
+xx_sum_ul_ss <- xx_ul_ss |> 
+  group_by(language, sublist, N) |> 
+  summarise(r = mean(cor))
+
+t.test(xx_sum_ul_ss |> filter(language != "French (French)", sublist == "Swadesh") |> pull(r),
+       xx_sum_ul_ss |> filter(language != "French (French)", sublist == "random") |> pull(r),
+       paired=T)
 ```
 
