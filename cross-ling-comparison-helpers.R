@@ -112,7 +112,8 @@ get_test_information <- function(xldf, languages, test_unilemmas, form="WS") {
                            which.items = good_idx)
     
     rand_tinfos <- sapply(1:100, \(x) {
-      rand_idx = sample(1:nrow(xldf_l), length(good_idx))
+      rand_idx = sample(1:nrow(xldf_l), length(good_idx)) # nrow(xldf_l) - error in Slovak for some reason..
+      #print(sort(rand_idx))
       rand_tinfo <- testinfo(models[[lang]], theta_range,
                              which.items = rand_idx)
       rand_tinfo
