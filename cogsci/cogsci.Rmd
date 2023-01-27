@@ -368,7 +368,7 @@ short_list = ul[which(ul>9)] # 656 uni-lemmas defined in 10+ languages
 # (e.g., Croatian has stric=uncle and ujak=uncle; Turkish has 3 "market"s )
 prod_pars <-
   pars %>% arrange(desc(language), desc(uni_lemma), desc(a1)) %>% # get most discriminating uni_lemma per lang
-  filter(is.element(uni_lemma, names(short_list))) %>%
+  #filter(is.element(uni_lemma, names(short_list))) %>%
   select(uni_lemma, category, lexical_category, language, d) %>%
   group_by(uni_lemma, language) %>%
   slice(1) %>% 
@@ -384,7 +384,7 @@ For now we consider items with less than median variability in difficulty that a
 
 ```{r, echo=F, include=F}
 prod_pars$sd = apply(prod_pars[,4:ncol(prod_pars)], 1, sd, na.rm=T)
-prod_pars$numNAs = apply(prod_pars[,4:ncol(prod_pars)], 1, function(x) { sum(is.na(x)) })
+prod_pars$numNAs = apply(prod_pars[,4:ncol(prod_pars)], 1, function(x) { sum(is.na(x)) }) 
 
 # median SD of the item difficulty
 med_d = median(prod_pars$sd, na.rm=T) # 1.20
@@ -402,25 +402,6 @@ prod_pars %>% filter(sd<4) %>%
 
 
 ```{r missing-by-sd, include=F, fig.env = "figure", fig.pos = "h", fig.height=3.5, fig.align = "center", fig.cap = "Median cross-linguistic variability in uni-lemma difficulty of CDI words by exclusion threshold (number of forms from which uni-lemma is missing)."}
-# look at different numNA thresholds...
-gt_dat = tibble()
-for(i in 1:26) {
-  tmp <- prod_pars %>%
-    filter(numNAs < i) 
-  gt_dat <- gt_dat %>% 
-    bind_rows(tibble(`# NAs` = i, 
-                     `# Uni-lemmas` = nrow(tmp),
-                     `Median(SD)` = median(tmp$sd, na.rm=T), 
-                     `SD(d)` = sd(tmp$sd, na.rm=T)))
-}
-
-#View(gt_dat)
-
-gt_dat %>% ggplot(aes(x=`# NAs`, y=`SD(d)`)) + 
-  geom_point() + theme_classic() +
-  xlab("# of languages without uni-lemma") #+
-  #ylab("SD of unilemma's cross-linguistic difficulty") 
-
 good_prod <- prod_pars %>% 
   filter(numNAs < 16) %>%
   filter(sd < (med_d - .5*sd_d)) %>% 
@@ -438,9 +419,19 @@ good_prod <- prod_pars %>%
 swad_lists <- list()
 swad_agg <- tibble()
 
+# only want 1 
+uni_per_form <- xldf %>% arrange(desc(language), desc(uni_lemma), desc(a1)) %>% # get most discriminating uni_lemma per lang
+  select(uni_lemma, category, lexical_category, language, d) %>%
+  group_by(uni_lemma, language) %>%
+  slice(1) %>%
+  group_by(uni_lemma) %>%
+  summarise(d_m = mean(d), d_sd = sd(d), n = n()) %>%
+  filter(!is.na(d_m)) # one uni-lemma: "look for"
+
 # has to be at least 2 forms, as SD only defined for 2+
 for(k in 2:25) {
-  uni_k <- uni_ag %>% filter(n>=k, !is.na(d_sd)) # one uni-lemma: "look for"
+  uni_k <- uni_per_form %>%
+    filter(n >= k)
   N = nrow(uni_k)
   mean_diff = mean(uni_k$d_m) # average difficulty of uni-lemmas on at least k forms
   mean_sd = mean(uni_k$d_sd) # average SD of difficulty of uni-lemmas on at least k forms
@@ -448,6 +439,7 @@ for(k in 2:25) {
   sd_thresh = mean_sd - .5*sd_sd
   swad_lists[[k]] = uni_k %>% filter(d_sd < sd_thresh)
   
+  # correlation bw Swadesh and full CDI
   # could also do for low_data_langs...
   uni_k_eval <- run_swadesh_comparisons(xldf, languages, 
                                         swad_lists[[k]]$uni_lemma, form='WS', rand_comparisons=0)
@@ -457,14 +449,50 @@ for(k in 2:25) {
   swad_cor = mean(uni_k_eval$`Swadesh r`)
   swad_n_present = mean(uni_k_eval$N) # mean number of swadesh items on each form
   
+  # test information
+  total_tinfo <- get_test_information(xldf, languages, swad_lists[[k]]$uni_lemma, form="WS")
+  swad_tinfo_m <- mean(subset(total_tinfo, sublist=="Swadesh")$total_tinfo)
+  swad_tinfo_sd <- sd(subset(total_tinfo, sublist=="Swadesh")$total_tinfo)
+  rand_tinfo_m <- mean(subset(total_tinfo, sublist=="random")$total_tinfo)
+  rand_tinfo_sd <- sd(subset(total_tinfo, sublist=="random")$total_tinfo)
+  
   swad_agg = bind_rows(swad_agg, 
                        tibble(k, N, mean_diff, mean_sd, sd_sd, # all uni-lemmas on >=k forms
-                              swad_n, swad_mean_diff, swad_diff_sd, swad_cor, swad_n_present))
+                              swad_n, swad_mean_diff, swad_diff_sd, swad_cor, swad_n_present,
+                              swad_tinfo_m, swad_tinfo_sd, rand_tinfo_m, rand_tinfo_sd))
 }
 
 
+# which items crop up over and over? (have to decide which items to discuss in the paper!)
+all_swad <- c()
+for(k in 2:25) {
+  all_swad = c(all_swad, swad_lists[[k]]$uni_lemma)
+}
+swad_freq = sort(table(all_swad), decr=T)
+swad_freq[1:50] # appearing on 22-24 Swadesh lists
+swad_freq[51:100] # 18-22 lists
+swad_freq[101:153] # 14-18
+
+library(wordcloud)
+library(RColorBrewer)
+wordcloud(words = names(swad_freq), freq = swad_freq, min.freq = 1,           
+          max.words=100, random.order=FALSE, rot.per=0.35, scale=c(3.5,0.25),
+          colors=brewer.pal(8, "Dark2"))
+
+library(wordcloud2)
+png("Swadesh-wordcloud.png", width=7, height=7)
+wordcloud2(data=data.frame(word = names(swad_freq), 
+                           freq = as.vector(swad_freq)), size=1.6, color='random-dark')
+dev.off()
 # some discrepancies between this and the good_prod approach -- just because we're not slicing the highest discrimination item??
-kableExtra::kable(swad_agg, digits=2)
+swad_agg %>% select(-swad_diff_sd) %>%
+  mutate(d_diff = mean_diff - swad_mean_diff) %>%
+  rename(`Mean d` = mean_diff, 
+         `S-CDI pool` = swad_n,
+         `S-CDI Mean d` = swad_mean_diff,
+         `S-CDI vs. CDI:WS` = swad_cor,
+         `S-CDI per form` = swad_n_present) %>%
+  kableExtra::kable(digits=3)
 ```
 
 ```{r fig-mean-swadesh-item-diff, fig.cap=c("Mean item difficulty of Swadesh CDI items per language. Bars represent bootstrapped 95\\% confidence intervals."), fig.height=3.5, fig.width=3.4}

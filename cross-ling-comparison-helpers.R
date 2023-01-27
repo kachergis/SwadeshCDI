@@ -95,3 +95,48 @@ run_swadesh_comparisons <- function(xldf, languages, swad_list, form='WS', rand_
   }
   return(xx_sum)
 }
+
+
+# given an array of languages and test_unilemmas (contained in xldf),
+# return the total test information for that specified test
+get_test_information <- function(xldf, languages, test_unilemmas, form="WS") {
+  theta_range <- matrix(seq(-4,4,.01))
+  tinfo <- tibble()
+  for(lang in languages) {
+    message(glue("Processing {lang}\r"))
+    load(here(paste("data/",form,"/",lang,"_",form,"_data.Rdata", sep='')))
+    xldf_l <- subset(xldf, language==lang)
+    good_idx <- is.element(xldf_l$uni_lemma, test_unilemmas) |> which()
+    
+    swad_tinfo <- testinfo(models[[lang]], theta_range,
+                           which.items = good_idx)
+    
+    rand_tinfos <- sapply(1:100, \(x) {
+      rand_idx = sample(1:nrow(xldf_l), length(good_idx))
+      rand_tinfo <- testinfo(models[[lang]], theta_range,
+                             which.items = rand_idx)
+      rand_tinfo
+    }) |> as_tibble()
+    
+    tinfo <- tinfo |> bind_rows(tibble(language = lang,
+                                       theta = theta_range[,1],
+                                       Swadesh = swad_tinfo) |> 
+                                  cbind(rand_tinfos) |> 
+                                  pivot_longer(cols = -c(language, theta),
+                                               names_to = "run",
+                                               values_to = "tinfo") |> 
+                                  mutate(sublist = ifelse(run == "Swadesh",
+                                                          "Swadesh", "random")))
+  }
+  
+  tinfo_sum <- tinfo |> 
+    group_by(language, theta, sublist) |> 
+    summarise(tinfo = mean(tinfo))
+  
+  #Compare total test information (area under curve).
+  total_tinfo <- tinfo_sum |> 
+    group_by(language, sublist) |> 
+    summarise(total_tinfo = sum(tinfo))
+  
+  return(total_tinfo)
+}

@@ -6,7 +6,7 @@ library(tidyverse)
 library(mirt)
 
 languages = instr <- wordbankr::get_instruments() %>% 
-  filter(form=="WS") %>%
+  filter(form=="WS") %>% # form_type=="WS" gets us "English (British)" and "American Sign Language"
   arrange(desc(unilemma_coverage))
 
 
@@ -17,8 +17,13 @@ mirtCluster()
 load("data/multiling_2pl_WS_prod_fits.Rdata")
 # production
 for(lang in languages$language) {
+  load(paste("data/WS/",lang,"_WS_data.Rdata", sep=''))
+  if(is.element(lang, names(models))) {
+    nsubj_model = length(models[[lang]]@Data$rowID)
+    if(nsubj_model != nrow(d_prod)) print(paste(lang,"model has",nsubj_model,"subjects; d_prod has",nrow(d_prod),"; d_demo has",nrow(d_demo)))
+  }
+  # do number of subjects in fitted model match d_prod? (may not have updated all fits with WB2 data?)
   if(!is.element(lang, names(models))) { # skip if already fitted
-    load(paste("data/WS/",lang,"_WS_data.Rdata", sep=''))
     
     bad_words_prod = c(which(colSums(d_prod, na.rm=T) == 0), which(colSums(d_prod, na.rm=T) == nrow(d_prod)))
     print(paste(length(bad_words_prod),"words with all 0 responses removed from",lang,"production"))
