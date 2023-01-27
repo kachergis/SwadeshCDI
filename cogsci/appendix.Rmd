@@ -11,7 +11,7 @@ knitr::opts_chunk$set(echo = FALSE, warning=F, message=F)
 
 library(png)
 library(grid)
-library(xtable)
+#library(xtable)
 require(mirt)
 require(tidyverse)
 require(ggpubr)
@@ -19,6 +19,12 @@ require(tidyboot)
 require(here)
 library(RColorBrewer)
 library(gplots)
+library(kableExtra)
+
+html_table_width <- function(kable_output, width){
+  width_html <- paste0(paste0('<col width="', width, '">'), collapse = "\n")
+  sub("<table>", paste0("<table>\n", width_html), kable_output)
+} 
 
 source(here("cross-ling-comparison-helpers.R"))
 
@@ -99,6 +105,33 @@ heatmap.2(prod_cors, col=Colors, margins=c(10,10))
 
 ```
 
+
+## Evaluating Thresholds for Inclusion on Swadesh CDI
+
+It is unclear how many existing forms a uni-lemma should be included on in order for it to be considered for inclusion on a Swadesh CDI. 
+Instead of setting an arbitrary threshold, we chose to try all possible values of $k$ (i.e., number of forms on which a uni-lemma is included, $k \in {2,..,26}$), and choose the $k$ which yields the set of Swadesh CDI items with the best characteristics.
+Shown in the table below, $k=8$ has the following desirable properties:
+
+```{r, echo=F}
+load(here("data/Swadesh_grid_search.Rdata"))
+
+swad_agg %>% select(-swad_diff_sd) %>%
+  mutate(d_diff = mean_diff - swad_mean_diff,
+         info_diff = swad_tinfo_m - rand_tinfo_m) %>%
+  rename(`Mean d` = mean_diff, 
+         `S-CDI pool` = swad_n,
+         `S-CDI Mean d` = swad_mean_diff,
+         `S-CDI vs. CDI:WS` = swad_cor,
+         `S-CDI per form` = swad_n_present,
+         `S-CDI Info` = swad_tinfo_m,
+         `S-CDI Info SD` = swad_tinfo_sd,
+         `Rand Info` = rand_tinfo_m,
+         `Rand Info SD` = rand_tinfo_sd) %>%
+  kableExtra::kable(digits=3) %>%
+    html_table_width(rep(70, ncol(swad_agg)+2))
+```
+
+
 ## Swadesh CDI vs. Full CDI:WS
 
 For the 26 languages that the IRT models were trained on:
@@ -107,20 +140,24 @@ For the 26 languages that the IRT models were trained on:
 load(here("data/Swadesh_comparisons.Rdata"))
 
 
-xx_tab <- xtable::xtable(xx, digits=c(3), 
-                       caption = "Swadesh CDI vs. Full CDI:WS scores for 26 training languages.")
-print(xx_tab, type="html", comment = F, table.placement = "H",
-      include.rownames=FALSE)
+#xx_tab <- xtable::xtable(xx, digits=c(3), 
+#                       caption = "Swadesh CDI vs. Full CDI:WS scores for 26 training languages.")
+#print(xx_tab, type="html", comment = F, table.placement = "H", include.rownames=FALSE)
+
+xx %>% kable(digits=3, caption="Swadesh CDI vs. Full CDI:WS scores for 26 training languages.") %>%
+  html_table_width(rep(70, ncol(xx)))
 ```
 
 
 With the additional 10 difficult words:
 
 ```{r, results='asis'}
-xx_ext_tab <- xtable::xtable(xx_ext, digits=c(3), 
-                       caption = "Swadesh CDI with difficult words vs. Full CDI:WS scores for 26 training languages.")
-print(xx_ext_tab, type="html", comment = F, table.placement = "H",
-      include.rownames=FALSE)
+#xx_ext_tab <- xtable::xtable(xx_ext, digits=c(3), 
+#                       caption = "Swadesh CDI with difficult words vs. Full CDI:WS scores for 26 training languages.")
+#print(xx_ext_tab, type="html", comment = F, table.placement = "H", include.rownames=FALSE)
+
+xx_ext %>% kable(digits=3, caption="Swadesh CDI with difficult words vs. Full CDI:WS scores for 26 training languages.") %>%
+  html_table_width(rep(70, ncol(xx_ext)))
 ```
 
 
@@ -131,8 +168,11 @@ Comparison to the eight low-data languages, with the 10 additional difficult wor
 Note that many proposed Swadesh items are not actually on the CDI:WS forms available to test generalization. 
 
 ```{r, results='asis'}
-gen_ext_tab <- xtable::xtable(gen_xx_ext, digits=c(3), 
-                       caption = "Swadesh CDI with difficult words vs. Full CDI:WS scores for 8 generalization languages.")
-print(gen_ext_tab, type="html", comment = F, table.placement = "H",
-      include.rownames=FALSE)
+#gen_ext_tab <- xtable::xtable(gen_xx_ext, digits=c(3), 
+#                       caption = "Swadesh CDI with difficult words vs. Full CDI:WS scores for 8 generalization languages.")
+#print(gen_ext_tab, type="html", comment = F, table.placement = "H",
+#      include.rownames=FALSE)
+
+gen_xx_ext %>% kable(digits=3, caption="Swadesh CDI with difficult words vs. Full CDI:WS scores for 8 generalization languages.") %>%
+  html_table_width(rep(70, ncol(gen_xx_ext)))
 ```

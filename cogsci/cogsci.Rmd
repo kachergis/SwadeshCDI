@@ -92,7 +92,8 @@ nas <- xldf %>% filter(uni_lemma=="NA") # how did these end up with string "NA" 
 # distributed fairly well across languages; Slovak and Hungarian have >50 -- Persian has 277!
 sort(table(nas$language)) 
 
-xldf <- xldf %>% mutate(uni_lemma = ifelse(uni_lemma=="NA", NA, uni_lemma))
+xldf <- xldf %>% mutate(uni_lemma = ifelse(uni_lemma=="NA", NA, uni_lemma)) %>%
+  filter(!is.na(d)) # removes 1 Slovak word that somehow has NA parameters..
 
 # compare age and regular
 #xlxl <- xldf %>% left_join(xldf_age %>% select(item_id, language, a1, d) %>% rename(a1_age = a1, d_age = d))
@@ -165,7 +166,7 @@ load(here("data/multiling_2pl_WS_prod_fits.Rdata"))
 
 ws_tab <- get_item_n_subject_counts(models)
 
-load(here("data/xling-WSprod-IRTparms.Rdata"))
+#load(here("data/xling-WSprod-IRTparms.Rdata"))
 #ws_parms <- xldf # 23179
 
 xldf <- xldf %>% mutate(d = -d) # easiness -> difficulty
@@ -463,27 +464,34 @@ for(k in 2:25) {
 }
 
 
+
 # which items crop up over and over? (have to decide which items to discuss in the paper!)
 all_swad <- c()
-for(k in 2:25) {
+for(k in 2:26) {
   all_swad = c(all_swad, swad_lists[[k]]$uni_lemma)
 }
 swad_freq = sort(table(all_swad), decr=T)
+
+save(swad_agg, swad_lists, swad_freq, file=here("data/Swadesh_grid_search.Rdata"))
+
+#library(wordcloud)
+#library(RColorBrewer)
+#wordcloud(words = names(swad_freq), freq = swad_freq, min.freq = 1,           
+#          max.words=100, random.order=FALSE, rot.per=0.35, scale=c(3.5,0.25),
+#          colors=brewer.pal(8, "Dark2"))
+
+library(wordcloud2)
+wordcloud2(data=data.frame(word = names(swad_freq[1:150]), 
+                           freq = as.vector(swad_freq[1:150]-13)), size=.5, color='random-dark')
+```
+
+```{r load-swadesh-lists, echo=F}
+load(here("data/Swadesh_grid_search.Rdata"))
+
 swad_freq[1:50] # appearing on 22-24 Swadesh lists
 swad_freq[51:100] # 18-22 lists
 swad_freq[101:153] # 14-18
 
-library(wordcloud)
-library(RColorBrewer)
-wordcloud(words = names(swad_freq), freq = swad_freq, min.freq = 1,           
-          max.words=100, random.order=FALSE, rot.per=0.35, scale=c(3.5,0.25),
-          colors=brewer.pal(8, "Dark2"))
-
-library(wordcloud2)
-png("Swadesh-wordcloud.png", width=7, height=7)
-wordcloud2(data=data.frame(word = names(swad_freq), 
-                           freq = as.vector(swad_freq)), size=1.6, color='random-dark')
-dev.off()
 # some discrepancies between this and the good_prod approach -- just because we're not slicing the highest discrimination item??
 swad_agg %>% select(-swad_diff_sd) %>%
   mutate(d_diff = mean_diff - swad_mean_diff) %>%
