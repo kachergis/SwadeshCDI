@@ -141,3 +141,118 @@ get_test_information <- function(xldf, languages, test_unilemmas, form="WS") {
   
   return(total_tinfo)
 }
+
+
+# Alvin's generalized method for comparing a given Swadesh list to different types of random lists 
+# via total test information, theta correlation, or sumscore correlation
+run_comparisons <- function(xldf, languages, swad_list, form = 'WS',
+                            rand_method = "items", rand_comparisons = 1000,
+                            metrics = c("sumscore_cor", 
+                                        "theta_cor",
+                                        "test_info")) {
+  theta_range <- matrix(seq(-4,4,.01))
+  xx <- tibble()
+  for(lang in languages) {
+    message(glue("Processing {lang}\r"))
+    load(here(paste("data/",form,"/",lang,"_",form,"_data.Rdata", sep='')))
+    
+    xldf_l <- xldf |> filter(language == lang)
+    
+    swad_idx <- is.element(xldf_l$uni_lemma, swad_list) |> which()
+    rand_idxs <- lapply(1:rand_comparisons, \(comp) {
+      if (rand_method == "items") {
+        return(sample(1:ncol(d_prod), nrow(swad_l)))
+      }
+      if (rand_method == "unilemmas_english") {
+        eng_ul <- xldf |> filter(language == "English (American)")
+        rand_uls <- sample(1:nrow(eng_ul), length(swad_list))
+        rand_idx <- is.element(xldf_l$uni_lemma,
+                               eng_ul[rand_uls,] |> pull(uni_lemma)) |> 
+          which()
+        return(rand_idx)
+      }
+      rand_uls <- case_when(
+        rand_method == "unilemmas" ~ sample(1:nrow(ul), length(swad_list)),
+        rand_method == "unilemmas_weighted" ~ sample(1:nrow(ul), length(swad_list), prob = ul),
+        # TRUE ~ stop("Rand method not supported")
+      )
+      rand_idx <- is.element(xldf_l$uni_lemma, 
+                             ul[rand_uls] |> as.data.frame() |> pull(Var1)) |> 
+        which()
+      rand_idx}
+    )
+    
+    if ("sumscore_cor" %in% metrics) {
+      swad_sscor <- cor(rowSums(d_prod, na.rm=T), rowSums(d_prod[,swad_idx], na.rm=T))
+      rand_sscors <- sapply(1:rand_comparisons, \(comp) {
+        rand_idx <- rand_idxs[[comp]]
+        rand_sscor <- cor(rowSums(d_prod, na.rm=T), rowSums(d_prod[,rand_idx], na.rm=T))
+        rand_sscor
+      })
+      
+      sumscore_cor <- tibble(sublist = "Swadesh", run = NA, 
+                             value = swad_sscor, N = length(swad_idx)) |> 
+        bind_rows(tibble(sublist = "random", run = 1:rand_comparisons, 
+                         value = rand_sscors, N = sapply(rand_idxs, length))) |> 
+        mutate(language = lang, metric = "sumscore_cor")
+      
+      xx <- xx |> bind_rows(sumscore_cor)
+    }
+    
+    if ("theta_cor" %in% metrics) {
+      thetas <- readRDS(here(glue("data/thetas/{lang}.rds")))
+      swad_thcor <- cor(thetas$G, rowSums(d_prod[,swad_idx], na.rm=T))
+      rand_thcors <- sapply(1:rand_comparisons, \(comp) {
+        rand_idx <- rand_idxs[[comp]]
+        rand_thcor <- cor(thetas$G, rowSums(d_prod[,rand_idx], na.rm=T))
+        rand_thcor
+      })
+      
+      theta_cor <- tibble(sublist = "Swadesh", run = NA, 
+                          value = swad_thcor, N = length(swad_idx)) |> 
+        bind_rows(tibble(sublist = "random", run = 1:rand_comparisons, 
+                         value = rand_thcors, N = sapply(rand_idxs, length))) |> 
+        mutate(language = lang, metric = "theta_cor")
+      
+      xx <- xx |> bind_rows(theta_cor)
+    }
+    
+    if ("test_info" %in% metrics) {
+      swad_tinfo <- testinfo(models[[lang]], theta_range,
+                             which.items = swad_idx) |> sum()
+      rand_tinfos <- sapply(1:rand_comparisons, \(comp) {
+        rand_idx <- rand_idxs[[comp]]
+        rand_tinfo <- testinfo(models[[lang]], theta_range,
+                               which.items = rand_idx)
+        rand_tinfo
+      }) |> colSums()
+      
+      test_info <- tibble(sublist = "Swadesh", run = NA, 
+                          value = swad_tinfo, N = length(swad_idx)) |> 
+        bind_rows(tibble(sublist = "random", run = 1:rand_comparisons, 
+                         value = rand_tinfos, N = sapply(rand_idxs, length))) |> 
+        mutate(language = lang, metric = "test_info")
+      
+      xx <- xx |> bind_rows(test_info)
+    }
+  }
+  return(xx)
+}
+
+# method for comparing (t.test) Swadesh vs. random lists on different metrics
+run_comparison_ttest <- function(comparisons_df, metric) {
+  test_metric <- metric
+  
+  comparisons_mean <- comparisons_df |> 
+    group_by(language, sublist, metric) |> 
+    summarise(value = mean(value),
+              N = mean(N))
+  
+  t.test(comparisons_mean |> 
+           filter(sublist == "Swadesh", metric == test_metric) |> 
+           pull(value),
+         comparisons_mean |> 
+           filter(sublist == "random", metric == test_metric) |> 
+           pull(value),
+         paired = TRUE)
+}

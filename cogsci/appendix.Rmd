@@ -68,7 +68,6 @@ prod_cat <- xldf %>% group_by(language, category) %>%
                                  "classifiers", "locations_quantities_adverbs"))) %>%
   tidyboot::tidyboot_mean(d, na.rm=T)
 
-# big plot for online supplement
 prod_cat %>% ggplot(aes(x=reorder(language, mean), y=mean)) + geom_point(alpha=.7) +
   geom_linerange(aes(ymin=ci_lower, ymax=ci_upper), alpha=.7) +
   facet_wrap(. ~ category) + coord_flip() + 

@@ -93,13 +93,10 @@ nas <- xldf %>% filter(uni_lemma=="NA") # how did these end up with string "NA" 
 sort(table(nas$language)) 
 
 xldf <- xldf %>% mutate(uni_lemma = ifelse(uni_lemma=="NA", NA, uni_lemma)) %>%
-  filter(!is.na(d)) # removes 1 Slovak word that somehow has NA parameters..
+  filter(!is.na(d)) # removes 1 Slovak word with NA parameters (because all responses were 0)
 
 # compare age and regular
 #xlxl <- xldf %>% left_join(xldf_age %>% select(item_id, language, a1, d) %>% rename(a1_age = a1, d_age = d))
-
-olap <- get_uni_lemma_overlap(xldf)
-#olap["English (American)","Spanish (Mexican)"] # 463 overlap
 ```
 
 Given that it is well-established that, all over the world, early learned words reflect the people and things that children are likely to experience, that is, words for family members, animals, and common household objects [@tardif2008baby; @frank2021], it is reasonable to ask: Is there a single set of translation equivalents that would meet the criteria for inclusion on CDIs from multiple languages? 
@@ -160,7 +157,7 @@ wg_parms <- xldf
 ```
 
 ```{r, load-ws-data, echo=F, results="asis"}
-# WS production fits - can we stitch WG+WS for all of these?
+# WS production fits
 load(here("data/multiling_2pl_WS_prod_fits.Rdata"))
 #ws_coefs = coefs
 
@@ -263,10 +260,6 @@ xldf[which(xldf$category=="outside_places"),]$category = "outside"
 
 All models, data, code for reproducing this paper are available on OSF[^3].
 Across the 26 IRT models for different CDI:WS forms, parameters for a total of `r nrow(xldf)` items were obtained.
-<!-- Figure 1 shows the average difficulty of items in each language, but as mentioned above these differences should not be interpreted, as they are at least in part related to differences in the samples. 
-Indeed, the average age of the sample was significantly related to the average difficulty of words on a CDI:WS form ($r$=.57; $t(24)=3.44$, $p=.002$).
-However, even with balanced samples in terms of age, sex, and maternal education, there may well be differences in overall difficulty of words on the CDI:WS. 
-Fortunately, all that is required for our current goals is to be able to rank the words in terms of their cross-linguistic variability in difficulty, which should not be systematically influenced by random effects of sample or language. -->
 
 ```{r fig-mean-item-diff, include=F, fig.cap=c("Mean item difficulty for each CDI:WS form. Bars represent bootstrapped 95\\% confidence intervals. Color shows mean age (months) of the sample, which is correlated with mean word difficulty (r=.57)."), fig.height=4.3, fig.width=3.4}
 # re: Philip's question of are item difficulties comparable across languages:
@@ -325,43 +318,36 @@ uni_ag <- xldf %>% filter(uni_lemma!="NA") %>%
   group_by(uni_lemma, category) %>%
   summarise(d_m=mean(d), a1_m=mean(a1), d_sd = sd(d), a1_sd = sd(a1), n=n())
 
-#uni_ag %>% filter(n>34) 16 uni-lemmas appear more than on some forms: pronouns,
-# note: 3SG   (pronoun) has 80 occurrences (on 34 forms)  mean d_m=1.92  (d_sd=1.34)
-
 # The more languages a word is in, the easier it tends to be:
 cor.test(uni_ag$d_m, uni_ag$n)
-# r=-.27, t(2440) = -13.91, p<.001
+# r=-.27, t(2441) = -13.89, p<.001
 plot(uni_ag$d_m, uni_ag$n)
 
 # variability in difficulty also correlated number of forms uni-lemma is on
 cor.test(uni_ag$d_sd, uni_ag$n) 
-# r=.16, t(1450) = 6.313,  p<.001
-# The more forms a uni-lemma appears on, 1) the easier it tends to be (r=-.27), and 2) the higher the variability in its difficulty (r=.156.
+# r=.17, t(1451) = 6.38,  p<.001
+# The more forms a uni-lemma appears on, 1) the easier it tends to be (r=-.27), and 2) the higher the variability in its difficulty (r=.17.
 
-# 528 singletons
+# 990 singletons
 uni1 <- uni_ag %>% filter(n==1) 
-mean(uni1$d_m) # -1.44
+mean(uni1$d_m) # 1.21
 
-uni_ag <- uni_ag %>% filter(n>1)
+uni_ag <- uni_ag %>% filter(n>1) # 1453
 
 # no cor bw difficulty and variability -- good
 cor.test(uni_ag$d_m, uni_ag$d_sd)
 
 #xldf %>% group_by(language, uni_lemma)
-
-# regression to control for per-language mean shift in difficulty?
 ```
 
 
-```{r, echo=F, message=F, results='asis'}
+```{r, echo=F, message=F}
 pars <- xldf %>% filter(!is.na(uni_lemma), !is.na(d)) 
 
 ul <- sort(table(pars$uni_lemma)) 
 
-long_list = ul[which(ul>1)] # 1312
-#short_list = ul[which(ul>5)] # 807
-short_list = ul[which(ul>9)] # 656 uni-lemmas defined in 10+ languages
-#short_list = ul[which(ul>12)] # 573 uni-lemmas defined in 10+ languages
+long_list = ul[which(ul>1)] # 1311
+short_list = ul[which(ul>9)] # 655 uni-lemmas defined in 10+ languages
 ```
 
 ```{r}
@@ -383,14 +369,14 @@ To expand the pool of items, we consider thresholds on both 1) the variability o
 Below we examine the standard deviation of uni-lemmas' cross-linguistic difficulty as a function of how many languages that uni-lemma is missing from.
 For now we consider items with less than median variability in difficulty that are included on 10 or more of the 26 CDI:WS forms.
 
-```{r, echo=F, include=F}
+```{r old-swadesh-list-method, echo=F, include=F}
 prod_pars$sd = apply(prod_pars[,4:ncol(prod_pars)], 1, sd, na.rm=T)
 prod_pars$numNAs = apply(prod_pars[,4:ncol(prod_pars)], 1, function(x) { sum(is.na(x)) }) 
 
 # median SD of the item difficulty
-med_d = median(prod_pars$sd, na.rm=T) # 1.20
+med_d = median(prod_pars$sd, na.rm=T) # 1.14
 # SD of the SD
-sd_d = sd(prod_pars$sd, na.rm=T) # .42
+sd_d = sd(prod_pars$sd, na.rm=T) # .54
 
 prod_pars %>% filter(sd<4) %>%
   ggplot(aes(x=jitter(numNAs), y=sd, color=lexical_category)) + 
@@ -399,20 +385,17 @@ prod_pars %>% filter(sd<4) %>%
   ylab("SD of unilemma's cross-linguistic difficulty") +
   geom_hline(aes(yintercept=med_d - .5*sd_d), linetype="dashed") + 
   geom_vline(aes(xintercept=6.5), linetype="dashed")
-```
 
-
-```{r missing-by-sd, include=F, fig.env = "figure", fig.pos = "h", fig.height=3.5, fig.align = "center", fig.cap = "Median cross-linguistic variability in uni-lemma difficulty of CDI words by exclusion threshold (number of forms from which uni-lemma is missing)."}
+# only 38 now!
 good_prod <- prod_pars %>% 
   filter(numNAs < 16) %>%
   filter(sd < (med_d - .5*sd_d)) %>% 
-  arrange(numNAs)
-  #arrange(lexical_category, desc(sd))
+  arrange(numNAs) 
 
 #sort(table(good_prod$category)) / nrow(good_prod)
 #sort(table(good_prod$lexical_category)) / nrow(good_prod)
-
 ```
+
 
 ```{r grid-search, eval=F}
 # how many Swadesh words when looking at all uni-lemmas included in at least k languages?
@@ -440,27 +423,26 @@ for(k in 2:25) {
   sd_thresh = mean_sd - .5*sd_sd
   swad_lists[[k]] = uni_k %>% filter(d_sd < sd_thresh)
   
-  # correlation bw Swadesh and full CDI
-  # could also do for low_data_langs...
-  uni_k_eval <- run_swadesh_comparisons(xldf, languages, 
-                                        swad_lists[[k]]$uni_lemma, form='WS', rand_comparisons=0)
-  swad_mean_diff = mean(swad_lists[[k]]$d_m)
-  swad_diff_sd = sd(swad_lists[[k]]$d_m)
-  swad_n = nrow(swad_lists[[k]])
-  swad_cor = mean(uni_k_eval$`Swadesh r`)
-  swad_n_present = mean(uni_k_eval$N) # mean number of swadesh items on each form
+  xx_g <- run_comparisons(xldf, languages |> sort(), swad_lists[[k]]$uni_lemma, 
+                        rand_method = "unilemmas_weighted", rand_comparisons = 1000,
+                        metrics = c("sumscore_cor", "test_info")) # theta_cor breaks on French (French): incompatible dimensions
   
-  # test information
-  total_tinfo <- get_test_information(xldf, languages, swad_lists[[k]]$uni_lemma, form="WS")
-  swad_tinfo_m <- mean(subset(total_tinfo, sublist=="Swadesh")$total_tinfo)
-  swad_tinfo_sd <- sd(subset(total_tinfo, sublist=="Swadesh")$total_tinfo)
-  rand_tinfo_m <- mean(subset(total_tinfo, sublist=="random")$total_tinfo)
-  rand_tinfo_sd <- sd(subset(total_tinfo, sublist=="random")$total_tinfo)
+  xx_agg <- xx_g |> 
+    group_by(language, sublist, metric) |> 
+    summarise(mean = mean(value),
+              N_avail = mean(N)) |> 
+    spread(metric, mean) |>
+    mutate(k = k, 
+           N = N,
+           mean_diff = mean_diff,
+           mean_sd = mean_sd,
+           sd_sd = sd_sd,
+           sd_thresh = sd_thresh,
+           swad_mean_diff = mean(swad_lists[[k]]$d_m),
+           swad_diff_sd = sd(swad_lists[[k]]$d_m),
+           swad_n = nrow(swad_lists[[k]]))
   
-  swad_agg = bind_rows(swad_agg, 
-                       tibble(k, N, mean_diff, mean_sd, sd_sd, # all uni-lemmas on >=k forms
-                              swad_n, swad_mean_diff, swad_diff_sd, swad_cor, swad_n_present,
-                              swad_tinfo_m, swad_tinfo_sd, rand_tinfo_m, rand_tinfo_sd))
+  swad_agg <- bind_rows(swad_agg, xx_agg)
 }
 
 
@@ -708,7 +690,13 @@ knitr::include_graphics("figs/SwadeshCDI_list.pdf")
 
 ```{r swadesh-comparison, echo=F}
 # https://en.wikipedia.org/wiki/Swadesh_list
-swadesh100 = c()
+swadesh100 = c("I","you","we","this","that","who","what","not","all","many","one","two","big","long","small",
+               "woman","man","person","fish","bird","dog","louse","tree","seed","leaf","root","bark","skin","flesh","blood",
+               "bone","grease","egg","horn","tail","feather","hair","head","ear","eye","nose","mouth","tooth","tongue","claw",
+               "foot","knee","hand","belly","neck","breasts","heart","liver","drink (action)","eat","bite","see","hear","know","sleep",
+               "die","kill","swim","fly","walk","come","lie","sit","stand","give","say","sun","moon","star","water",
+               "rain","stone","sand","earth","cloud","smoke","fire","ash","burn","path","mountain","red","green","yellow","white",
+               "black","night","hot","cold","full","new","good","round","dry","name")
 
 # https://en.wikipedia.org/wiki/Automated_Similarity_Judgment_Program#Word_list
 # ASJP subset of 40 Swadesh items that perform as well as full list
