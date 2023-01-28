@@ -351,7 +351,7 @@ The goal is to choose uni-lemmas that have low variability in their cross-lingui
 However, we must define two thresholds for selecting Swadesh CDI (S-CDI) candidates: 1) the number of current CDI:WS forms a uni-lemma must appear on, and 2) the threshold for variability in cross-linguistic difficulty.
 
 Before we select these thresholds, we characterize the overall set of uni-lemmas.
-There are `r length(unique(xldf$uni_lemma))`` unique uni-lemmas across the 26 CDI:WS forms, with an average difficulty of $d=$`r mean(uni_ag$d_m)`.
+There are `r length(unique(xldf$uni_lemma))` unique uni-lemmas across the 26 CDI:WS forms, with an average difficulty of $d=$`r mean(uni_ag$d_m)`.
 Of these, `r nrow(uni1)` uni-lemmas are singletons, appearing on only one of the 26 forms.
 These singletons are significantly more difficult than the `r nrow(uni_ag_gt1)`` uni-lemmas appearing more than once ($M_1=1.45$; $M_{>1}=0.85$ $t(899) = 7.66$, p<.001).
 Indeed, there is a significant relation between the number of forms a uni-lemma appears on and its difficulty: the more forms a uni-lemma is on, the _easier_ it tends to be ($r=-.37$, $t(1837) = 17.15$, $p<.001$).
