@@ -112,22 +112,35 @@ Instead of setting an arbitrary threshold, we chose to try all possible values o
 Shown in the table below, $k=8$ has the following desirable properties:
 
 ```{r, echo=F}
-load(here("data/Swadesh_grid_search.Rdata"))
+#load(here("data/Swadesh_grid_search.Rdata"))
+load(here("data/Swadesh_grid_search_final.Rdata"))
 
-swad_agg %>% select(-swad_diff_sd) %>%
+swad_tab <- swad_agg %>% filter(sublist=="Swadesh") %>%
+  mutate(k = as.factor(k)) %>%
+  group_by(k, N, mean_diff, mean_sd, sd_sd, sd_thresh, swad_n, swad_mean_diff, swad_diff_sd) %>%
+    summarise(N_avail = mean(N_avail),
+              `S-CDI vs CDI:WS` = mean(sumscore_cor), # want sd(sumscore_cor) and sd(test_info) ?
+              `S-CDI Info` = mean(test_info))
+
+rand_tab <- swad_agg %>% filter(sublist=="random") %>%
+  mutate(k = as.factor(k)) %>%
+  group_by(k) %>%
+    summarise(`Rand vs CDI:WS` = mean(sumscore_cor), # want sd(sumscore_cor) and sd(test_info) ?
+              `Rand Info` = mean(test_info))
+
+grid_tab <- left_join(swad_tab, rand_tab) %>%
+  relocate(`Rand vs CDI:WS`, .after=`S-CDI vs CDI:WS`) %>%
+  relocate(`Rand Info`, .after=`S-CDI Info`)
+
+grid_tab %>% select(-swad_diff_sd) %>%
   mutate(d_diff = mean_diff - swad_mean_diff,
-         info_diff = swad_tinfo_m - rand_tinfo_m) %>%
+         info_diff = `S-CDI Info` - `Rand Info`) %>%
   rename(`Mean d` = mean_diff, 
          `S-CDI pool` = swad_n,
          `S-CDI Mean d` = swad_mean_diff,
-         `S-CDI vs. CDI:WS` = swad_cor,
-         `S-CDI per form` = swad_n_present,
-         `S-CDI Info` = swad_tinfo_m,
-         `S-CDI Info SD` = swad_tinfo_sd,
-         `Rand Info` = rand_tinfo_m,
-         `Rand Info SD` = rand_tinfo_sd) %>%
+         `S-CDI per form` = N_avail) %>%
   kableExtra::kable(digits=3) %>%
-    html_table_width(rep(70, ncol(swad_agg)+2))
+    html_table_width(rep(72, ncol(swad_agg)+2))
 ```
 
 
@@ -138,7 +151,6 @@ For the 26 languages that the IRT models were trained on:
 ```{r, results='asis'}
 load(here("data/Swadesh_comparisons.Rdata"))
 
-
 #xx_tab <- xtable::xtable(xx, digits=c(3), 
 #                       caption = "Swadesh CDI vs. Full CDI:WS scores for 26 training languages.")
 #print(xx_tab, type="html", comment = F, table.placement = "H", include.rownames=FALSE)
@@ -147,31 +159,17 @@ xx %>% kable(digits=3, caption="Swadesh CDI vs. Full CDI:WS scores for 26 traini
   html_table_width(rep(70, ncol(xx)))
 ```
 
-
-With the additional 10 difficult words:
-
-```{r, results='asis'}
-#xx_ext_tab <- xtable::xtable(xx_ext, digits=c(3), 
-#                       caption = "Swadesh CDI with difficult words vs. Full CDI:WS scores for 26 training languages.")
-#print(xx_ext_tab, type="html", comment = F, table.placement = "H", include.rownames=FALSE)
-
-xx_ext %>% kable(digits=3, caption="Swadesh CDI with difficult words vs. Full CDI:WS scores for 26 training languages.") %>%
-  html_table_width(rep(70, ncol(xx_ext)))
-```
-
-
-
 ### Generalization Test
 
 Comparison to the eight low-data languages, with the 10 additional difficult words added.
 Note that many proposed Swadesh items are not actually on the CDI:WS forms available to test generalization. 
 
 ```{r, results='asis'}
-#gen_ext_tab <- xtable::xtable(gen_xx_ext, digits=c(3), 
+#gen_tab <- xtable::xtable(gen_xx_ext, digits=c(3), 
 #                       caption = "Swadesh CDI with difficult words vs. Full CDI:WS scores for 8 generalization languages.")
 #print(gen_ext_tab, type="html", comment = F, table.placement = "H",
 #      include.rownames=FALSE)
 
-gen_xx_ext %>% kable(digits=3, caption="Swadesh CDI with difficult words vs. Full CDI:WS scores for 8 generalization languages.") %>%
-  html_table_width(rep(70, ncol(gen_xx_ext)))
+gen_xx %>% kable(digits=3, caption="Swadesh CDI with difficult words vs. Full CDI:WS scores for 8 generalization languages.") %>%
+  html_table_width(rep(70, ncol(gen_xx)))
 ```
