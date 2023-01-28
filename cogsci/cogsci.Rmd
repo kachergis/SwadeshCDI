@@ -505,6 +505,20 @@ swad_d_m %>% ggplot(aes(x=reorder(language, -mean), y=mean)) + coord_flip() +
   xlab("Language") + ylab("Mean item dificulty")
 ```
 
+```{r grid-search-plots}
+plot_k_n <- ggplot(data = swad_agg |> select(k, N) |> distinct()) +
+  geom_line(aes(x = k, y = N)) +
+  theme_classic() +
+  scale_x_continuous(breaks = c(5,10,15,20,25))
+
+plot_k_testinfo <- ggplot(data = swad_agg |> group_by(sublist, k) |> summarise(test_info = mean(test_info))) +
+  geom_line(aes(x = k, y = test_info, col = sublist)) +
+  theme_classic() +
+  labs(y = "Total test information",
+       col = "Word list")
+```
+
+
 Of these, a total of `r length(long_list)` uni-lemmas are included on more than one form, and only `r length(short_list)` uni-lemmas are included on 10 or more of the CDIs.
 This restricted list is used as a starting point for selecting the Swadesh CDI candidates. 
 
