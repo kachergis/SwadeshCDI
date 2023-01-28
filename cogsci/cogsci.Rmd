@@ -486,8 +486,8 @@ swad_freq[1:50] # appearing on 22-24 Swadesh lists
 swad_freq[51:100] # 18-22 lists
 swad_freq[101:153] # 14-18
 
-# looking at appendix table, k=16 seems the best (highest test info, v close to same full correlation as rand)
-good_prod = swad_lists[[16]]
+# looking at appendix table, k=9 seems the best (highest test info, v close to same full correlation as rand)
+good_prod = swad_lists[[9]]
 ```
 
 ```{r fig-mean-swadesh-item-diff, fig.cap=c("Mean item difficulty of Swadesh CDI items per language. Bars represent bootstrapped 95\\% confidence intervals."), fig.height=3.5, fig.width=3.4}
@@ -527,15 +527,14 @@ tmp <- xldf %>%
   filter(!is.na(d)) %>%
   summarise(sd_d = sd(d), d = mean(d), 
             sd_a1 = sd(a1), a1 = mean(a1))
-# mean difficulty of Swadesh words: -0.16; mean easiness of other words: 0.58
+# mean difficulty of Swadesh words: .11; mean easiness of other words: 0.53
 # (mean of all: mean(xldf$d, na.rm=T) .42
 
 #t.test(subset(xldf, SwadeshCDI==1)$a1, subset(xldf, SwadeshCDI==0)$a1) 
-# Swadesh words have higher discrimination!
-# t(5983) = 2.91, p=.004
+# Swadesh words have higher discrimination when k=16, but same disc when k=9
 
 #t.test(subset(xldf, SwadeshCDI==1)$d, subset(xldf, SwadeshCDI==0)$d)
-# t = -22.587, df = 6832.4, p-value < 2.2e-16
+# t = -13.089, df = 8749, p-value < 2.2e-16
 
 gen_test_langs <- low_data_langs$Language
 ```
