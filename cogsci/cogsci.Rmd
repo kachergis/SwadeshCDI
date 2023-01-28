@@ -20,7 +20,7 @@ abstract: >
     not yet have CDIs, posing a significant barrier to increasing the diversity of languages that are 
     studied. Here, we propose a method for selecting candidate words to include on new CDIs, leveraging
     analysis of psychometric properties of translation-equivalent concepts that are frequently included on 
-    existing CDIs. Leveraging 26 datasets from existing CDIs, we propose a list of 163 concepts that have
+    existing CDIs. Leveraging 26 datasets from existing CDIs, we propose a list of 229 concepts that have
     low variability in their cross-linguistic learning difficulty. This pool of 'universal' concepts--
     analogous to the "Swadesh" lists used in glottochronology--can be used as a starting point for future 
     CDI adaptations. We test how well the proposed list generalizes to data from 8 additional languages.
@@ -118,7 +118,7 @@ More broadly, this work examines which types of words (and their corresponding c
 We can ask: Which semantic categories, e.g., animals, household objects, food and drink, or another category, are most consistently learned across languages? Which are more variable? 
 These types of cross-linguistic comparisons may give new insight into theoretical questions surrounding the similarity and differences between language experience and development in different cultural and linguistic contexts.
 
-In particular, our contributions are 1) to revise and extend a set of translation-equivalent concepts ("universal lemmas", i.e. uni-lemmas) in Wordbank, 2) to fit IRT models to 28 CDI:WS datasets, 3) to identify 163 candidate "Swadesh CDI" items from a cross-linguistic comparison of concept difficulty and inclusion, and 4) to test how well this Swadesh CDI generalizes to a set of eight additional low-data languages. 
+In particular, our contributions are 1) to revise and extend a set of translation-equivalent concepts ("universal lemmas", i.e. uni-lemmas) in Wordbank, 2) to fit IRT models to 28 CDI:WS datasets, 3) to identify 229 candidate "Swadesh CDI" items from a cross-linguistic comparison of concept difficulty and inclusion, and 4) to test how well this Swadesh CDI generalizes to a set of eight additional low-data languages. 
 We end by making a concrete proposal for how this Swadesh CDI list could be used in creating future CDI adaptations, and by discussing the strengths and weaknesses of our approach.
 
 
@@ -675,7 +675,7 @@ sort(good_prod$uni_lemma)
 ```
 
 
-```{r, out.width="\\linewidth", include=TRUE, fig.align="center", fig.cap=c("The 163 proposed Swadesh CDI words by semantic category."), echo=FALSE}
+```{r, out.width="\\linewidth", include=TRUE, fig.align="center", fig.cap=c("The 229 proposed Swadesh CDI words by semantic category."), echo=FALSE}
 knitr::include_graphics("figs/SwadeshCDI_list.pdf")
 ```
 
@@ -703,7 +703,16 @@ asjp = c("eye","ear","nose","tongue","tooth","hand","knee","blood","bone","breas
          "new","full","one","two","I","you","we")
 
 #intersect(asjp, good_prod$uni_lemma) 
-# "nose"   "tongue" "tooth"  "dog"    "star" 
+# "eye"            "nose"           "tongue"         "tooth"          "hand"           "knee"           "dog"           
+# "sun"            "star"           "drink (action)" "see"            "hear"  
+# 12 out of 40 -- wow!
+
+# intersect(swadesh100, good_prod$uni_lemma) 
+# "dog"            "head"           "eye"            "nose"           "mouth"          "tooth"          "tongue"        
+# "knee"           "hand"           "drink (action)" "eat"            "bite"           "see"            "hear"          
+# "sleep"          "swim"           "sun"            "moon"           "star"           "cloud"          "red"           
+# "green"          "yellow"         "white"          "black"          "cold"  
+# 26 out of 100 !
 ```
 
 
@@ -711,7 +720,7 @@ asjp = c("eye","ear","nose","tongue","tooth","hand","knee","blood","bone","breas
 # Discussion
 
 This study compared psychometric models fitted to 26 CDI datasets in order to find concepts that have low variability in their cross-linguistic difficulty, and that are frequently included on parent-reported measures of children's early vocabulary. 
-We identified 163 concepts that appeared on at least 10 of the CDIs, and which have more consistent cross-linguistic difficulty than the majority of the concepts appearing on multiple CDIs.
+We identified 229 concepts that appeared on at least 10 of the CDIs, and which have more consistent cross-linguistic difficulty than the majority of the concepts appearing on multiple CDIs.
 We showed that using this set of "Swadesh CDI" items as a short assessment would generate scores that are strongly related to full CDI:WS scores, both for the original 26 datasets, and in a generalization test to eight low-data languages.
 The Swadesh CDI contains items with relatively good difficulty estimates cross-linguistically, and in the absence of access to researchers who are familiar with relevant local cultures and concepts, they may serve as a rapid, simple means of approximating children's ability levels, even in the absence of a large norming dataset.
 
