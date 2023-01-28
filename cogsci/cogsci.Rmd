@@ -118,7 +118,7 @@ More broadly, this work examines which types of words (and their corresponding c
 We can ask: Which semantic categories, e.g., animals, household objects, food and drink, or another category, are most consistently learned across languages? Which are more variable? 
 These types of cross-linguistic comparisons may give new insight into theoretical questions surrounding the similarity and differences between language experience and development in different cultural and linguistic contexts.
 
-In particular, our contributions are 1) to revise and extend a set of translation-equivalent concepts ("universal lemmas", i.e. uni-lemmas) in Wordbank, 2) to fit IRT models to 28 CDI:WS datasets, 3) to identify 163 candidate "Swadesh CDI" items from a cross-linguistic comparison of concept difficulty and inclusion, and 4) to test how well this Swadesh CDI generalizes to a set of 8 additional low-data languages. 
+In particular, our contributions are 1) to revise and extend a set of translation-equivalent concepts ("universal lemmas", i.e. uni-lemmas) in Wordbank, 2) to fit IRT models to 28 CDI:WS datasets, 3) to identify 163 candidate "Swadesh CDI" items from a cross-linguistic comparison of concept difficulty and inclusion, and 4) to test how well this Swadesh CDI generalizes to a set of eight additional low-data languages. 
 We end by making a concrete proposal for how this Swadesh CDI list could be used in creating future CDI adaptations, and by discussing the strengths and weaknesses of our approach.
 
 
@@ -313,42 +313,54 @@ prod_cat %>% group_by(category) %>%
 ### Identifying Swadesh CDI Candidates
 
 ```{r, include=F}
-# 1840
+# 1839
 uni_ag <- xldf %>% filter(uni_lemma!="NA") %>%
-  group_by(uni_lemma, category) %>%
+  group_by(uni_lemma) %>% # category <- but many uni-lemmas are categorized differently across languages
   summarise(d_m=mean(d), a1_m=mean(a1), d_sd = sd(d), a1_sd = sd(a1), n=n())
 
 # The more languages a word is in, the easier it tends to be:
 cor.test(uni_ag$d_m, uni_ag$n)
-# r=-.27, t(2441) = -13.89, p<.001
+# r=-.37, t(1837) = 17.15, p<.001
 plot(uni_ag$d_m, uni_ag$n)
 
 # variability in difficulty also correlated number of forms uni-lemma is on
 cor.test(uni_ag$d_sd, uni_ag$n) 
-# r=.17, t(1451) = 6.38,  p<.001
+# r=.17, t(1309) = 6.35,  p<.001
 # The more forms a uni-lemma appears on, 1) the easier it tends to be (r=-.27), and 2) the higher the variability in its difficulty (r=.17.
 
 # 990 singletons
 uni1 <- uni_ag %>% filter(n==1) 
 mean(uni1$d_m) # 1.21
 
-uni_ag <- uni_ag %>% filter(n>1) # 1453
+uni_ag_gt1 <- uni_ag %>% filter(n>1) # 1311
+
+# are singletons harder than unis appearing on multiple forms?
+t.test(uni1$d_m, uni_ag_gt1$d_m)
+# t(899) = 7.66, p<.001
+
 
 # no cor bw difficulty and variability -- good
-cor.test(uni_ag$d_m, uni_ag$d_sd)
+cor.test(uni_ag_gt1$d_m, uni_ag_gt1$d_sd)
+
 
 #xldf %>% group_by(language, uni_lemma)
 ```
 
 
-```{r, echo=F, message=F}
-pars <- xldf %>% filter(!is.na(uni_lemma), !is.na(d)) 
+The goal is to choose uni-lemmas that have low variability in their cross-linguistic difficulty -- that is, uni-lemmas that are similarly difficult-to-learn across languages, as this is our operationalization of _universal_.
+However, we must define two thresholds for selecting Swadesh CDI (S-CDI) candidates: 1) the number of current CDI:WS forms a uni-lemma must appear on, and 2) the threshold for variability in cross-linguistic difficulty.
 
-ul <- sort(table(pars$uni_lemma)) 
+Before we select these thresholds, we characterize the overall set of uni-lemmas.
+There are `r length(unique(xldf$uni_lemma))`` unique uni-lemmas across the 26 CDI:WS forms, with an average difficulty of $d=$`r mean(uni_ag$d_m)`.
+Of these, `r nrow(uni1)` uni-lemmas are singletons, appearing on only one of the 26 forms.
+These singletons are significantly more difficult than the `r nrow(uni_ag_gt1)`` uni-lemmas appearing more than once ($M_1=1.45$; $M_{>1}=0.85$ $t(899) = 7.66$, p<.001).
+Indeed, there is a significant relation between the number of forms a uni-lemma appears on and its difficulty: the more forms a uni-lemma is on, the _easier_ it tends to be ($r=-.37$, $t(1837) = 17.15$, $p<.001$).
+Moreover, there is a weak but significant relation between the number of forms a uni-lemma appears on and its cross-linguistic variability ($r=.17$, $t(1309)=6.35$, $p<.001$)
+Thus, in selecting the Swadesh candidates, we will need to consider that by thresholding the number of forms a uni-lemma must appear on, we are biasing our Swadesh candidates to be easier, and to have greater cross-linguistic variability in difficulty.
+This could result in a Swadesh list that is overall easier than the CDI:WS (and thus may show ceiling effects for older children), and that is less universal in difficulty than, say, a random selection of uni-lemmas.
 
-long_list = ul[which(ul>1)] # 1311
-short_list = ul[which(ul>9)] # 655 uni-lemmas defined in 10+ languages
-```
+Fortunately, among the uni-lemmas appearing on at least two forms, there is no significant relation between the uni-lemmas' difficulty and cross-linguistic variability in difficulty.
+
 
 ```{r}
 # problem: some languages have multiple items matching a single uni_lemma

@@ -116,6 +116,7 @@ Shown in the table below, $k=8$ has the following desirable properties:
 load(here("data/Swadesh_grid_search_final.Rdata"))
 
 swad_tab <- swad_agg %>% filter(sublist=="Swadesh") %>%
+  filter(language!="French (French)") %>% # test info is WAY high -- something fishy
   mutate(k = as.factor(k)) %>%
   group_by(k, N, mean_diff, mean_sd, sd_sd, sd_thresh, swad_n, swad_mean_diff, swad_diff_sd) %>%
     summarise(N_avail = mean(N_avail),
@@ -123,6 +124,7 @@ swad_tab <- swad_agg %>% filter(sublist=="Swadesh") %>%
               `S-CDI Info` = mean(test_info))
 
 rand_tab <- swad_agg %>% filter(sublist=="random") %>%
+  filter(language!="French (French)") %>% 
   mutate(k = as.factor(k)) %>%
   group_by(k) %>%
     summarise(`Rand vs CDI:WS` = mean(sumscore_cor), # want sd(sumscore_cor) and sd(test_info) ?
