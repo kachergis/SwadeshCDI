@@ -21,8 +21,8 @@ abstract: >
     studied. Here, we propose a method for selecting candidate words to include on new CDIs, leveraging
     analysis of psychometric properties of translation-equivalent concepts that are frequently included on 
     existing CDIs. Leveraging 26 datasets from existing CDIs, we propose a list of 163 concepts that have
-    low variability in their cross-linguistic learning difficulty. This pool of 'universal' concepts--
-    analogous to the "Swadesh" lists used in glottochronology--can be used as a starting point for future 
+    low variability in their cross-linguistic learning difficulty. This pool of 'universal' concepts---
+    analogous to the "Swadesh" lists used in glottochronology---can be used as a starting point for future 
     CDI adaptations. We test how well the proposed list generalizes to data from 8 additional languages.
     
 keywords: >
