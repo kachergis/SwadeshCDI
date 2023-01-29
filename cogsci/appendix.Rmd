@@ -108,11 +108,10 @@ heatmap.2(prod_cors, col=Colors, margins=c(10,10))
 ## Evaluating Thresholds for Inclusion on Swadesh CDI
 
 It is unclear how many existing forms a uni-lemma should be included on in order for it to be considered for inclusion on a Swadesh CDI. 
-Instead of setting an arbitrary threshold, we chose to try all possible values of $k$ (i.e., number of forms on which a uni-lemma is included, $k \in {2,..,26}$), and choose the $k$ which yields the set of Swadesh CDI items with the best characteristics.
-Shown in the table below, $k=8$ has the following desirable properties:
+Instead of setting an arbitrary threshold, we chose to try all possible values of $k$ (i.e., number of forms on which a uni-lemma is included, $k \in \{2,..,26\}$), and chose the $k$ which yields the set of Swadesh CDI (S-CDI) items with the highest total test information.
+The table below shows test information for each threshold, with the highest S-CDI test information achieved by $k=9$ (66577).
 
 ```{r, echo=F}
-#load(here("data/Swadesh_grid_search.Rdata"))
 load(here("data/Swadesh_grid_search_final.Rdata"))
 
 swad_tab <- swad_agg %>% filter(sublist=="Swadesh") %>%
@@ -121,22 +120,22 @@ swad_tab <- swad_agg %>% filter(sublist=="Swadesh") %>%
   group_by(k, N, mean_diff, mean_sd, sd_sd, sd_thresh, swad_n, swad_mean_diff, swad_diff_sd) %>%
     summarise(N_avail = mean(N_avail),
               `S-CDI vs CDI:WS` = mean(sumscore_cor), # want sd(sumscore_cor) and sd(test_info) ?
-              `S-CDI Info` = mean(test_info))
+              `S-CDI Info` = round(mean(test_info),0))
 
 rand_tab <- swad_agg %>% filter(sublist=="random") %>%
   filter(language!="French (French)") %>% 
   mutate(k = as.factor(k)) %>%
   group_by(k) %>%
     summarise(`Rand vs CDI:WS` = mean(sumscore_cor), # want sd(sumscore_cor) and sd(test_info) ?
-              `Rand Info` = mean(test_info))
+              `Rand Info` = round(mean(test_info),0))
 
 grid_tab <- left_join(swad_tab, rand_tab) %>%
   relocate(`Rand vs CDI:WS`, .after=`S-CDI vs CDI:WS`) %>%
   relocate(`Rand Info`, .after=`S-CDI Info`)
 
 grid_tab %>% select(-swad_diff_sd) %>%
-  mutate(d_diff = mean_diff - swad_mean_diff,
-         info_diff = `S-CDI Info` - `Rand Info`) %>%
+  #mutate(d_diff = mean_diff - swad_mean_diff,
+  #       info_diff = round(`S-CDI Info` - `Rand Info`,0)) %>%
   rename(`Mean d` = mean_diff, 
          `S-CDI pool` = swad_n,
          `S-CDI Mean d` = swad_mean_diff,
@@ -175,3 +174,14 @@ Note that many proposed Swadesh items are not actually on the CDI:WS forms avail
 gen_xx %>% kable(digits=3, caption="Swadesh CDI with difficult words vs. Full CDI:WS scores for 8 generalization languages.") %>%
   html_table_width(rep(70, ncol(gen_xx)))
 ```
+
+
+## Swadesh-CDI Items
+
+```{r}
+good_prod <- swad_lists[[9]]
+#kableExtra::kable(good_prod, digits=2)
+good_prod %>% DT::datatable() %>%
+  DT::formatRound(columns=4:24, digits=3)
+```
+
