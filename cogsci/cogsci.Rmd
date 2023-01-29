@@ -20,15 +20,9 @@ abstract: >
     not yet have CDIs, posing a significant barrier to increasing the diversity of languages that are 
     studied. Here, we propose a method for selecting candidate words to include on new CDIs, leveraging
     analysis of psychometric properties of translation-equivalent concepts that are frequently included on 
-<<<<<<< HEAD
-    existing CDIs. Leveraging 26 datasets from existing CDIs, we propose a list of 163 concepts that have
-    low variability in their cross-linguistic learning difficulty. This pool of 'universal' concepts---
-    analogous to the "Swadesh" lists used in glottochronology---can be used as a starting point for future 
-=======
     existing CDIs. Leveraging 26 datasets from existing CDIs, we propose a list of 229 concepts that have
     low variability in their cross-linguistic learning difficulty. This pool of 'universal' concepts--
     analogous to the "Swadesh" lists used in glottochronology--can be used as a starting point for future 
->>>>>>> 7328cebec0f20f24ec18020ac7fe9fb1f3a5b7e5
     CDI adaptations. We test how well the proposed list generalizes to data from 8 additional languages.
     
 keywords: >
@@ -86,24 +80,6 @@ For example, the American English CDI:WS and Mexican Spanish CDI:WS forms – tw
 
 [^1]: [https://mb-cdi.stanford.edu/adaptations.htm](https://mb-cdi.stanford.edu/adaptations.htm)
 
-```{r cdi-overlap, echo=F, include=F}
-# WS production params with AGE
-#load(here("data/xling-age-WS-prod-IRTparms.Rdata"))
-#xldf <- xldf %>% mutate(uni_lemma = ifelse(uni_lemma=="NA", NA, uni_lemma))
-#xldf_age <- xldf
-
-# long data-frame of all WS production parameters
-load(here("data/xling-WSprod-IRTparms.Rdata"))
-nas <- xldf %>% filter(uni_lemma=="NA") # how did these end up with string "NA" values?
-# distributed fairly well across languages; Slovak and Hungarian have >50 -- Persian has 277!
-sort(table(nas$language)) 
-
-xldf <- xldf %>% mutate(uni_lemma = ifelse(uni_lemma=="NA", NA, uni_lemma)) %>%
-  filter(!is.na(d)) # removes 1 Slovak word with NA parameters (because all responses were 0)
-
-# compare age and regular
-#xlxl <- xldf %>% left_join(xldf_age %>% select(item_id, language, a1, d) %>% rename(a1_age = a1, d_age = d))
-```
 
 Given that it is well-established that, all over the world, early learned words reflect the people and things that children are likely to experience, that is, words for family members, animals, and common household objects [@tardif2008baby; @frank2021], it is reasonable to ask: Is there a single set of translation equivalents that would meet the criteria for inclusion on CDIs from multiple languages? 
 To facilitate this effort, it is useful to leverage recent work using Item-Response Theory [IRT, @embretson2013] models. 
@@ -159,20 +135,18 @@ wg_tab <- get_item_n_subject_counts(models)
 load(here("data/xling-WGprod-IRTparms.Rdata"))
 # 24 languages, 9611 parameters
 wg_parms <- xldf
-
 ```
 
 ```{r, load-ws-data, echo=F, results="asis"}
 # WS production fits
 load(here("data/multiling_2pl_WS_prod_fits.Rdata"))
-#ws_coefs = coefs
+load(here("data/xling-WSprod-IRTparms.Rdata")) # 23179, 
+
+xldf <- xldf %>% mutate(uni_lemma = ifelse(uni_lemma=="NA", NA, uni_lemma)) %>%
+  mutate(d = -d) %>% # easiness -> difficulty
+  filter(!is.na(d)) # removes 1 Slovak word with NA parameters (because all responses were 0)
 
 ws_tab <- get_item_n_subject_counts(models)
-
-#load(here("data/xling-WSprod-IRTparms.Rdata"))
-#ws_parms <- xldf # 23179
-
-xldf <- xldf %>% mutate(d = -d) # easiness -> difficulty
 
 # WG langs that don't have WS: British Sign Language, Spanish (Chilean), American Sign Language, English (British)
 
@@ -243,18 +217,18 @@ Thus, we will focus only on the estimated item parameters, and in particular the
 
 ### Instruments
 
-<!-- The 680-item vocabulary checklist of the English CDI:WS form is organized into 22 semantic categories (e.g., furniture, games and routines, people). -->
 <!-- When a CDI:WG form was administered, caregivers were asked to indicate for each vocabulary item whether their child 1) understands that word ("comprehends") or 2) both understands and says ("produces") that word. 
 Leaving the item blank indicates that the child neither comprehends nor produces that word. -->
 When a CDI:WS forms was administered, caregivers were asked to indicate for each vocabulary item on the instrument whether or not their child can recognizably produce (say) the given word.
 
 "Produces" responses were coded as 1 and all other responses were coded as 0.
 Our datasets consist of a dichotomous-valued response matrix for each language, of size $N$ subjects $\times$ $W$ words.
+All models, data, and code for reproducing this paper are available on OSF[^3].
 
 # Results
 
 ```{r}
-xldf <- xldf %>% filter(!is.na(uni_lemma)) # only want the words with defined uni-lemmas
+xldf <- xldf %>% filter(!is.na(uni_lemma)) # 21824 out of 23020 have uni-lemmas defined 95%
 xldf_lowd <- xldf %>% filter(is.element(language, low_data_langs$Language)) # 5464
 xldf <- xldf %>% filter(!is.element(language, low_data_langs$Language)) # 17715
 
@@ -264,8 +238,60 @@ xldf[which(xldf$category=="outside_places"),]$category = "outside"
 ```
 
 
-All models, data, code for reproducing this paper are available on OSF[^3].
-Across the 26 IRT models for different CDI:WS forms, parameters for a total of `r nrow(xldf)` items were obtained.
+```{r, include=F}
+# 1839
+uni_ag <- xldf %>% filter(uni_lemma!="NA") %>%
+  group_by(uni_lemma) %>% # category <- but many uni-lemmas are categorized differently across languages
+  summarise(d_m=mean(d), a1_m=mean(a1), d_sd = sd(d), a1_sd = sd(a1), n=n())
+
+# The more times a uni-lemma appears, the easier it tends to be:
+cor.test(uni_ag$d_m, uni_ag$n)
+#plot(uni_ag$d_m, uni_ag$n)
+
+pval_str <- function(pval) {
+  p_str = ifelse(pval<.001, "<.001", 
+                ifelse(pval<.01, "<.01", 
+                       ifelse(pval<.05, "<.05", 
+                              paste0("=",round(pval, 2)))))
+  return(p_str)
+}
+
+# given a cor.test(), return the in-line reporting, e.g. "$r=-0.37$, $t(1950)=-17.64$, $p<.001$" )
+report_cor <- function(ctest) {
+  pval = pval_str(ctest$p.value)
+  paste0("$r=",round(ctest$estimate,2),"$, $t(",ctest$parameter,")=",round(ctest$statistic, 2),"$, $p",pval,"$")
+}
+
+report_ttest <- function(ttest) {
+  pval = pval_str(ttest$p.value)
+  paste0("$t(",round(ttest$parameter,0),")=",round(ttest$statistic, 2),"$, $p",pval,"$")
+}
+
+# variability in difficulty also correlated number of forms uni-lemma is on
+
+# 990 singletons
+uni1 <- uni_ag %>% filter(n==1) 
+mean(uni1$d_m) # 1.38
+
+uni_ag_gt1 <- uni_ag %>% filter(n>1) # 1311
+
+# singletons are harder than unis appearing on multiple forms?
+report_ttest(t.test(uni1$d_m, uni_ag_gt1$d_m))
+
+# no cor bw difficulty and variability -- good
+report_cor(cor.test(uni_ag_gt1$d_m, uni_ag_gt1$d_sd))
+```
+
+Across the 26 IRT models for different CDI:WS forms, diffictulty and discrimination parameters for a total of 23020 items were fitted.
+Of those items, 95% have uni-lemmas defined; a median of 693 per CDI:WS form (range: 553 (Czech) to 804 (Cantonese)). 
+There are a total of `r length(unique(xldf$uni_lemma))` uni-lemmas defined across the 26 CDI:WS forms, but `r nrow(uni1)` of these are singletons, appearing on only one of the 26 forms.
+These singletons are significantly more difficult than the `r nrow(uni_ag_gt1)` uni-lemmas appearing more than once ($M_1=$ `r round(mean(uni1$d_m),2)`; $M_{>1}=$ `r round(mean(uni_ag_gt1$d_m),2)`; `r report_ttest(t.test(uni1$d_m, uni_ag_gt1$d_m))`).
+Indeed, there is a significant relation between the number of times a uni-lemma appears and its difficulty: the more times a uni-lemma appears, the _easier_ it tends to be (`r report_cor(cor.test(uni_ag$d_m, uni_ag$n))`).
+Moreover, there is a weak but significant relation between the number of forms a uni-lemma appears on and its cross-linguistic variability (`r report_cor(cor.test(uni_ag$d_sd, uni_ag$n))`).
+It is perhaps intuitive that more 'universal' concepts--which are thus selected to be on more CDI forms--also tend to be earlier learned, and this echoes earlier work characterizing the consistency of children's first words across several languages [@tardif2008baby].
+However, these modest but significant correlations are also important to keep in mind as we choose our Swadesh CDI candidates: selecting too many easy items could result older children being at ceiling.
+
+<!--Fortunately, among the uni-lemmas appearing on at least two forms, there is no significant relation between the uni-lemmas' difficulty and cross-linguistic variability in difficulty.-->
 
 ```{r fig-mean-item-diff, include=F, fig.cap=c("Mean item difficulty for each CDI:WS form. Bars represent bootstrapped 95\\% confidence intervals. Color shows mean age (months) of the sample, which is correlated with mean word difficulty (r=.57)."), fig.height=4.3, fig.width=3.4}
 # re: Philip's question of are item difficulties comparable across languages:
@@ -289,83 +315,20 @@ lang_d_m %>% ggplot(aes(x=reorder(language, -mean), y=mean)) + coord_flip() +
 [^3]: OSF repository: [https://osf.io/8swhb/](https://osf.io/8swhb/?view_only=6f6ab9818f2a4bb288e05ca9e12f540c).
 
 
-<!-- ## Difficulty by Semantic Category -->
-
-Figure 1 shows the average cross-linguistic difficulty of CDI items by semantic category.
-Sounds (e.g., animal noises), body parts, and common nouns tend to be early-learned, and thus have lower difficulty values, while abstract words such as time words and morphologically complex helping verbs are later-learned (i.e., more difficult).
-
-```{r difficulty-by-category, fig.env = "figure", fig.pos = "h", fig.height=3.5, fig.align = "center", fig.cap = "Mean cross-linguistic difficulty of CDI words by semantic category. Bars represent bootstrapped 95\\% confidence intervals."}
-
-# remove categories that only exist in 1 or 2 languages:
-prod_cat <- xldf %>% 
-  filter(!is.na(d), !is.na(category),
-         !is.element(category, c("final_particles", "directions", "numbers", "articles", "other",
-                                 "descriptive_words (adverbs)", "states", "unknown",
-                                 "verb_endings", "verb_modifiers",
-                                 "classifiers", "locations_quantities_adverbs"))) %>%
-  group_by(language, category) %>%
-  summarise(d = mean(d), a1 = mean(a1))
-
-# mean variability of each category, across languages
-prod_cat %>% group_by(category) %>%
-  tidyboot::tidyboot_mean(d, na.rm=T) %>%
-  ggplot(aes(x=reorder(category, mean), y=mean)) + geom_point(alpha=.7) +
-  geom_linerange(aes(ymin=ci_lower, ymax=ci_upper), alpha=.7) +
-  coord_flip() + theme_classic() + ylab("Mean item difficulty") + xlab("Category")
-```
-
-
-
 ### Identifying Swadesh CDI Candidates
 
-```{r, include=F}
-# 1839
-uni_ag <- xldf %>% filter(uni_lemma!="NA") %>%
-  group_by(uni_lemma) %>% # category <- but many uni-lemmas are categorized differently across languages
-  summarise(d_m=mean(d), a1_m=mean(a1), d_sd = sd(d), a1_sd = sd(a1), n=n())
-
-# The more languages a word is in, the easier it tends to be:
-cor.test(uni_ag$d_m, uni_ag$n)
-# r=-.37, t(1837) = 17.15, p<.001
-plot(uni_ag$d_m, uni_ag$n)
-
-# variability in difficulty also correlated number of forms uni-lemma is on
-cor.test(uni_ag$d_sd, uni_ag$n) 
-# r=.17, t(1309) = 6.35,  p<.001
-# The more forms a uni-lemma appears on, 1) the easier it tends to be (r=-.27), and 2) the higher the variability in its difficulty (r=.17.
-
-# 990 singletons
-uni1 <- uni_ag %>% filter(n==1) 
-mean(uni1$d_m) # 1.21
-
-uni_ag_gt1 <- uni_ag %>% filter(n>1) # 1311
-
-# are singletons harder than unis appearing on multiple forms?
-t.test(uni1$d_m, uni_ag_gt1$d_m)
-# t(899) = 7.66, p<.001
-
-
-# no cor bw difficulty and variability -- good
-cor.test(uni_ag_gt1$d_m, uni_ag_gt1$d_sd)
-
-
-#xldf %>% group_by(language, uni_lemma)
-```
-
-
 The goal is to choose uni-lemmas that have low variability in their cross-linguistic difficulty -- that is, uni-lemmas that are similarly difficult-to-learn across languages, as this is our operationalization of _universal_.
-However, we must define two thresholds for selecting Swadesh CDI (S-CDI) candidates: 1) the number of current CDI:WS forms a uni-lemma must appear on, and 2) the threshold for variability in cross-linguistic difficulty.
+There are two threshold that must be defined to select Swadesh CDI (S-CDI) candidates: 1) $k$, the number of current CDI:WS forms a uni-lemma must appear on, and 2) $v_{min}$, the threshold for variability in cross-linguistic difficulty. 
+For $v_{min}$, we simply look at the uni-lemmas with half a standard deviation less cross-linguistic difficulty than average, among the set of uni-lemmas that are on at least $k$ forms.
 
-Before we select these thresholds, we characterize the overall set of uni-lemmas.
-There are `r length(unique(xldf$uni_lemma))` unique uni-lemmas across the 26 CDI:WS forms, with an average difficulty of $d=$ `r mean(uni_ag$d_m)`.
-Of these, `r nrow(uni1)` uni-lemmas are singletons, appearing on only one of the 26 forms.
-These singletons are significantly more difficult than the `r nrow(uni_ag_gt1)`` uni-lemmas appearing more than once ($M_1=1.45$; $M_{>1}=0.85$ $t(899) = 7.66$, p<.001).
-Indeed, there is a significant relation between the number of forms a uni-lemma appears on and its difficulty: the more forms a uni-lemma is on, the _easier_ it tends to be ($r=-.37$, $t(1837) = 17.15$, $p<.001$).
-Moreover, there is a weak but significant relation between the number of forms a uni-lemma appears on and its cross-linguistic variability ($r=.17$, $t(1309)=6.35$, $p<.001$)
-Thus, in selecting the Swadesh candidates, we will need to consider that by thresholding the number of forms a uni-lemma must appear on, we are biasing our Swadesh candidates to be easier, and to have greater cross-linguistic variability in difficulty.
+It less clear how to choose $k$, the minimum number of forms a uni-lemma must appear on to be considered eligible.
+As reported above, the more forms a uni-lemma appears on, the easier that concept tends to be, and the greater its cross-linguistic variability in difficulty ($sd(d)$) tends to be.
+Thus, the higher the threshold $k$, the more the Swadesh candidates will be biased to be easier, and the less _universal_ they may be.
 This could result in a Swadesh list that is overall easier than the CDI:WS (and thus may show ceiling effects for older children), and that is less universal in difficulty than, say, a random selection of uni-lemmas.
-
-Fortunately, among the uni-lemmas appearing on at least two forms, there is no significant relation between the uni-lemmas' difficulty and cross-linguistic variability in difficulty.
+Of course, the higher $k$, the fewer uni-lemmas there are available to choose from: 1303 uni-lemmas appear on 2 or more CDIs, but only 30 appear on all 26 CDIs.
+Because choosing $k$ is difficult _a priori_, we opted to do a grid search across all possible values. 
+For each $k$, we found the set of uni-lemmas that meet 
+We evaluate total test information, 
 
 
 ```{r}
@@ -381,38 +344,10 @@ prod_pars <-
 ```
 
 
-CDI:WS forms have a median of 693 uni-lemmas defined (range: 553 (Czech) to 804 (Cantonese)), and there are a total of `r length(unique(xldf$uni_lemma))` uni-lemmas defined across the 26 languages.
-Only `r nrow(na.omit(prod_pars))` uni-lemmas appear on all `r length(languages)` CDI:WS forms: too few to comprise a short form.
-To expand the pool of items, we consider thresholds on both 1) the variability of an item's difficulty across languages (lower is better), and 2) the number of CDI:WS forms on which it appears (more is better).
+<!-- To expand the pool of items, we consider thresholds on both 1) the variability of an item's difficulty across languages (lower is better), and 2) the number of CDI:WS forms on which it appears (more is better).
 Below we examine the standard deviation of uni-lemmas' cross-linguistic difficulty as a function of how many languages that uni-lemma is missing from.
 For now we consider items with less than median variability in difficulty that are included on 10 or more of the 26 CDI:WS forms.
-
-```{r old-swadesh-list-method, echo=F, include=F}
-prod_pars$sd = apply(prod_pars[,4:ncol(prod_pars)], 1, sd, na.rm=T)
-prod_pars$numNAs = apply(prod_pars[,4:ncol(prod_pars)], 1, function(x) { sum(is.na(x)) }) 
-
-# median SD of the item difficulty
-med_d = median(prod_pars$sd, na.rm=T) # 1.14
-# SD of the SD
-sd_d = sd(prod_pars$sd, na.rm=T) # .54
-
-prod_pars %>% filter(sd<4) %>%
-  ggplot(aes(x=jitter(numNAs), y=sd, color=lexical_category)) + 
-  geom_point(alpha=.7) + theme_classic() + 
-  xlab("# of languages without uni-lemma") +
-  ylab("SD of unilemma's cross-linguistic difficulty") +
-  geom_hline(aes(yintercept=med_d - .5*sd_d), linetype="dashed") + 
-  geom_vline(aes(xintercept=6.5), linetype="dashed")
-
-# only 38 now!
-good_prod <- prod_pars %>% 
-  filter(numNAs < 16) %>%
-  filter(sd < (med_d - .5*sd_d)) %>% 
-  arrange(numNAs) 
-
-#sort(table(good_prod$category)) / nrow(good_prod)
-#sort(table(good_prod$lexical_category)) / nrow(good_prod)
-```
+-->
 
 
 ```{r grid-search, eval=F}
@@ -495,6 +430,32 @@ load(here("data/Swadesh_grid_search_final.Rdata"))
 # looking at appendix table, k=9 seems the best (highest test info, v close to same full correlation as rand)
 good_prod = swad_lists[[9]]
 ```
+
+<!-- ## Difficulty by Semantic Category -->
+
+Figure 1 shows the average cross-linguistic difficulty of CDI items by semantic category, for both Swadesh and non-Swadesh uni-lemmas.
+Sounds (e.g., animal noises), body parts, and common nouns tend to be early-learned, and thus have lower difficulty values, while abstract words such as time words and morphologically complex helping verbs are later-learned (i.e., more difficult).
+
+```{r difficulty-by-category, fig.env = "figure", fig.pos = "h", fig.height=3.5, fig.align = "center", fig.cap = "Mean cross-linguistic difficulty of CDI words by semantic category. Bars represent bootstrapped 95\\% confidence intervals."}
+
+# remove categories that only exist in 1 or 2 languages:
+prod_cat <- xldf %>% 
+  filter(!is.na(d), !is.na(category),
+         !is.element(category, c("final_particles", "directions", "numbers", "articles", "other",
+                                 "descriptive_words (adverbs)", "states", "unknown",
+                                 "verb_endings", "verb_modifiers",
+                                 "classifiers", "locations_quantities_adverbs"))) %>%
+  group_by(language, category) %>%
+  summarise(d = mean(d), a1 = mean(a1))
+
+# mean variability of each category, across languages
+prod_cat %>% group_by(category) %>%
+  tidyboot::tidyboot_mean(d, na.rm=T) %>%
+  ggplot(aes(x=reorder(category, mean), y=mean)) + geom_point(alpha=.7) +
+  geom_linerange(aes(ymin=ci_lower, ymax=ci_upper), alpha=.7) +
+  coord_flip() + theme_classic() + ylab("Mean item difficulty") + xlab("Category")
+```
+
 
 ```{r fig-mean-swadesh-item-diff, fig.cap=c("Mean item difficulty of Swadesh CDI items per language. Bars represent bootstrapped 95\\% confidence intervals."), fig.height=3.5, fig.width=3.4}
 
@@ -697,7 +658,7 @@ wsB_int = sort(intersect(short_wsB$word, good_prod$uni_lemma)) # 26
 28 of the Swadesh candidates are on the 100-item CDI:WS - short form A, and 26 of the Swadesh candidates are on the WS short form B.
 (Actually lower than expected by chance? 27%, and we have selected 34% of the length of the EN CDI:WS -- oh, actually, how many of the Swadesh concepts are on the EN WS? interesting discussion point, re: English-centric bias)
 
-```{r, out.width="\\linewidth", include=TRUE, fig.align="center", fig.cap=c("The 229 proposed Swadesh CDI words by semantic category."), echo=FALSE}
+```{r, out.width="\\linewidth", include=TRUE, fig.align="center", fig.cap=c("NOT UPDATED The most frequently-selected 100 Swadesh CDI concepts by semantic category."), echo=FALSE}
 knitr::include_graphics("figs/SwadeshCDI_list.pdf")
 ```
 
