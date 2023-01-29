@@ -16,7 +16,7 @@ abstract: >
     including a parent-reported inventory of early-learned vocabulary items, have proven to be
     valid and reliable instruments for measuring children's early language skill. CDIs have been
     painstakingly adapted to dozens of languages, and cross-linguistic comparisons thus far show both 
-    consistency and variability in language acquisition trajectories. However, hundreds of languages do 
+    consistency and variability in language acquisition trajectories. However, thousands of languages do 
     not yet have CDIs, posing a significant barrier to increasing the diversity of languages that are 
     studied. Here, we propose a method for selecting candidate words to include on new CDIs, leveraging
     analysis of psychometric properties of translation-equivalent concepts that are frequently included on 
@@ -26,7 +26,7 @@ abstract: >
     CDI adaptations. We test how well the proposed list generalizes to data from 8 additional languages.
     
 keywords: >
-    early language learning; CDI; psychometrics; cross-linguistic comparison; Swadesh vocabulary;
+    early language learning; CDI; psychometrics; cross-linguistic comparison; Swadesh vocabulary
     
 output: cogsci2016::cogsci_paper
 #final-submission: \cogscifinalcopy
@@ -56,7 +56,7 @@ source(here("cross-ling-comparison-helpers.R"))
 # Introduction
 
 Tools that enable valid assessments of children’s early language abilities are invaluable for researchers, clinicians and parents, as early language skill is predictive of educational outcomes years later [e.g., @bleses2016]. 
-The MacArthur-Bates Communicative Development Inventories [CDIs; @Fenson2007; @marchman2023] are parent report assessments that provide reliable and valid estimates of children's early vocabulary size and other aspects of early communicative development, such as gesture use and early use of word combinations. 
+The MacArthur-Bates Communicative Development Inventories [CDIs; @Fenson2007; @marchman2023] are parent report assessments that provide reliable and valid estimates of children's early vocabulary size and other aspects of early communicative development, such as use of gestures and of word combinations. 
 Parent report is a relatively quick and low-cost method to assess early language skills since it takes advantage of the fact that parents are "natural observers" of their child's skills and does not depend on a child engaging with an (unfamiliar) experimenter.
 
 Over the years, the CDIs have been adapted to dozens of languages, with forms now available in English, Spanish, French, Hebrew, and Mandarin, to name just a few.
@@ -66,42 +66,42 @@ For example, cross-linguistic analyses indicate that measures of vocabulary size
 Thus, over development, the language system is "tightly woven" [@bates1994; @frank2021] and early vocabulary size serves as a good proxy measure of children's overall language skill.
 
 On the CDIs, vocabulary size is assessed via a checklist format, which enables caregivers to scan and recognize words their child produces or understands, rather than relying on recall alone. 
-For example, the American English CDI Words & Sentences (CDI:WS) form, targeting children 16-30 months of age, is comprised of 680 words from 22 semantic categories, including nouns (e.g., Body Parts, Toys, and Clothing), action words (e.g. verbs), descriptive words (e.g. adjectives), and closed-class words such as pronouns. 
-The vocabulary checklist from the American English CDI Words & Gestures (CDI:WG) form, targeting younger children ages 8 to 18 months, is comprised of ~400 words from a similar set of categories. 
-Items on these original forms were chosen to reflect a range of difficulty levels (i.e., both easy, moderate, and more difficult), as well as capture the linguistic and societal contexts of (most) children living in the US.
+For example, the American English CDI Words & Sentences (CDI:WS) form, targeting children 16-30 months of age, is comprised of 680 words from 22 semantic categories, including nouns (e.g., Body Parts, Toys, and Clothing), action words, descriptive words, and closed-class words such as pronouns. 
+The vocabulary checklist from the American English CDI Words & Gestures (CDI:WG) form, targeting younger children ages 8 to 18 months, is comprised of $\sim400$ words from a similar set of categories. 
+Items on these original forms were chosen to reflect a range of difficulty levels (i.e., easy, moderate, and more difficult), as well as capture the linguistic and societal contexts of (most) children living in the US.
 Short versions of each of these forms are also available, each with about 100 items [e.g., @Fenson2000], consisting of a set of items that generate scores that more strongly correlate with scores on the long forms, while retaining representation across a broad set of semantic categories.
 
 <!-- gap! -->
 Creating a new CDI requires a lot of effort and resources, presenting a daunting barrier to increasing the diversity of languages studied.
 Following the guidelines[^1] from the MacArthur-Bates CDI Advisory Board, the process of adapting a CDI for a language other than American English goes well beyond simply translating items on these forms to that new language. 
 While the process can begin with identifying translation equivalents (i.e., items that capture the same general concept in both languages, e.g., "dog" in English, and "perro" in Spanish), the final item set must then be filtered so that all items appropriately reflect the linguistic and sociocultural context of the children learning that language. 
-This process usually requires considerable time and effort by researchers who are native speakers of a language, to first select and identify translation equivalents and to then iteratively add, refine, and pilot the new CDI in the target language. 
+This process usually requires considerable time and effort by researchers who are both native speakers of the language and who have experience with children, to first select and identify translation equivalents and to then iteratively add, refine, and pilot the new CDI in the target language. 
 Because the goal is to obtain the set of items that best capture general trends and individual differences in that language, the items across CDIs in different languages do not necessarily overlap to a great extent. 
 For example, the American English CDI:WS and Mexican Spanish CDI:WS forms – two of the first CDIs created – each have 680 words, but only have 463 overlapping concepts (68%).
 
 [^1]: [https://mb-cdi.stanford.edu/adaptations.htm](https://mb-cdi.stanford.edu/adaptations.htm)
 
-
-Given that it is well-established that, all over the world, early learned words reflect the people and things that children are likely to experience, that is, words for family members, animals, and common household objects [@tardif2008baby; @frank2021], it is reasonable to ask: Is there a single set of translation equivalents that would meet the criteria for inclusion on CDIs from multiple languages? 
+<!-- rewrite/break up long sentence -->
+Given that it is well-established that, all over the world, early-learned words reflect the people and things that children are likely to experience, that is, words for family members, animals, and common household objects [@tardif2008baby; @frank2021], it is reasonable to ask: Is there a single set of translation equivalents that would meet the criteria for inclusion on CDIs from multiple languages? 
 To facilitate this effort, it is useful to leverage Item-Response Theory [IRT, @embretson2013] models. 
 IRT models infer both the abilities of test takers and the difficulty of individual test items (i.e., words), along standardized dimensions. 
-Recent work using IRT models have facilitated our understanding of the psychometric properties of CDI instruments. 
-As such, they offer the potential to not only yield more accurate measures of children's language ability, but also to enable the construction of Computerized Adaptive Tests (CATs), which choose the next test item based on the responses to the previous items, and thus quickly hone in on the test-takers language ability. 
+Recent work using IRT models has facilitated our understanding of the psychometric properties of specific CDI instruments. 
+As such, they offer the potential to not only yield more accurate measures of children's language ability, but also to enable the construction of language-specific Computerized Adaptive Tests (CATs), which choose the next test item based on the responses to the previous items, and thus quickly hone in on the test taker's language ability. 
 CAT-based CDIs presenting 50 or fewer items have been found to strongly correlate with scores on the full CDI:WS [@chai2020;@mayor2019;@Makransky2016]. 
 A general method for creating CDI CATs that work well across a broader age range (12-36 months) has been proposed, and tested for American English and Mexican Spanish [@Kachergis2022]. 
-However, the IRT model driving each CAT needs to be trained on a large and normative dataset, which may not be available in a given language. 
-To date, the IRT models are also fitted separately for each language, and the fitted parameters (e.g., word difficulty) are likely to vary across languages.
+However, the IRT model driving each CAT needs to be trained on a large and normative dataset, which may not be available in a given language. <!-- define normative? i.e., representative of a target population -->
+To date, the IRT models are fitted separately for each language, and the fitted parameters (e.g., word difficulty) are likely to vary across languages.
 
-The goal of the current study is to use IRT modeling in conjunction with data from Wordbank to examine whether there might be a core set of concepts that are frequently included on CDIs, and---importantly---whether many of them are of roughly equal difficulty across many languages. 
-This work takes its inspiration from the fields of lexicostatistics and glottochronology, where researchers [notably, @Swadesh1971] have proposed a list of 'universal concepts'---concepts that exist in all catalogued languages---in order to quantify the genealogical relatedness and dates of divergence of languages. 
-For example, the original Swadesh list contains 100 words, comprised of categories including common pronouns (“I”, “you”, “we”), animals (“man”, “fish”, “bird”, “dog”), objects (“tree”, “leaf”, “sun”, “mountain”), and verbs (“kill”, “die”, “see”, “sleep”). 
-Extending this work to the development of a universal CDI, or “Swadesh CDI,” would include all of the concepts that researchers have chosen to include on the vast majority of CDI:WS adaptations, and which have relatively similar difficulty across many languages. 
+The goal of the current study is to use IRT modeling in conjunction with data from Wordbank to examine whether there might be a core set of concepts that are frequently included on CDIs, and---importantly---whether enough of them are of roughly equal difficulty across many languages. 
+This work takes its inspiration from the fields of lexicostatistics and glottochronology, where researchers [notably, @Swadesh1971] have proposed a list of 'universal concepts', concepts that exist in all catalogued languages, in order to quantify the genealogical relatedness and dates of divergence of languages. 
+For example, the original Swadesh list contains 100 words, comprised of categories including common pronouns (_I_, _you_, _we_), animals (_man_, _fish_, _bird_, _dog_), objects (_tree_, _leaf”, _sun_, _mountain_), and verbs (_die_, _see_, _sleep_, _kill_,). 
+Extending this work to the development of a universal CDI, or “Swadesh CDI,” would include many of the concepts that researchers have chosen to include on several CDI:WS adaptations, and which have relatively similar difficulty across many languages. 
 
-More broadly, this work examines which types of words (and their corresponding concepts) are more or less similar across languages in terms of the ease with which they are learned, revealing commonalities as well as idiosyncrasies in children’s early experiences. 
+More broadly, this work examines which types of words (and their corresponding concepts) are more or less similar in terms of the ease with which they are learned across languages, revealing commonalities as well as idiosyncrasies in children’s early experiences. 
 We can ask: Which semantic categories, e.g., animals, household objects, food and drink, or another category, are most consistently learned across languages? Which are more variable? 
 These types of cross-linguistic comparisons may give new insight into theoretical questions surrounding the similarity and differences between language experience and development in different cultural and linguistic contexts.
 
-In particular, our contributions are 1) to revise and extend a set of translation-equivalent concepts ("universal lemmas", i.e. uni-lemmas) in Wordbank, 2) to fit IRT models to 28 CDI:WS datasets, 3) to identify 229 candidate "Swadesh CDI" items from a cross-linguistic comparison of concept difficulty and inclusion, and 4) to test how well this Swadesh CDI generalizes to a set of eight additional low-data languages. 
+In particular, our contributions are 1) to revise and extend a set of translation-equivalent concepts in Wordbank, 2) to fit IRT models to 28 CDI:WS datasets, 3) to identify a list of 229 "Swadesh CDI" items from a cross-linguistic comparison of concept difficulty and inclusion, and 4) to test how well this Swadesh CDI generalizes to a set of eight additional low-data languages. 
 We end by making a concrete proposal for how this Swadesh CDI list could be used in creating future CDI adaptations, and by discussing the strengths and weaknesses of our approach.
 
 
@@ -109,7 +109,7 @@ We end by making a concrete proposal for how this Swadesh CDI list could be used
 
 ## Item Response Theory
 
-A variety of IRT models targeting different types of testing scenarios have been proposed [see @Baker2001 for an overview], but for the dichotomous responses that parents make for each item (word) regarding whether their child can produce a given word, we will use the popular 2-parameter logistic (2PL) model that is best justified for CDI data [see @Kachergis2022].
+A variety of IRT models targeting different types of testing scenarios have been proposed [see @Baker2001 for an overview], but for the dichotomous responses that parents make for each item (word) regarding whether their child can produce a given word, we will use the popular 2-parameter logistic (2PL) model that is best justified for CDI data, out of four standard models [see @Kachergis2022].
 
 The 2PL model jointly estimates for each child $j$ a latent ability $\theta_j$ (here, language skill), and for each item $i$ two parameters: the item's difficulty $b_i$ and discrimination $a_i$, described below.
 In the 2PL model, the probability of child $j$ producing a given item $i$ is 
@@ -118,7 +118,7 @@ In the 2PL model, the probability of child $j$ producing a given item $i$ is
 
 where $D$ is a scaling parameter ($D=1.702$) which makes the logistic more closely match the ogive function used in a standard factor analysis [@R-mirt; @reckase2009].
 Children with high latent ability ($\theta$) will be more likely to produce any given item than children with lower latent ability, and more difficult items will be produced by fewer children (at any given $\theta$) than easier items.
-The discrimination ($a_i$) adjusts the slope of the logistic (in the classic 1-parameter logistic (1PL or Rasch) model, the slope is always 1). 
+The discrimination ($a_i$) adjusts the slope of the logistic (in the classic 1-parameter logistic "1PL" model, the slope is always 1). 
 Items with higher discrimination (i.e. slopes) better distinguish children above vs. below that item's difficulty level, and hence are generally more useful.
 While other standard IRT models exist (e.g., the 3-parameter logistic model adds a 'guessing' parameter for each test item), a recent study found the 2PL model most appropriate for multiple Wordbank datasets [@Kachergis2022].
 
@@ -159,7 +159,7 @@ languages = subset(ws_tab, N>=200)$Language
 low_data_langs <- it_tab %>% filter(`N`<200)
 
 tab1 <- xtable::xtable(it_tab, digits=c(0), 
-                       caption = "Number of CDI:WS items and subjects (N) per dataset.")
+                       caption = "Number of CDI:WS items and subjects (N) per dataset. The final eight datasets were used for a generalization test.")
 print(tab1, type="latex", comment = F, table.placement = "H", hline.after=26,
       include.rownames=FALSE)
 ```
@@ -167,15 +167,15 @@ print(tab1, type="latex", comment = F, table.placement = "H", hline.after=26,
 
 We report IRT analyses for twenty-six languages from Wordbank [@frank2017], comprising production data from CDI:WS vocabulary checklists that have at least 200 administrations.[^2]
 Data from the first twenty-six rows of Table 1 (Norwegian through Dutch) will be used to select a pool of words with approximately equal cross-linguistic difficulty.
-CDI:WS production data from an additional eight languages (bottom of Table 1: Greek (Cypriot) through Persian) had too few participants to be analyzed with IRT.
-Datasets for these languages will be used to test how well the selected pool of words generalize can be expected to new languages.
+CDI:WS production data from an additional eight languages (bottom of Table 1: Greek through Persian) had too few participants to be analyzed with IRT.
+Datasets for these languages will be used to test how well the selected pool can be expected to generalize to new languages.
 
 ### Uni-lemmas
 
-In order to do so, we need a method to map between words across languages that correspond to broadly similar concepts. 
+In order to do so, we need a method to map between words that correspond to broadly similar concepts across languages. 
 As such, each item on the CDI:WS for each language was mapped onto a set of “universal lemmas” or “uni-lemmas”, which are approximate cross-linguistic conceptual mappings of words. 
-For example, “dog” (English) and “perro” (Spanish) both correspond to the same uni-lemma, dog. 
-These mappings were recently updated for Wordbank 2.0 to improve their quality and systematicity, and to increase coverage across items and languages. 
+For example, “chat” (French) and “gato” (Spanish) both correspond to the same uni-lemma, _cat_. 
+These mappings were recently updated for Wordbank 2.0 to improve their quality and systematicity, and to increase coverage across items and languages. <!-- @Mike can we use that new crypto-ID to cite new WB2? -->
 This new set of uni-lemmas was constructed based on glosses provided by the original contributors of the Wordbank datasets, which were then verified by native or advanced proficient speakers of the language, and cleaned to increase their consistency across languages. 
 All uni-lemmas are accessible from Wordbank; details about the recent update can be found at [https://github.com/langcog/update_unilemmas](https://github.com/langcog/update_unilemmas).
 
@@ -208,7 +208,7 @@ demo_age <- demo %>% group_by(language) %>%
 
 
 The CDI:WS production dataset consists of the combined Wordbank production data for `r sum(ws_tab$N)` children aged 16-30 months on `r sum(ws_tab$items)` items across `r nrow(ws_tab)` forms.
-Note that the distributions of demographic variables (age, sex, maternal education, etc.) of these datasets are not matched, so comparing overall language ability estimates across languages would be impossible. 
+Note that the distributions of demographic variables (age, sex, maternal education, etc.) of these datasets are not matched, so comparing overall language ability estimates across languages would be ill-advised. 
 (See @frank2021 for a discussion of effects of demographic variables on vocabulary development.) 
 Thus, we will focus only on the estimated item parameters, and in particular the variability of item difficulty ($b_i$).
 
@@ -220,7 +220,7 @@ Thus, we will focus only on the estimated item parameters, and in particular the
 
 <!-- When a CDI:WG form was administered, caregivers were asked to indicate for each vocabulary item whether their child 1) understands that word ("comprehends") or 2) both understands and says ("produces") that word. 
 Leaving the item blank indicates that the child neither comprehends nor produces that word. -->
-When a CDI:WS forms was administered, caregivers were asked to indicate for each vocabulary item on the instrument whether or not their child can recognizably produce (say) the given word.
+When a CDI:WS forms was administered, caregivers were asked to indicate for each vocabulary item on the instrument whether or not their child can recognizably produce (say) the given word in an appropriate context.
 
 "Produces" responses were coded as 1 and all other responses were coded as 0.
 Our datasets consist of a dichotomous-valued response matrix for each language, of size $N$ subjects $\times$ $W$ words.
@@ -284,13 +284,13 @@ report_cor(cor.test(uni_ag_gt1$d_m, uni_ag_gt1$d_sd))
 ```
 
 Across the 26 IRT models for different CDI:WS forms, difficulty and discrimination parameters for a total of 23020 items were fitted.
-Of those items, 95% had uni-lemmas defined; a median of 693 per CDI:WS form (range: 553 (Czech) to 804 (Cantonese)). 
+Of those items, 95% had uni-lemmas defined; a median of 693 per CDI:WS form (range: 553 in Czech to 804 in Cantonese). 
 A total of `r length(unique(xldf$uni_lemma))` uni-lemmas are defined across the 26 CDI:WS forms, but `r nrow(uni1)` of these are singletons, appearing on only one of the 26 forms.
 These singletons are significantly more difficult than the `r nrow(uni_ag_gt1)` uni-lemmas appearing more than once ($M_1=$ `r round(mean(uni1$d_m),2)`; $M_{>1}=$ `r round(mean(uni_ag_gt1$d_m),2)`; `r report_ttest(t.test(uni1$d_m, uni_ag_gt1$d_m))`).
 Indeed, there is a significant relation between the number of times a uni-lemma appears and its difficulty: the more times a uni-lemma appears, the _easier_ it tends to be (`r report_cor(cor.test(uni_ag$d_m, uni_ag$n))`).
 Moreover, there is a weak but significant relation between the number of forms a uni-lemma appears on and its cross-linguistic variability (`r report_cor(cor.test(uni_ag$d_sd, uni_ag$n))`).
 It is perhaps intuitive that more 'universal' concepts---which are thus selected to be on more CDI forms---also tend to be earlier learned, and this echoes earlier work characterizing the consistency of children's first words across several languages [@tardif2008baby].
-However, these modest but significant correlations are also important to keep in mind as we choose our Swadesh CDI candidates, as selecting too many easy items could result older children being at ceiling.
+However, these modest but significant correlations are also important to keep in mind as we choose our Swadesh CDI candidates, as selecting too many easy items could result in older children being at ceiling.
 
 <!--Fortunately, among the uni-lemmas appearing on at least two forms, there is no significant relation between the uni-lemmas' difficulty and cross-linguistic variability in difficulty.-->
 
