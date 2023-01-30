@@ -178,10 +178,27 @@ gen_xx %>% kable(digits=3, caption="Swadesh CDI with difficult words vs. Full CD
 
 ## Swadesh-CDI Items
 
+Below we show the full list of 229 Swadesh CDI uni-lemmas, along with their average cross-linguistic difficulty (d_m), variability in difficulty (d_sd), number of CDI:WS forms they appear on (n, out of 26), semantic category, and lexical category. The semantic and lexical categories are based on American English, as uni-lemmas sometimes appear in different categories on different forms, as appropriate.
+
 ```{r}
 good_prod <- swad_lists[[9]]
-#kableExtra::kable(good_prod, digits=2)
-good_prod %>% DT::datatable() %>%
-  DT::formatRound(columns=4:24, digits=3)
+
+en_good_prod <- good_prod %>% 
+  left_join(xldf %>% 
+              filter(language=="English (American)") %>% 
+              select(uni_lemma, category, lexical_category)) %>%
+  arrange(category, desc(d_m))
+#kableExtra::kable(en_good_prod, digits=2)
+en_good_prod %>% DT::datatable() %>%
+  DT::formatRound(columns=2:3, digits=3)
 ```
 
+## Guide to Developing a Swadesh-based CDI
+
+Developing a CDI for a new language is a substantial task -- even with the new Swadesh-CDI recommendations.
+Many recommendations and caveats have been enumerated by the CDI Advisory Board, here: [https://mb-cdi.stanford.edu/adaptations.html](https://mb-cdi.stanford.edu/adaptations.html)
+Rather than repeat the process specified, we suggest how the Swadesh CDI can be used to jump-start the process.
+
+1. As a starting point, take the above 229 uni-lemmas, and consider their linguistic and cultural appropriateness for the target language. Include as many as are relevant.
+2. For additional concepts, consider uni-lemmas that are frequently included on other CDIs, and especially focus on categories that are less well-represented on the Swadesh CDI: X, Y, and Z.
+3. Do a study?
