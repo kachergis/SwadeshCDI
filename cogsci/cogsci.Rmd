@@ -342,7 +342,7 @@ Total test information was calculated as the integral across a range of test-tak
 Finding the $k$ that yielded the highest total test information was the main objective (see online Appendix for details).
 As shown in Figure 1 (bottom), test information was maximized with $k=9$, and from these 1309 uni-lemmas appearing on at least 9 forms, 229 Swadesh-CDI items were selected for having cross-linguistic variability below the threshold.
 These S-CDI items were strongly predictive of full CDI:WS scores, with an mean $r=0.995$.
-The mean difficulty of the S-CDI items was also quite close to the difficulty of the other uni-lemmas in the set ($M(d_{Swad})=0.31$; $M(d_{other})=0.36$), suggesting that the S-CDI items were fairly representative.
+The mean difficulty of the S-CDI items was also quite close to the difficulty of the other uni-lemmas that appeared on at least 9 forms ($M(d_{Swad})=0.31$; $M(d_{other})=0.36$), suggesting that the S-CDI items were fairly representative.
 
 <!-- The next criterion for Swadesh candidates is to find uni-lemmas of consistent difficulty across languages:
 if an item has relatively similar difficulty across 10 or more languages, we expect that it is more likely to have similar difficulty in a new language, compared to an item that has more variability.
@@ -600,7 +600,7 @@ swad_diff_ttest = t.test(subset(xldf, SwadeshCDI==1)$d, subset(xldf, SwadeshCDI=
 gen_test_langs <- low_data_langs$Language
 ```
 
-Comparing the IRT parameters of the S-CDI uni-lemmas to the rest of the items showed that the discrimination parameter (i.e., slope) of the Swadesh items did not significantly differ from the others, suggesting that the Swadesh items could measure ability as well as non-Swadesh uni-lemmas.
+Comparing the IRT parameters of the S-CDI uni-lemmas to the rest of the items (across all CDI:WS forms) showed that the discrimination parameter (i.e., slope) of the Swadesh items did not significantly differ from the others, suggesting that the Swadesh items could measure ability as well as non-Swadesh uni-lemmas.
 However, the candidate Swadesh items were significantly easier than the other uni-lemmas (mean S-CDI $d=$ `r round(tmp[2,"d"], 2)`, other items' mean $d=$ `r round(tmp[1,"d"], 2)`, `r report_ttest(swad_diff_ttest)`).
 
 
