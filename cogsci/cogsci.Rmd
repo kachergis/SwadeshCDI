@@ -51,6 +51,8 @@ require(here)
 library(patchwork)
 
 source(here("cross-ling-comparison-helpers.R"))
+
+set.seed(42)
 ```
 
 # Introduction
