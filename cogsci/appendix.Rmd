@@ -222,3 +222,53 @@ Rather than repeat the process specified, we suggest how the Swadesh CDI can be 
 1. As a starting point, take the above 229 uni-lemmas, and consider their linguistic and cultural appropriateness for the target language. Include as many as are relevant.
 2. For additional concepts, consider uni-lemmas that are frequently included on other CDIs, and especially focus on categories that are less well-represented on the Swadesh CDI: X, Y, and Z.
 3. Do a study?
+
+<!--
+## Comparison of Swadesh CDI Concepts to Other Lists
+
+
+28 of the Swadesh CDI candidates are on the 100-item CDI:WS short (form A), and 26 of the Swadesh candidates are on the WS short (form B).
+(Actually lower than expected by chance? 27%, and we have selected 34% of the length of the EN CDI:WS)
+26 Swadesh CDI concepts are also on the original Swadesh-100 list---and 12 are overlapping with the ASJP (a subset of the Swadesh-100 that performs as well as the Swadesh-100 for purposes of glottochronology).
+-->
+
+```{r swadesh-comparison, echo=F}
+# https://en.wikipedia.org/wiki/Swadesh_list
+swadesh100 = c("I","you","we","this","that","who","what","not","all","many","one","two","big","long","small",
+               "woman","man","person","fish","bird","dog","louse","tree","seed","leaf","root","bark","skin","flesh","blood",
+               "bone","grease","egg","horn","tail","feather","hair","head","ear","eye","nose","mouth","tooth","tongue","claw",
+               "foot","knee","hand","belly","neck","breasts","heart","liver","drink (action)","eat","bite","see","hear","know","sleep",
+               "die","kill","swim","fly","walk","come","lie","sit","stand","give","say","sun","moon","star","water",
+               "rain","stone","sand","earth","cloud","smoke","fire","ash","burn","path","mountain","red","green","yellow","white",
+               "black","night","hot","cold","full","new","good","round","dry","name")
+
+# https://en.wikipedia.org/wiki/Automated_Similarity_Judgment_Program#Word_list
+# ASJP subset of 40 Swadesh items that perform as well as full list
+# categories: Body parts, Animals and plants, People, Nature, Verbs and adjectives, Numerals and pronouns
+asjp = c("eye","ear","nose","tongue","tooth","hand","knee","blood","bone","breast","liver","skin",
+         "louse", # "bug" ?
+         "dog","fish (animal)","horn","tree","leaf",
+         "person","name", # People; match "name" to "child's own name" / "babysitter's name" / "pet's name" ?
+         "sun","star","water (not beverage)","fire","stone","path","mountain","night", # Nature
+         "drink (action)","die","see","hear","come", # Verbs and adjectives
+         "new","full","one","two","I","you","we")
+
+#intersect(asjp, good_prod$uni_lemma) 
+# "eye"            "nose"           "tongue"         "tooth"          "hand"           "knee"           "dog"           
+# "sun"            "star"           "drink (action)" "see"            "hear"  
+# 12 out of 40 -- wow!
+
+# intersect(swadesh100, good_prod$uni_lemma) 
+# "dog"            "head"           "eye"            "nose"           "mouth"          "tooth"          "tongue"        
+# "knee"           "hand"           "drink (action)" "eat"            "bite"           "see"            "hear"          
+# "sleep"          "swim"           "sun"            "moon"           "star"           "cloud"          "red"           
+# "green"          "yellow"         "white"          "black"          "cold"  
+# 26 out of 100 !
+# intersect(swadesh100, subset(xldf, language=="English (American)")$uni_lemma) 
+# 55 Swadesh words on English CDI (with "I")
+# intersect(swadesh100, xldf$uni_lemma) 
+# 83 Swadesh words on full list of uni-lemmas
+#setdiff(swadesh100, unique(xldf$uni_lemma))
+# "I" "fly" "fish" - "belly" (belly button?) "louse" "seed" "root" "skin" "flesh" "grease"  "horn"   
+# "feather" "claw" "breasts" "liver" "kill" "lie" "water" "ash" "dry" 
+```

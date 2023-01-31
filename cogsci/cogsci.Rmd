@@ -324,7 +324,7 @@ lang_d_m %>% ggplot(aes(x=reorder(language, -mean), y=mean)) + coord_flip() +
 
 ### Identifying Swadesh CDI Candidates
 
-The goal was to choose uni-lemmas that have low variability in their cross-linguistic difficulty---that is, uni-lemmas that are similarly difficult to learn across languages.
+The goal was to choose uni-lemmas with low variability in their cross-linguistic difficulty---that is, uni-lemmas that are similarly difficult to learn across languages.
 There were two thresholds that had to be defined to select Swadesh CDI (S-CDI) candidates: 1) $k$, the number of current CDI:WS forms a uni-lemma must appear on, and 2) $v_{min}$, the threshold for variability in cross-linguistic difficulty. 
 For $v_{min}$, we simply considered the uni-lemmas with a variation in cross-linguistic difficulty that was half a standard deviation less than average, among the set of uni-lemmas that were on at least $k$ forms. 
 Assuming variability was normally-distributed, this criterion preserved the $\sim19$% of the uni-lemmas with the lowest variability. <!-- 19.1% of a normal distro is <(mean-.5SD)  -->
@@ -490,7 +490,7 @@ This breakdown was comparable to the lexical category percentages on the 680-ite
 The S-CDI items were also present on more forms than typical in the selection set: on average, each item appeared on `r round(mean(good_prod$n), 0)` forms, despite only being required to appear on at least 9 forms.
 Finally, 28 S-CDI uni-lemmas were not present on the American English CDI:WS (e.g., _fruit_, _spider_, _enter_, _near_), suggesting that this method may help us move beyond an English-centric approach to studying early language.
 
-Figure 2 shows the average cross-linguistic difficulty of CDI items by semantic category, grouped by Swadesh and non-Swadesh uni-lemmas. 
+Figure 2 shows the average cross-linguistic difficulty of CDI items by semantic category, for both Swadesh and non-Swadesh items 
 The difficulty of Swadesh items generally tracked with that of non-Swadesh items, although there were cases where one or the other was more or less difficult.
 
 
@@ -609,18 +609,19 @@ print(tab2, type="latex", comment = F, table.placement = "H", include.rownames=F
 
 ## Validating the Swadesh CDI
 
-To validate the S-CDI, we first measured how well simulated raw scores from the S-CDI items correlated with full CDI:WS scores. 
+To validate the S-CDI, we first measured how well simulated raw scores from the S-CDI items correlated with full CDI:WS scores.
 This metric approximately reflects how reliable the S-CDI would be as a measure of a child's vocabulary.
-On average, for the 26 large CDI:WS datasets, the S-CDI's sumscores were strongly related to the full CDI:WS scores (mean $r=0.990$; $min=0.976$, $max=0.996$; full table on [OSF](https://osf.io/8swhb/?view_only=6f6ab9818f2a4bb288e05ca9e12f540c)).
+On average, for the 26 large CDI:WS datasets, the S-CDI's scores were strongly related to the full CDI:WS scores (mean $r=0.990$; $min=0.976$, $max=0.996$; full table on [OSF](https://osf.io/8swhb/?view_only=6f6ab9818f2a4bb288e05ca9e12f540c)).
 We compared these correlations against two baselines, which were designed to simulate possible methods of sampling items for a hypothetical new CDI form.
 The first baseline was the "English uni-lemmas" baseline, in which uni-lemmas were randomly sampled from the uni-lemmas that appeared on the English (American) CDI:WS form.
-This baseline had correlations to full CDI:WS scores of (TODO FILL IN VALUES).
+This baseline had a mean correlation to full CDI:WS scores of $r=0.997$.
 The second baseline was the "random uni-lemmas" baseline, in which uni-lemmas were randomly sampled from the total set of unique uni-lemmas across all the 26 CDI:WS forms, weighted by the number of forms that each uni-lemma occurred on.
-This baseline had correlations to full CDI:WS scores of (TODO FILL IN VALUES).
+This baseline had a mean correlation to full CDI:WS scores of $r=0.997$.
 
 Next, we measured the total test information yielded by the two baselines (recalling that total test information was one criterion for the construction of the S-CDI).
 This metric reflects how well the S-CDI would be able to differentiate the ability of children across different ability levels.
-As found above, the S-CDI yielded a total test information of (TODO FILL IN VALUES), whereas the English uni-lemmas baseline yielded a total test information of (TODO FILL IN VALUES), and the random uni-lemmas baseline yielded a total test information of (TODO FILL IN VALUES).
+As found above, the S-CDI yielded a mean total test information of 66085, whereas the English uni-lemmas baseline yielded a total test information of 67866, and the random uni-lemmas baseline yielded a total test information of 64504. 
+Neither of these baselines significantly differed from the Swadesh CDI's total test information.
 
 <!--However, these correlations were slightly but significantly lower than scores based on randomly-selected items (mean $r=0.993$, $min=0.990$, $max=0.996$, paired $t(25) = 5.67$, $p<.001$).
 This is likely due to some ceiling effects for older children on the Swadesh CDI, since the randomly-selected items are likely somewhat easier on average than the Swadesh items (see above results).-->
@@ -636,7 +637,20 @@ Table 2 shows the results of this comparison.
 # use the good_prod words as a short CDI, and compare the correlation 
 # of these words to a random selection (might be worse, due to being biased towards easy words?)
 
-# TODO: re-run with the weighted random selection (this is currently the strong baseline)
+xx_eng <- run_comparisons(xldf, languages, good_prod$uni_lemma, 
+                          rand_method="unilemmas_english", metrics=c("sumscore_cor","test_info"))
+xx_wt <- run_comparisons(xldf, languages, good_prod$uni_lemma, 
+                          rand_method="unilemmas_weighted", metrics=c("sumscore_cor","test_info"))
+
+sumscore_ttest_eng <- run_comparison_ttest(xx_eng, "sumscore_cor")
+# S-CDI .996 vs .997 Eng    t = -5.2018, df = 25, p-value = 2.213e-05
+tinfo_ttest_eng <- run_comparison_ttest(xx_eng, "test_info")
+# n.s. S-CDI info: 66085  vs Eng. info 67866  t = -1.5116, df = 25, p-value = 0.1432
+
+sumscore_ttest_wt <- run_comparison_ttest(xx_wt, "sumscore_cor") # run with paired=F to get means
+# S-CDI .996 vs .997 weighted 
+tinfo_ttest_wt <- run_comparison_ttest(xx_wt, "test_info", paired=T)
+# S-CDI 66085  vs weighted unis 64504  n.s. t = 1.6397, df = 25, p-value = 0.1136
 
 # just the Swadesh
 xx <- run_swadesh_comparisons(xldf, languages, good_prod$uni_lemma)
@@ -645,9 +659,23 @@ xx <- run_swadesh_comparisons(xldf, languages, good_prod$uni_lemma)
 # 0.989     0.995   0.998 
 
 #summary(xx$`Rand r`)
-#   Min.       Mean     Max. 
-# 0.9962     0.9974    0.998
+#   Min.     Mean    Max. 
+# 0.996     0.997    0.998
 
+gen_xx_eng <- run_comparisons(xldf, gen_test_langs, good_prod$uni_lemma, 
+                              rand_method="unilemmas_english", metrics=c("sumscore_cor","test_info"))
+
+gen_xx_wt <- run_comparisons(xldf_lowd, gen_test_langs, good_prod$uni_lemma, 
+                              rand_method="unilemmas_weighted", metrics=c("sumscore_cor","test_info"))
+
+# NA / NaNs...
+#gen_sumscore_ttest_eng <- run_comparison_ttest(gen_xx_eng, "sumscore_cor", paired=F)
+#gen_tinfo_ttest_eng <- run_comparison_ttest(gen_xx_eng, "test_info", paired=T)
+
+#gen_sumscore_ttest_wt <- run_comparison_ttest(gen_xx_wt, "sumscore_cor") # run with paired=F to get means
+#gen_tinfo_ttest_wt <- run_comparison_ttest(gen_xx_wt, "test_info", paired=T)
+
+# note that this uses the set of uni-lemmas on these 8 forms; not the full set from the 26 training langs!
 gen_xx <- run_swadesh_comparisons(xldf_lowd, gen_test_langs, good_prod$uni_lemma)
 #summary(gen_xx$`Swadesh r`) 
 # Min.       Mean     Max. 
@@ -657,7 +685,8 @@ gen_xx <- run_swadesh_comparisons(xldf_lowd, gen_test_langs, good_prod$uni_lemma
 #  Min.       Mean       Max. 
 # 0.9874     0.995    0.997 
 
-save(xx, gen_xx,   
+save(xx, xx_eng, xx_wt,
+     gen_xx, gen_xx_eng, gen_xx_wt,
      file=here("data/Swadesh_comparisons.Rdata"))
 ```
 
@@ -685,14 +714,14 @@ short_wsA <- read_csv(here("data/eng-ws-shortA.csv"))
 short_wsB <- read_csv(here("data/eng-ws-shortB.csv"))
 
 wsA_int = sort(intersect(short_wsA$word, good_prod$uni_lemma)) # 28
-# "airplane" "all gone" "bed"      "beside"   "broom"    "candy"    "cat"      "chin"     "cold"     "dog"      "duck"    
-# "fit"      "hand"     "horse"    "like"     "meow"     "milk"     "necklace" "ouch"     "peas"     "school"   "shopping"
-# "sky"      "stairs"   "star"     "tonight"  "towel"    "under"  
+# "airplane" "all gone" "bed" "beside"   "broom"    "candy"    "cat" "chin" "cold" "dog" "duck"  
+# "fit" "hand"     "horse"    "like"     "meow"     "milk"     "necklace" "ouch" "peas" "school" "shopping"
+# "sky" "stairs"   "star"     "tonight"  "towel"    "under"  
 wsB_int = sort(intersect(short_wsB$word, good_prod$uni_lemma)) # 26
-#  "before"         "bite"           "black"          "careful"        "catch"          "cloud"          "dirty"         
-# "drink (action)" "duck"           "hose"           "jump"           "kick"           "mailman"        "nose"          
-# "ouch"           "penguin"        "quack quack"    "salt"           "sun"            "telephone"      "then"          
-# "today"          "tomorrow"       "tongue"         "yum yum"        "zoo" 
+#  "before" "bite" "black" "careful" "catch" "cloud" "dirty"  
+# "drink (action)" "duck" "hose" "jump" "kick" "mailman" "nose"          
+# "ouch" "penguin" "quack quack" "salt" "sun" "telephone" "then"          
+# "today" "tomorrow" "tongue" "yum yum" "zoo" 
 
 # intersect(wsA_int, wsB_int) # 2 - "duck" "ouch"
 
@@ -701,49 +730,11 @@ wsB_int = sort(intersect(short_wsB$word, good_prod$uni_lemma)) # 26
 # maybe remove? penis, vagina, on the basis of DIF
 ```
 
-28 of the Swadesh candidates are on the 100-item CDI:WS short (form A), and 26 of the Swadesh candidates are on the WS short (form B).
-(Actually lower than expected by chance? 27%, and we have selected 34% of the length of the EN CDI:WS)
-26 Swadesh CDI concepts are also on the original Swadesh-100 list---and 12 are overlapping with the ASJP (a subset of the Swadesh-100 that performs as well as the Swadesh-100 for purposes of glottochronology).
 
 ```{r, out.width="\\linewidth", include=TRUE, fig.align="center", fig.cap=c("The 229 Swadesh CDI concepts by semantic category. Italicized items indicate concepts that are not included on the American English CDI:WS."), echo=FALSE}
 knitr::include_graphics("figs/SwadeshCDI_list.pdf")
 ```
 
-
-
-```{r swadesh-comparison, echo=F}
-# https://en.wikipedia.org/wiki/Swadesh_list
-swadesh100 = c("I","you","we","this","that","who","what","not","all","many","one","two","big","long","small",
-               "woman","man","person","fish","bird","dog","louse","tree","seed","leaf","root","bark","skin","flesh","blood",
-               "bone","grease","egg","horn","tail","feather","hair","head","ear","eye","nose","mouth","tooth","tongue","claw",
-               "foot","knee","hand","belly","neck","breasts","heart","liver","drink (action)","eat","bite","see","hear","know","sleep",
-               "die","kill","swim","fly","walk","come","lie","sit","stand","give","say","sun","moon","star","water",
-               "rain","stone","sand","earth","cloud","smoke","fire","ash","burn","path","mountain","red","green","yellow","white",
-               "black","night","hot","cold","full","new","good","round","dry","name")
-
-# https://en.wikipedia.org/wiki/Automated_Similarity_Judgment_Program#Word_list
-# ASJP subset of 40 Swadesh items that perform as well as full list
-# categories: Body parts, Animals and plants, People, Nature, Verbs and adjectives, Numerals and pronouns
-asjp = c("eye","ear","nose","tongue","tooth","hand","knee","blood","bone","breast","liver","skin",
-         "louse", # "bug" ?
-         "dog","fish (animal)","horn","tree","leaf",
-         "person","name", # People; match "name" to "child's own name" / "babysitter's name" / "pet's name" ?
-         "sun","star","water (not beverage)","fire","stone","path","mountain","night", # Nature
-         "drink (action)","die","see","hear","come", # Verbs and adjectives
-         "new","full","one","two","I","you","we")
-
-#intersect(asjp, good_prod$uni_lemma) 
-# "eye"            "nose"           "tongue"         "tooth"          "hand"           "knee"           "dog"           
-# "sun"            "star"           "drink (action)" "see"            "hear"  
-# 12 out of 40 -- wow!
-
-# intersect(swadesh100, good_prod$uni_lemma) 
-# "dog"            "head"           "eye"            "nose"           "mouth"          "tooth"          "tongue"        
-# "knee"           "hand"           "drink (action)" "eat"            "bite"           "see"            "hear"          
-# "sleep"          "swim"           "sun"            "moon"           "star"           "cloud"          "red"           
-# "green"          "yellow"         "white"          "black"          "cold"  
-# 26 out of 100 !
-```
 
 
 # Discussion
@@ -757,17 +748,17 @@ The Swadesh CDI contains items with relatively good difficulty estimates cross-l
 However, the Swadesh CDI items were also significantly easier than other items, meaning that older children may perform at ceiling if given only the Swadesh CDI items.
 (This may be unsurprising from the perspective that Swadesh words are meant to be universal, and are therefore more frequent and basic---both within and across individual children's experiences.)
 Thus, our suggested use case for the Swadesh CDI list is as a starting point for researchers seeking to develop a CDI in a new language, rather than as a complete short-form CDI based on existing long-form CDI data.
-In particular, researchers should seek to add contextually appropriate items from the categories that were less well-represented on the Swadesh list (e.g., quantifiers, question words). 
-These categories also tended to be more difficult, so adding items from them may help to raise the difficulty ceiling of the form.
+In particular, researchers should seek to add contextually appropriate items from the categories that were less well-represented on the Swadesh list, including question words, quantifiers, helping verbs, and pronouns. 
+These categories also tended to be more difficult, so adding items from them will likely increase the difficulty ceiling of the form.
 <!--Note that something interesting is how researchers cannot a priori know which items are difficult, so we can't recommend that they "add more difficult items"... I guess they can look at more difficult _uni-lemmas_ and add some of those if they are contextually appropriate?? Not sure exactly what the best recommendation is.-->
 
 Another potential limitation of this work is that most existing CDIs (and most datsets available in Wordbank) target languages in the Indo-European language family. <!-- add sentence about cultural bias -->
 It is not clear to what extent this bias in the existing data might interfere with generalizing to non-Indo-European languages.
-Nonetheless, our original 26 datasets include 7 non-Indo-European languages (3 Sino-Tibetan, 1 Afro-Asiatic, 1 Uralic, 1 Koreanic, 1 Turkic), and the generalization datasets include 1 Uralic language and 2 Niger--Congo languages (a langauge family that is not represented in the original datasets); the broad consistency across language families thus suggests that the effectiveness of the Swadesh list may be sufficiently robust.
+Nonetheless, our original 26 datasets include 7 non-Indo-European languages (3 Sino-Tibetan, 1 Afro-Asiatic, 1 Uralic, 1 Koreanic, 1 Turkic), and the generalization datasets include 1 Uralic and 2 Niger-Congo languages (a language family not represented in the original datasets); the broad consistency across language families thus suggests that the effectiveness of the Swadesh list may be sufficiently robust.
 <!--Such a robustness also corroborates with results from @floccia2018, who demonstrated that a bilingual vocabulary model based on a set of 30 uni-lemmas had good predictive validity on non-target languages, even those from other language families.-->
 
 Developing a list of appropriate vocabulary words is not the only challenge researchers face when seeking to develop and use parent-report measures in a new language and culture. 
-The pragmatics of language between children and adults can differ greatly across cultures, and has been found to interfere with administration of parent-report measures of early vocabulary, for example in Kiswahili [@alcock2017production] and Wolof [@weber2018]. TODO: FOR EXAMPLE...
+The pragmatics of language between children and adults can differ greatly across cultures, and has been found to interfere with administration of parent-report measures of early vocabulary, for example in Kiswahili [@alcock2017production] and Wolof [@weber2018]. <!-- TODO: FOR EXAMPLE... -->
 As such, local cultural knowledge remains essential in appropriately developing and administering novel CDI adaptations.
 
 Despite the myriad challenges that remain in creating new measures of early language development, we believe that the proposed Swadesh CDI list will give researchers a solid foundation to start from, lowering the barrier to the adaptation of CDI forms in new languages, since these are often time-consuming and challenging to construct.

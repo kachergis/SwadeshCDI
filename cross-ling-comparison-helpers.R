@@ -240,7 +240,7 @@ run_comparisons <- function(xldf, languages, swad_list, form = 'WS',
 }
 
 # method for comparing (t.test) Swadesh vs. random lists on different metrics
-run_comparison_ttest <- function(comparisons_df, metric) {
+run_comparison_ttest <- function(comparisons_df, metric, paired=T) {
   test_metric <- metric
   
   comparisons_mean <- comparisons_df |> 
@@ -254,5 +254,5 @@ run_comparison_ttest <- function(comparisons_df, metric) {
          comparisons_mean |> 
            filter(sublist == "random", metric == test_metric) |> 
            pull(value),
-         paired = TRUE)
+         paired = paired)
 }
