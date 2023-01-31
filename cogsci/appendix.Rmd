@@ -181,6 +181,26 @@ gen_xx %>% kable(digits=3, caption="Swadesh CDI with difficult words vs. Full CD
 Below we show the full list of 229 Swadesh CDI uni-lemmas, along with their average cross-linguistic difficulty (d_m), variability in difficulty (d_sd), number of CDI:WS forms they appear on (n, out of 26), semantic category, and lexical category. The semantic and lexical categories are based on American English, as uni-lemmas sometimes appear in different categories on different forms, as appropriate.
 
 ```{r}
+#swad_freq[1:50] # appearing on 22-25 Swadesh lists
+#swad_freq[51:100] # 18-22 lists
+#swad_freq[101:153] # 14-18
+
+# 8 words appeared on all 25 lists: airplane, cold, dirty, door, key, sing, TV, wait 
+# 18 words appeared on 24 of the 25 lists: ant, banana, cat, dance, doctor, dog, eat, finger, lion, milk, mommy, moon, nose, paper, telephone, tongue, tooth, yes -- all of which on k=9 list
+# 19 appeared on 23/25 lists: -- all on k=9 list
+# 18 appeared on 22/25 lists: -- all on k=9 list
+# 15 appeared on 21/25:  -- all on k=9 list
+# 7 appeared on 20/25: -- all on k=9 list
+# 10 appeared on 19/25: -- all on k=9 list
+# 16 appeared on 18/25: -- al on k=9 list
+# 9 on 17/25 -- all on k=9 list
+
+
+#names(swad_freq[which(swad_freq==22)])
+#length(intersect(names(swad_freq[which(swad_freq==21)]), good_prod$uni_lemma))
+
+# length(intersect(names(swad_freq[which(swad_freq>17)]), good_prod$uni_lemma)) # 111 
+
 good_prod <- swad_lists[[9]]
 
 en_good_prod <- good_prod %>% 
