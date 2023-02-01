@@ -1,7 +1,7 @@
 ---
-title: "Appendix"
-author: "George Kachergis"
-date: "2023-01-25"
+title: "Appendix to _Measuring Children's Early Vocabulary in Low-Resource Languages Using a Swadesh-style Word List_"
+author: "[redacted for anonymous review]"
+date: "February 1, 2023"
 output:
   html_document: default
 ---

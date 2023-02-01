@@ -1,0 +1,119 @@
+---
+title: "Apophenia"
+author: "George"
+date: "2023-02-01"
+output: html_document
+---
+
+```{r, include=F}
+require(here)
+require(tidyverse)
+require(glue)
+```
+
+
+```{r setup, eval=F, include=FALSE}
+# for given lang, get graph of cor bw full WS and rand indices
+get_random_cors <- function(lang, form="WS", nsamp=100) {
+  message(glue("Processing {lang}\r"))
+  load(here(paste("data/",form,"/",lang,"_",form,"_data.Rdata", sep='')))
+  WS_tot = rowSums(d_prod, na.rm=T)
+  steps = seq(25, 300, by=25)
+  dat = tibble()
+  for(step in steps) {
+    for(i in 1:nsamp) {
+      tmp = c()
+      rand_idx = sample(1:ncol(d_prod), step)
+      tmp = c(tmp, cor(WS_tot, rowSums(d_prod[,rand_idx], na.rm=T)))
+    }
+    dat = dat %>% 
+      bind_rows(tibble(language = lang, 
+                       N = step, 
+                       mean_cor = mean(tmp)))
+  }
+  return(dat)
+}
+
+
+# now the same, but sample from English
+eng_unis <- subset(xldf, language=="English (American)")
+get_random_english_cors <- function(lang, form="WS", nsamp=100) {
+  message(glue("Processing {lang}\r"))
+  load(here(paste("data/",form,"/",lang,"_",form,"_data.Rdata", sep='')))
+  # find all Eng unis that are in lang - will randomly draw from these
+  poss_unis = subset(items, is.element(uni_lemma, eng_unis$uni_lemma))
+  WS_tot = rowSums(d_prod, na.rm=T)
+  steps = seq(25, 300, by=25)
+  dat = tibble()
+  for(step in steps) {
+    for(i in 1:nsamp) {
+      tmp = c()
+      row_idx = sample(1:nrow(poss_unis), step)
+      item_idx = poss_unis[row_idx,]$item_id
+      tmp = c(tmp, cor(WS_tot, rowSums(d_prod[,item_idx], na.rm=T)))
+    }
+    dat = dat %>% 
+      bind_rows(tibble(language = lang, 
+                       N = step, 
+                       mean_cor = mean(tmp)))
+  }
+  return(dat)
+}
+
+
+swad_list = swad_lists[[9]]
+get_random_swadesh_cors <- function(lang, form="WS", nsamp=100) {
+  message(glue("Processing {lang}\r"))
+  load(here(paste("data/",form,"/",lang,"_",form,"_data.Rdata", sep='')))
+  # find all Swad unis that are in lang - will randomly draw from these
+  poss_unis = subset(items, is.element(uni_lemma, swad_list$uni_lemma))
+  WS_tot = rowSums(d_prod, na.rm=T)
+  steps = seq(25, nrow(poss_unis), by=25)
+  dat = tibble()
+  for(step in steps) {
+    for(i in 1:nsamp) {
+      tmp = c()
+      row_idx = sample(1:nrow(poss_unis), step)
+      item_idx = poss_unis[row_idx,]$item_id
+      tmp = c(tmp, cor(WS_tot, rowSums(d_prod[,item_idx], na.rm=T)))
+    }
+    dat = dat %>% 
+      bind_rows(tibble(language = lang, 
+                       N = step, 
+                       mean_cor = mean(tmp)))
+  }
+  return(dat)
+}
+
+
+get_all_random_cors <- function(languages) {
+  dat <- tibble()
+  for(lang in languages) {
+    dat <- bind_rows(dat, get_random_cors(lang) %>% mutate(Random="Item"))
+    dat <- bind_rows(dat, get_random_english_cors(lang) %>% mutate(Random="English"))
+    dat <- bind_rows(dat, get_random_swadesh_cors(lang) %>% mutate(Random="Swadesh"))
+  }
+  return(dat)
+}
+
+dat <- get_all_random_cors(languages)
+save(dat, file=here("data/apophenia.Rdata"))
+```
+
+Just pick N items, either from the target language's CDI:WS, or from English.
+
+```{r, fig.width=8, fig.height=5}
+load(here("data/apophenia.Rdata"))
+
+dat %>% ggplot(aes(x=N, y=mean_cor, color=language)) + 
+  facet_wrap(. ~ Random) + 
+  geom_line() + theme_bw() 
+```
+
+```{r}
+dat %>% group_by(N, Random) %>%
+  summarise(mean_cor = mean(mean_cor)) %>%
+  ggplot(aes(x=N, y=mean_cor, color=Random)) + 
+  geom_line() + theme_bw() + ylim(.97, 1)
+```
+
