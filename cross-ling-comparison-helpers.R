@@ -168,7 +168,7 @@ run_comparisons <- function(xldf, languages, swad_list, form = 'WS',
     swad_idx <- is.element(xldf_l$uni_lemma, swad_list) |> which()
     rand_idxs <- lapply(1:rand_comparisons, \(comp) {
       if (rand_method == "items") {
-        return(sample(1:ncol(d_prod), nrow(swad_l)))
+        return(sample(1:ncol(d_prod), length(swad_idx)))
       }
       if (rand_method == "unilemmas_english") {
         eng_ul <- xldf |> filter(language == "English (American)")
