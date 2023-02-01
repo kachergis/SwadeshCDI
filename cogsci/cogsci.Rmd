@@ -638,7 +638,7 @@ gen_test_langs <- low_data_langs$Language
 ```
 
 Comparing the IRT parameters of the S-CDI uni-lemmas to the rest of the items (across all CDI:WS forms) showed that the discrimination parameter (i.e., slope) of the Swadesh items did not significantly differ from the others, suggesting that the Swadesh items could measure ability as well as non-Swadesh uni-lemmas.
-However, the candidate Swadesh items were significantly easier than the other uni-lemmas appearing at least 9 times on forms (mean S-CDI $d=$ `r round(tmp[2,"d"], 2)`, other items' mean $d=$ `r round(tmp[1,"d"], 2)`, `r report_ttest(swad_diff_ttest)`).
+However, the candidate Swadesh items were significantly easier than the other uni-lemmas (mean S-CDI $d=$ `r round(tmp[2,"d"], 2)`, other items' mean $d=$ `r round(tmp[1,"d"], 2)`, `r report_ttest(swad_diff_ttest)`).
 
 
 ```{r, echo=F, results='asis', include=F}
@@ -684,19 +684,13 @@ This baseline had a mean correlation to full CDI:WS scores of $r=0.997$. -->
 Next, we measured the total test information yielded by the two baselines (recalling that total test information was one criterion for the construction of the S-CDI).
 This metric reflects how well the S-CDI would be able to differentiate the ability of children across different ability levels.
 As reported above, the S-CDI yielded a mean total test information of 66085, while the random uni-lemmas baseline yielded a total test information of 66374. 
-<!-- whereas the English uni-lemmas baseline yielded a total test information of 67866,
-Neither of these baselines significantly differed from the Swadesh CDI's total test information. -->
-
-<!--However, these correlations were slightly but significantly lower than scores based on randomly-selected items (mean $r=0.993$, $min=0.990$, $max=0.996$, paired $t(25) = 5.67$, $p<.001$).
-This is likely due to some ceiling effects for older children on the Swadesh CDI, since the randomly-selected items are likely somewhat easier on average than the Swadesh items (see above results).-->
 
 ## Testing Generalization of the Swadesh CDI 
 
 We then evaluated the S-CDI's performance in a test of generalization to eight more CDI:WS datasets.
 For the eight low-data languages, a comparison of simulated S-CDI scores to full CDI:WS revealed that the S-CDI's raw scores were again strongly related (mean $r=0.990$; $min=0.983$, $max=0.997$), with an average of $M=153$ S-CDI items appearing per list.
 Table 2 shows the results of this comparison, alongside the upper bound random baseline.
-Once again, the S-CDI performed nearly as well as a random sample of the actual CDI at pre
-<!--As with the training set, however, the Swadesh list correlations were slightly but significantly lower than scores based on randomly-selected items (mean $r=0.995$; $min=0.987$, $max=0.997$; $t(7) = 3.22$, $p=.01$).-->
+Once again, the S-CDI performed nearly as well as a random sample of the actual CDI (random mean $r=0.994$).
 
 ```{r generalization-test, echo=F, eval=F}
 # use the good_prod words as a short CDI, and compare the correlation 
@@ -738,14 +732,14 @@ all_unis <- bind_rows(xldf, xldf_lowd)
 #run_comparison_ttest(gen_xx_eng, metric="sumscore_cor")
 
 #gen_xx_wt <- run_comparisons(xldf, gen_test_langs, good_prod$uni_lemma, 
-#                              rand_method="unilemmas_weighted", metrics=c("sumscore_cor","test_info"))
+#                              rand_method="unilemmas_weighted", metrics=c("sumscore_cor"))
 
 gen_xx_it <- run_comparisons(all_unis, low_data_langs$Language, good_prod$uni_lemma, 
-                              rand_method="items", metrics=c("sumscore_cor","test_info"))
+                              rand_method="items", metrics=c("sumscore_cor"))
 
-# NA / NaNs...
-#gen_sumscore_ttest_eng <- run_comparison_ttest(gen_xx_eng, "sumscore_cor", paired=F)
-#gen_tinfo_ttest_eng <- run_comparison_ttest(gen_xx_eng, "test_info", paired=T)
+gen_sumscore_ttest <- run_comparison_ttest(gen_xx_it, "sumscore_cor", paired=T)
+# t = -1.6543, df = 7.8226, p-value = 0.1375 
+# Swad mean: .987 vs. 0.995
 
 #gen_sumscore_ttest_wt <- run_comparison_ttest(gen_xx_wt, "sumscore_cor") # run with paired=F to get means
 #gen_tinfo_ttest_wt <- run_comparison_ttest(gen_xx_wt, "test_info", paired=T)
@@ -759,7 +753,6 @@ gen_xx <- run_swadesh_comparisons(xldf_lowd, low_data_langs$Language, good_prod$
 #summary(gen_xx$`Rand r`)
 #  Min.       Mean      Max. 
 # 0.987     0.995    0.997 
-
 
 
 save(xx, #xx_eng, xx_wt,
@@ -779,13 +772,6 @@ print(gen_tab, type="latex", comment = F, table.placement = "H",
 
 
 ```{r, include=F}
-
-# are we any worse than random? slightly, but significantly...
-t.test(xx$`Swadesh r` - xx$`Rand r`)
-# t = -7.0483, df = 25, p-value = 2.181e-07
-
-t.test(gen_xx$`Swadesh r` - gen_xx$`Rand r`) 
-# t = -4.2937, df = 7, p-value = 0.003594
 
 short_wsA <- read_csv(here("data/eng-ws-shortA.csv"))
 short_wsB <- read_csv(here("data/eng-ws-shortB.csv"))
