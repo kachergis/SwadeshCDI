@@ -84,8 +84,7 @@ For example, the American English CDI:WS and Mexican Spanish CDI:WS forms---two 
 [^1]: [https://mb-cdi.stanford.edu/adaptations.htm](https://mb-cdi.stanford.edu/adaptations.htm)
 
 <!-- rewrite/break up long sentence -->
-It is well-established that, all over the world, early-learned words reflect the people and things that children are likely to experience, that is, words for family members, animals, and common household objects [@tardif2008baby; @frank2021]. 
-Given this finding, it is reasonable to ask: Is there a single set of translation equivalents that would meet the criteria for inclusion on CDIs from multiple languages? 
+It is well-established that, all over the world, early-learned words reflect the people and things that children are likely to experience, that is, words for family members, animals, and common household objects [@tardif2008baby; @frank2021]. Given this finding, it is reasonable to ask: Is there a single set of translation equivalents that would meet the criteria for inclusion on CDIs from multiple languages? 
 
 To facilitate this effort, it is useful to leverage Item-Response Theory [IRT, @embretson2013] models. 
 IRT models infer both the abilities of test takers and the difficulty of individual test items (i.e., words), along standardized dimensions. 
@@ -388,10 +387,10 @@ for(k in 2:26) {
   uni_k <- uni_per_form %>%
     filter(n >= k)
   N = nrow(uni_k)
-  mean_diff = mean(uni_k$d_m) # average difficulty of uni-lemmas on at least k forms
-  mean_sd = mean(uni_k$d_sd) # average SD of difficulty of uni-lemmas on at least k forms
+  mean_diff = mean(uni_k$d_m) # mean difficulty of uni-lemmas on at least k forms
+  med_sd = median(uni_k$d_sd) # median difficulty SD of uni-lemmas on at least k forms
   sd_sd = sd(uni_k$d_sd) # variability of SD(diff)
-  sd_thresh = mean_sd - .5*sd_sd
+  sd_thresh = med_sd - .5*sd_sd
   swad_lists[[k]] = uni_k %>% filter(d_sd < sd_thresh)
   
   xx_g <- run_comparisons(xldf, languages |> sort(), swad_lists[[k]]$uni_lemma, 
@@ -401,19 +400,17 @@ for(k in 2:26) {
   xx_agg <- xx_g |> 
     group_by(language, sublist, metric) |> 
     summarise(mean = mean(value),
-              N_avail = mean(N),
-              sublist_mean_diff = mean(mean_d)) |> 
+              N_avail = mean(N)) |> 
     spread(metric, mean) |>
     mutate(k = k, 
            N = N,
-           mean_diff = mean_diff,
-           mean_sd = mean_sd,
+           med_diff = med_diff,
+           med_sd = med_sd,
            sd_sd = sd_sd,
            sd_thresh = sd_thresh,
            swad_mean_diff = mean(swad_lists[[k]]$d_m),
            swad_diff_sd = sd(swad_lists[[k]]$d_m),
-           swad_n = nrow(swad_lists[[k]]),
-           sublist_mean_diff = sublist_mean_diff)
+           swad_n = nrow(swad_lists[[k]]))
   
   swad_agg <- bind_rows(swad_agg, xx_agg)
 }
@@ -427,7 +424,7 @@ for(k in 2:26) {
 }
 swad_freq = sort(table(all_swad), decr=T)
 
-save(swad_agg, swad_lists, swad_freq, file=here("data/Swadesh_grid_search_final.Rdata"))
+save(swad_agg, swad_lists, swad_freq, file=here("data/Swadesh_grid_search_med_pt5sd.Rdata"))
 
 #library(wordcloud)
 #library(RColorBrewer)
@@ -441,7 +438,7 @@ wordcloud2(data=data.frame(word = names(swad_freq[1:150]),
 ```
 
 ```{r load-swadesh-lists, echo=F}
-load(here("data/Swadesh_grid_search_final.Rdata"))
+load(here("data/Swadesh_grid_search_1sd.Rdata"))
 
 
 # looking at appendix table, k=9 seems the best (highest test info, v close to same full correlation as rand)
@@ -453,52 +450,6 @@ not_en_good <- subset(en_good_prod, is.na(item_id)) # 28
 #not_en_good$uni_lemma
 
 ```
-
-
-```{r, include=F}
-# production sumscore vs. Swadesh prod sumscore
-all_unis <- bind_rows(xldf, xldf_lowd) 
-
-get_sumscores_vs_swad <- function(all_unis, languages, swad_list, form="WS") {
-  xx <- tibble()
-  for(lang in languages) {
-    load(here(paste("data/",form,"/",lang,"_",form,"_data.Rdata", sep='')))
-    swad_l <- subset(all_unis, language==lang & is.element(uni_lemma, swad_list)) 
-    swad_cor = cor(rowSums(d_prod, na.rm=T), rowSums(d_prod[,swad_l$item_id], na.rm=T))
-    tmp <- tibble(WS_score=rowSums(d_prod, na.rm=T), 
-                  swad_score=rowSums(d_prod[,swad_l$item_id], na.rm=T)) %>% 
-      mutate(language = lang, Nswad = nrow(swad_l), Nws = ncol(d_prod))
-    if(nrow(d_demo)==nrow(tmp)) {
-      tmp$age = d_demo$age
-    } else { # e.g., Spanish (Mexican) has a d_demo dim mismatch, so can't easily align
-      tmp$age = NA 
-    }
-    xx <- xx %>% bind_rows(tmp)
-  }
-  return(xx)
-}
-
-gen_df <- get_sumscores_vs_swad(all_unis, low_data_langs$Language, good_prod$uni_lemma, form="WS") %>%
-  mutate(prop_swad = swad_score / Nswad,
-         prop_ws = WS_score / Nws) 
-
-gen_ag <- gen_df %>% group_by(language) %>%
-  summarise(swad_cor = cor(prop_swad, prop_ws),
-            Nws = median(Nws),
-            Nswad = median(Nswad))
-
-mean(gen_ag$Nswad)
-# only 153 of the 230 Swadesh items are on each low-data lang's WS, on average
-mean(gen_ag$swad_cor) # .990 mean cor
-cor.test(gen_ag$swad_cor, gen_ag$Nswad) # the more Swadesh items, the better the cor
-
-
-gen_df %>%
-  ggplot(aes(x=prop_swad, y=prop_ws, color=age)) + geom_point(alpha=.5) + theme_classic() + 
-  geom_smooth()
-
-```
-
 
 
 ```{r grid-search-plots, fig.cap=c("Number of uni-lemmas appearing on at least $k$ lists (top). Total test information for Swadesh lists, and random tests of the same length (bottom)."), fig.height=5.5, fig.width=3.4}
@@ -662,10 +613,9 @@ print(tab2, type="latex", comment = F, table.placement = "H", include.rownames=F
 
 To validate the S-CDI, we first measured how well simulated raw scores from the S-CDI items correlated with full CDI:WS scores.
 This metric approximately reflects how reliable the S-CDI would be as a measure of a child's vocabulary.
-On average, for the 26 large CDI:WS datasets, the S-CDI's scores were strongly related to the full CDI:WS scores (mean $r=0.996$; $min=0.989$, $max=0.998$; full table on [OSF](https://osf.io/8swhb/?view_only=6f6ab9818f2a4bb288e05ca9e12f540c)).
-We compared these correlations against two random baselines, which were designed to simulate possible if undesirable methods of sampling items for a hypothetical new CDI form.
-The first baseline was the "English uni-lemmas" baseline, in which uni-lemmas were randomly sampled from the uni-lemmas that appeared on the American English CDI:WS form. 
-Note that on average, only M uni-lemmas from the Swadesh CDI list were present on CDI:WS forms; thus, only an equal number of concepts were sampled for each form from the English CD:WS. 
+On average, for the 26 large CDI:WS datasets, the S-CDI's scores were strongly related to the full CDI:WS scores (mean $r=0.990$; $min=0.976$, $max=0.996$; full table on [OSF](https://osf.io/8swhb/?view_only=6f6ab9818f2a4bb288e05ca9e12f540c)).
+We compared these correlations against two baselines, which were designed to simulate possible methods of sampling items for a hypothetical new CDI form.
+The first baseline was the "English uni-lemmas" baseline, in which uni-lemmas were randomly sampled from the uni-lemmas that appeared on the American English CDI:WS form.
 This baseline had a mean correlation to full CDI:WS scores of $r=0.997$.
 The second baseline was the "random uni-lemmas" baseline, in which uni-lemmas were randomly sampled from the total set of unique uni-lemmas across all the 26 CDI:WS forms, weighted by the number of forms that each uni-lemma occurred on.
 This baseline had a mean correlation to full CDI:WS scores of $r=0.997$.
