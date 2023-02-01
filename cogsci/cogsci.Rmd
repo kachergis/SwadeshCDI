@@ -395,7 +395,7 @@ for(k in 2:26) {
   swad_lists[[k]] = uni_k %>% filter(d_sd < sd_thresh)
   
   xx_g <- run_comparisons(xldf, languages |> sort(), swad_lists[[k]]$uni_lemma, 
-                        rand_method = "unilemmas_weighted", rand_comparisons = 1000,
+                        rand_method = "items", rand_comparisons = 1000,
                         metrics = c("sumscore_cor", "test_info")) # theta_cor breaks on French (French): incompatible dimensions
   
   xx_agg <- xx_g |> 
