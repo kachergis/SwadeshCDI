@@ -662,9 +662,10 @@ print(tab2, type="latex", comment = F, table.placement = "H", include.rownames=F
 
 To validate the S-CDI, we first measured how well simulated raw scores from the S-CDI items correlated with full CDI:WS scores.
 This metric approximately reflects how reliable the S-CDI would be as a measure of a child's vocabulary.
-On average, for the 26 large CDI:WS datasets, the S-CDI's scores were strongly related to the full CDI:WS scores (mean $r=0.990$; $min=0.976$, $max=0.996$; full table on [OSF](https://osf.io/8swhb/?view_only=6f6ab9818f2a4bb288e05ca9e12f540c)).
+On average, for the 26 large CDI:WS datasets, the S-CDI's scores were strongly related to the full CDI:WS scores (mean $r=0.996$; $min=0.989$, $max=0.998$; full table on [OSF](https://osf.io/8swhb/?view_only=6f6ab9818f2a4bb288e05ca9e12f540c)).
 We compared these correlations against two random baselines, which were designed to simulate possible if undesirable methods of sampling items for a hypothetical new CDI form.
-The first baseline was the "English uni-lemmas" baseline, in which uni-lemmas were randomly sampled from the uni-lemmas that appeared on the American English CDI:WS form.
+The first baseline was the "English uni-lemmas" baseline, in which uni-lemmas were randomly sampled from the uni-lemmas that appeared on the American English CDI:WS form. 
+Note that on average, only M uni-lemmas from the Swadesh CDI list were present on CDI:WS forms; thus, only an equal number of concepts were sampled for each form from the English CD:WS. 
 This baseline had a mean correlation to full CDI:WS scores of $r=0.997$.
 The second baseline was the "random uni-lemmas" baseline, in which uni-lemmas were randomly sampled from the total set of unique uni-lemmas across all the 26 CDI:WS forms, weighted by the number of forms that each uni-lemma occurred on.
 This baseline had a mean correlation to full CDI:WS scores of $r=0.997$.
