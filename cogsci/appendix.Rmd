@@ -49,7 +49,9 @@ olap <- get_uni_lemma_overlap(xldf)
 
 ## Uni-lemma Overlap on CDI:WS Forms
 
-Number of overlapping items on each pair of CDI:WS forms.
+Number of overlapping concepts on each pair of CDI:WS forms.
+American English has the highest average degree of overlap (468 uni-lemmas), which may be driven in large part by it being the oldest form, from which many others were adapted.
+The form with the lowest average degree of overlap is European Spanish, with only 325 uni-lemmas shared with other forms, on average.
 
 ```{r, fig.width=10, fig.height=10}
 # show heatmap of overlap between each CDI:WS
@@ -112,7 +114,8 @@ Instead of setting an arbitrary threshold, we chose to try all possible values o
 The table below shows test information for each threshold, with the highest S-CDI test information achieved by $k=9$ (66577).
 
 ```{r, echo=F}
-load(here("data/Swadesh_grid_search_final.Rdata"))
+#load(here("data/Swadesh_grid_search_final.Rdata")) # mean-.5sd threshold
+load(here"data/Swadesh_grid_search_1sd.Rdata")) # mean-1sd threshold
 
 swad_tab <- swad_agg %>% filter(sublist=="Swadesh") %>%
   filter(language!="French (French)") %>% # test info is WAY high -- something fishy
@@ -220,8 +223,8 @@ Many recommendations and caveats have been enumerated by the CDI Advisory Board,
 Rather than repeat the process specified, we suggest how the Swadesh CDI can be used to jump-start the process.
 
 1. As a starting point, take the above 229 uni-lemmas, and consider their linguistic and cultural appropriateness for the target language. Include as many as are relevant.
-2. For additional concepts, consider uni-lemmas that are frequently included on other CDIs, and especially focus on categories that are less well-represented on the Swadesh CDI: X, Y, and Z.
-3. Do a study?
+2. Consider adding uni-lemmas that are frequently included on other CDIs, and especially focus on categories that are less well-represented on the Swadesh CDI, including question words, quantifiers, helping verbs, and pronouns. We recommending adding 10-20 items across these categories.
+3. Do a pilot study, including several children at the upper and lower intended ages, and revise if there are many children at floor or ceiling.
 
 <!--
 ## Comparison of Swadesh CDI Concepts to Other Lists
