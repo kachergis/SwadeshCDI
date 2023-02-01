@@ -149,7 +149,8 @@ run_comparisons <- function(xldf, languages, swad_list, form = 'WS',
                             rand_method = "items", rand_comparisons = 1000,
                             metrics = c("sumscore_cor", 
                                         "theta_cor",
-                                        "test_info")) {
+                                        "test_info"),
+                            ul_length_by = "items") {
   theta_range <- matrix(seq(-4,4,.01))
   xx <- tibble()
   ul <- xldf |> 
@@ -170,17 +171,18 @@ run_comparisons <- function(xldf, languages, swad_list, form = 'WS',
       if (rand_method == "items") {
         return(sample(1:ncol(d_prod), length(swad_idx)))
       }
+      sample_length <- length(swad_idx) if ul_length_by == "items" else length(swad_list)
       if (rand_method == "unilemmas_english") {
         eng_ul <- xldf |> filter(language == "English (American)")
-        rand_uls <- sample(1:nrow(eng_ul), length(swad_list))
+        rand_uls <- sample(1:nrow(eng_ul), sample_length)
         rand_idx <- is.element(xldf_l$uni_lemma,
                                eng_ul[rand_uls,] |> pull(uni_lemma)) |> 
           which()
         return(rand_idx)
       }
       rand_uls <- case_when(
-        rand_method == "unilemmas" ~ sample(1:nrow(ul), length(swad_list)),
-        rand_method == "unilemmas_weighted" ~ sample(1:nrow(ul), length(swad_list), prob = ul),
+        rand_method == "unilemmas" ~ sample(1:nrow(ul), sample_length),
+        rand_method == "unilemmas_weighted" ~ sample(1:nrow(ul), sample_length, prob = ul),
         # TRUE ~ stop("Rand method not supported")
       )
       rand_idx <- is.element(xldf_l$uni_lemma, 
