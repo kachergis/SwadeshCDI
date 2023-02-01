@@ -153,6 +153,7 @@ run_comparisons <- function(xldf, languages, swad_list, form = 'WS',
   theta_range <- matrix(seq(-4,4,.01))
   xx <- tibble()
   ul <- xldf |> 
+    filter(!language %in% low_data_langs$Language) |> 
     select(language, uni_lemma) |> 
     distinct() |> 
     pull(uni_lemma) |> 
