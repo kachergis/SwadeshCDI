@@ -401,7 +401,8 @@ for(k in 2:26) {
   xx_agg <- xx_g |> 
     group_by(language, sublist, metric) |> 
     summarise(mean = mean(value),
-              N_avail = mean(N)) |> 
+              N_avail = mean(N),
+              sublist_mean_diff = mean(mean_d)) |> 
     spread(metric, mean) |>
     mutate(k = k, 
            N = N,
@@ -411,7 +412,8 @@ for(k in 2:26) {
            sd_thresh = sd_thresh,
            swad_mean_diff = mean(swad_lists[[k]]$d_m),
            swad_diff_sd = sd(swad_lists[[k]]$d_m),
-           swad_n = nrow(swad_lists[[k]]))
+           swad_n = nrow(swad_lists[[k]]),
+           sublist_mean_diff = sublist_mean_diff)
   
   swad_agg <- bind_rows(swad_agg, xx_agg)
 }
