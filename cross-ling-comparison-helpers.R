@@ -171,7 +171,7 @@ run_comparisons <- function(xldf, languages, swad_list, form = 'WS',
       if (rand_method == "items") {
         return(sample(1:ncol(d_prod), length(swad_idx)))
       }
-      sample_length <- length(swad_idx) if ul_length_by == "items" else length(swad_list)
+      sample_length <- if (ul_length_by == "items") length(swad_idx) else length(swad_list)
       if (rand_method == "unilemmas_english") {
         eng_ul <- xldf |> filter(language == "English (American)")
         rand_uls <- sample(1:nrow(eng_ul), sample_length)
@@ -191,6 +191,13 @@ run_comparisons <- function(xldf, languages, swad_list, form = 'WS',
       rand_idx}
     )
     
+    swad_d <- xldf_l[swad_idx,] |> pull(d) |> mean(na.rm = TRUE)
+    rand_ds <- sapply(1:rand_comparisons, \(comp) {
+      rand_idx <- rand_idxs[[comp]]
+      rand_d <- xldf_l[rand_idx,] |> pull(d) |> mean(na.rm = TRUE)
+      rand_d
+    })
+    
     if ("sumscore_cor" %in% metrics) {
       swad_sscor <- cor(rowSums(d_prod, na.rm=T), rowSums(d_prod[,swad_idx], na.rm=T))
       rand_sscors <- sapply(1:rand_comparisons, \(comp) {
@@ -200,9 +207,11 @@ run_comparisons <- function(xldf, languages, swad_list, form = 'WS',
       })
       
       sumscore_cor <- tibble(sublist = "Swadesh", run = NA, 
-                             value = swad_sscor, N = length(swad_idx)) |> 
+                             value = swad_sscor, N = length(swad_idx), 
+                             mean_d = swad_d) |> 
         bind_rows(tibble(sublist = "random", run = 1:rand_comparisons, 
-                         value = rand_sscors, N = sapply(rand_idxs, length))) |> 
+                         value = rand_sscors, N = sapply(rand_idxs, length), 
+                         mean_d = rand_ds)) |> 
         mutate(language = lang, metric = "sumscore_cor")
       
       xx <- xx |> bind_rows(sumscore_cor)
@@ -218,9 +227,11 @@ run_comparisons <- function(xldf, languages, swad_list, form = 'WS',
       })
       
       theta_cor <- tibble(sublist = "Swadesh", run = NA, 
-                          value = swad_thcor, N = length(swad_idx)) |> 
+                          value = swad_thcor, N = length(swad_idx),
+                          mean_d = swad_d) |> 
         bind_rows(tibble(sublist = "random", run = 1:rand_comparisons, 
-                         value = rand_thcors, N = sapply(rand_idxs, length))) |> 
+                         value = rand_thcors, N = sapply(rand_idxs, length),
+                         mean_d = rand_ds)) |> 
         mutate(language = lang, metric = "theta_cor")
       
       xx <- xx |> bind_rows(theta_cor)
@@ -237,9 +248,11 @@ run_comparisons <- function(xldf, languages, swad_list, form = 'WS',
       }) |> colSums()
       
       test_info <- tibble(sublist = "Swadesh", run = NA, 
-                          value = swad_tinfo, N = length(swad_idx)) |> 
+                          value = swad_tinfo, N = length(swad_idx), 
+                          mean_d = swad_d) |> 
         bind_rows(tibble(sublist = "random", run = 1:rand_comparisons, 
-                         value = rand_tinfos, N = sapply(rand_idxs, length))) |> 
+                         value = rand_tinfos, N = sapply(rand_idxs, length),
+                         mean_d = rand_ds)) |> 
         mutate(language = lang, metric = "test_info")
       
       xx <- xx |> bind_rows(test_info)
