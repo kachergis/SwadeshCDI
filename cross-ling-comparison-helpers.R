@@ -152,6 +152,12 @@ run_comparisons <- function(xldf, languages, swad_list, form = 'WS',
                                         "test_info")) {
   theta_range <- matrix(seq(-4,4,.01))
   xx <- tibble()
+  ul <- xldf |> 
+    select(language, uni_lemma) |> 
+    distinct() |> 
+    pull(uni_lemma) |> 
+    table()
+  
   for(lang in languages) {
     message(glue("Processing {lang}\r"))
     load(here(paste("data/",form,"/",lang,"_",form,"_data.Rdata", sep='')))
