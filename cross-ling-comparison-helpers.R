@@ -169,6 +169,10 @@ run_comparisons <- function(xldf, languages, swad_list, form = 'WS',
     swad_idx <- is.element(xldf_l$uni_lemma, swad_list) |> which()
     rand_idxs <- lapply(1:rand_comparisons, \(comp) {
       if (rand_method == "items") {
+        if (lang == "Slovak") {
+          sampled <- sample(1:(ncol(d_prod)-1), length(swad_idx))
+          return(ifelse(sampled >= 440, sampled + 1, sampled))
+        }
         return(sample(1:ncol(d_prod), length(swad_idx)))
       }
       sample_length <- if (ul_length_by == "items") length(swad_idx) else length(swad_list)
