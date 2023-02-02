@@ -12,8 +12,8 @@ author-information: >
 
 abstract: >
     Early language skill is predictive of later life outcomes, and is thus of great interest to
-    developmental psychologists and clinicians. The Communicative Development Inventories (CDI),
-    a parent-reported inventory of early-learned vocabulary items, have proven to be valid 
+    developmental psychologists and clinicians. The Communicative Development Inventories (CDIs),
+    parent-reported inventories of early-learned vocabulary items, have proven to be valid 
     and reliable instruments for measuring children's early language skill. CDIs have been
     painstakingly adapted to dozens of languages, and cross-linguistic comparisons thus far show both 
     consistency and variability in language acquisition trajectories. However, thousands of languages do 
