@@ -13,8 +13,8 @@ author-information: >
 abstract: >
     Early language skill is predictive of later life outcomes, and is thus of great interest to
     developmental psychologists and clinicians. The Communicative Development Inventories (CDI),
-    including a parent-reported inventory of early-learned vocabulary items, have proven to be
-    valid and reliable instruments for measuring children's early language skill. CDIs have been
+    a parent-reported inventory of early-learned vocabulary items, have proven to be valid 
+    and reliable instruments for measuring children's early language skill. CDIs have been
     painstakingly adapted to dozens of languages, and cross-linguistic comparisons thus far show both 
     consistency and variability in language acquisition trajectories. However, thousands of languages do 
     not yet have CDIs, posing a significant barrier to increasing the diversity of languages that are 
@@ -58,11 +58,11 @@ set.seed(42)
 # Introduction
 
 Tools that enable valid assessments of children’s early language abilities are invaluable for researchers, clinicians and parents, as early language skill is predictive of educational outcomes years later [e.g., @bleses2016]. 
-The MacArthur-Bates Communicative Development Inventories [CDIs; @Fenson2007; @marchman2023] are parent report assessments that provide reliable and valid estimates of children's early vocabulary size and other aspects of early communicative development, such as use of gestures and of word combinations. 
+The MacArthur-Bates Communicative Development Inventories [CDIs, @Fenson2007; @marchman2023] are parent report assessments that provide reliable and valid estimates of children's early vocabulary size and other aspects of early communicative development, such as use of gestures and of word combinations. 
 Parent report is a relatively quick and low-cost method to assess early language skills as it takes advantage of the fact that parents are "natural observers" of their child's skills and does not depend on a child engaging with an unfamiliar experimenter.
 
 Over the years, the CDIs have been adapted to dozens of languages, with forms now available in English, Spanish, French, Hebrew, and Mandarin, to name just a few.
-Recently, data from more than 85,000 CDIs in 38 languages have been archived in a central repository [Wordbank; @frank2017]. 
+Recently, data from more than 85,000 CDIs in 38 languages have been archived in a central repository [Wordbank, @frank2017]. 
 These data have revealed both cross-linguistic consistency and variability in early language skills, with insights from these patterns informing theories of early language learning [@frank2021]. 
 For example, cross-linguistic analyses indicate that measures of vocabulary size are tightly correlated with other aspects of early language skill, like gesture and grammatical competence. 
 Thus, over development, the language system is "tightly woven" [@bates1994; @frank2021] and early vocabulary size serves as a good proxy measure of children's overall language skill.
@@ -105,10 +105,10 @@ If such a list were generalizable to other languages, it could serve as a helpfu
 We can ask: Which semantic categories, e.g., animals, household objects, food and drink, or another category, are most consistently learned across languages? Which are more variable? 
 These types of cross-linguistic comparisons may give new insight into theoretical questions surrounding the similarity and differences between language experience and development in different cultural and linguistic contexts.--> <!--AT: this para seems to not be the desired outcome of the S-CDI so I removed it.-->
 
-In particular, our contributions are 1) to revise and extend a set of translation-equivalent concepts in Wordbank, 2) to fit IRT models to 26 CDI:WS datasets, 3) to evaluate 25 candidate lists of Swadesh CDI items from a cross-linguistic comparison of concept difficulty and inclusion, and 4) to identify and characterize the most informative Swadesh CDI list of 229 concepts, and test its generalization to a set of eight additional low-data languages. 
-Our full analysis, the Swadesh CDI list, and other information valuable for developing a new CDI are openly available on [OSF](https://osf.io/8swhb/?view_only=6f6ab9818f2a4bb288e05ca9e12f540c).
-We end by making a concrete proposal for how this Swadesh CDI list could be used in creating future CDI adaptations, and by discussing the strengths and weaknesses of our approach.
-
+In particular, our contributions are 1) to revise and extend a set of translation-equivalent concepts in Wordbank, 2) to fit IRT models to 26 CDI:WS datasets, 3) to evaluate 25 candidate lists of Swadesh CDI items from a cross-linguistic comparison of concept difficulty and inclusion, 4) to identify and characterize the most informative Swadesh CDI list of 229 concepts, and 5) to test its generalization to a set of eight additional low-data languages. 
+We then make a concrete proposal for how this Swadesh CDI list could be used to create future CDI adaptations, expanding the diversity of languages studied. 
+We end by discussing the strengths and weaknesses of our approach.
+<!-- Our full analysis, the Swadesh CDI list, and other information valuable for developing a new CDI are openly available on [OSF](https://osf.io/8swhb/?view_only=6f6ab9818f2a4bb288e05ca9e12f540c). -->
 
 # Methods
 
@@ -166,7 +166,7 @@ low_data_langs <- it_tab %>% filter(`N`<200)
 bold <- function(x) {paste('{\\textbf{',x,'}}', sep ='')}
 
 tab1 <- xtable::xtable(it_tab, digits=c(0), 
-                       caption = "Number of CDI:WS items and subjects (N) per dataset. The final eight datasets were used for a generalization test.")
+                       caption = "CDI:WS items and subjects (N) per dataset. The final 8 datasets were used for a generalization test.")
 print(tab1, type="latex", comment = F, 
       sanitize.colnames.function=bold, # bold the header row
       table.placement = "H", hline.after=26,
@@ -295,9 +295,9 @@ report_cor(cor.test(uni_ag_gt1$d_m, uni_ag_gt1$d_sd))
 Across the 26 IRT models for different CDI:WS forms, difficulty and discrimination parameters for a total of 23020 items were fitted.
 Of those items, 95% had uni-lemmas defined, with a median of 693 per CDI:WS form (range: 553 in Czech to 804 in Cantonese). 
 A total of `r length(unique(xldf$uni_lemma))` uni-lemmas were defined across the 26 CDI:WS forms, but `r nrow(uni1)` of these were singletons, appearing on only one of the 26 forms.\footnote{These singletons were significantly more difficult than the `r nrow(uni_ag_gt1)` uni-lemmas appearing more than once ($M_1=$ `r round(mean(uni1$d_m),2)`; $M_{>1}=$ `r round(mean(uni_ag_gt1$d_m),2)`; `r report_ttest(t.test(uni1$d_m, uni_ag_gt1$d_m))`).} 
-Indeed, there was a significant relation between the number of times a uni-lemma appears and its difficulty: the more times a uni-lemma appears, the _easier_ it tended to be (`r report_cor(cor.test(uni_ag$d_m, uni_ag$n))`).
+There was a significant relation between how often a uni-lemma appears and its difficulty: the more often a uni-lemma appears, the _easier_ it tended to be (`r report_cor(cor.test(uni_ag$d_m, uni_ag$n))`).
 Moreover, there was a weak but significant relation between the number of forms a uni-lemma appears on and its cross-linguistic variability (`r report_cor(cor.test(uni_ag$d_sd, uni_ag$n))`).
-It is perhaps intuitive that lower-variability concepts tend to be the earlier-learned items which are already selected to be on more CDI forms, echoing prior work characterizing the consistency of children's first words across several languages [@tardif2008baby].
+It is perhaps intuitive that lower-variability items tend to be earlier-learned, and are thus often selected to be on CDI forms, echoing prior work characterizing the consistency of children's first words across several languages [@tardif2008baby].
 However, these modest but significant correlations were also important to keep in mind as we chose our Swadesh CDI candidates, as selecting too many easy items could result in older children being at ceiling.
 
 <!--Fortunately, among the uni-lemmas appearing on at least two forms, there is no significant relation between the uni-lemmas' difficulty and cross-linguistic variability in difficulty.-->
@@ -324,7 +324,7 @@ lang_d_m %>% ggplot(aes(x=reorder(language, -mean), y=mean)) + coord_flip() +
 [^3]: OSF repository: [https://osf.io/8swhb/](https://osf.io/8swhb/?view_only=6f6ab9818f2a4bb288e05ca9e12f540c).
 
 
-### Identifying Swadesh CDI Candidates
+## Identifying Swadesh CDI Candidates
 
 The goal was to choose uni-lemmas with low variability in their cross-linguistic difficulty---that is, uni-lemmas that are similarly difficult to learn across languages.
 There were two thresholds that had to be defined to select Swadesh CDI (S-CDI) candidates: 1) $k$, the number of current CDI:WS forms a uni-lemma must appear on, and 2) $v_{min}$, the threshold for variability in cross-linguistic difficulty. 
@@ -500,7 +500,7 @@ gen_df %>%
 
 
 
-```{r grid-search-plots, fig.cap=c("Number of uni-lemmas appearing on at least $k$ lists (top). Total test information for Swadesh lists, and random tests of the same length (bottom)."), fig.height=4.8, fig.width=3.4}
+```{r grid-search-plots, fig.cap=c("Number of uni-lemmas appearing on at least $k$ lists (top). Total test information for Swadesh lists, and random tests of the same length (bottom)."), fig.height=4.5, fig.width=3.4}
 plot_scale <- scale_color_manual(breaks = c("full", "Swadesh", "random"),
                      values = c("black", "#f8766d", "#00bfc4"))
 
@@ -548,7 +548,7 @@ Figure 2 shows the average cross-linguistic difficulty of CDI items by semantic 
 The difficulty of Swadesh items generally tracked with that of non-Swadesh items, although there were cases where one or the other was more or less difficult.
 
 
-```{r difficulty-by-category, fig.env = "figure", fig.pos = "h", fig.height=3.7, fig.align = "center", fig.cap = "Mean cross-linguistic difficulty of CDI words by semantic category, showing that selection of Swadesh concepts broadly maintained representative difficulty. Bars represent bootstrapped 95\\% confidence intervals."}
+```{r difficulty-by-category, fig.env = "figure", fig.pos = "h", fig.height=3.6, fig.width=3.4, fig.align = "center", fig.cap = "Mean cross-linguistic difficulty of CDI words by semantic category, showing that selection of Swadesh concepts broadly maintained representative difficulty. Bars represent bootstrapped 95\\% confidence intervals."}
 
 xldf <- xldf %>% 
   mutate(SwadeshCDI=ifelse(is.element(uni_lemma, good_prod$uni_lemma), 1, 0))
@@ -584,8 +584,10 @@ prod_cat %>% mutate(Items = ifelse(SwadeshCDI==1, "Swadesh", "other")) %>%
   geom_point(alpha=.7, position = position_dodge2(.2)) +
   geom_linerange(aes(ymin=ci_lower, ymax=ci_upper), alpha=.7, position = position_dodge2(.2)) +
   coord_flip() + theme_classic() + ylab("Mean item difficulty") + xlab("Category") +
-  theme(legend.position="bottom", legend.title=element_blank(),
-        legend.margin=margin(c(2,5,3,2)))
+  theme(#legend.position="bottom", 
+        legend.title=element_blank(),
+        legend.position = c(.8, .1),
+        legend.margin=margin(c(-1,-1,-1,-1)))
 ```
 
 
@@ -671,20 +673,21 @@ This metric approximately reflects how reliable the S-CDI would be as a measure 
 On average, for the 26 large CDI:WS datasets, the S-CDI's scores were strongly related to the full CDI:WS scores (mean $r=0.996$; $min=0.989$, $max=0.998$; full table on [OSF](https://osf.io/8swhb/?view_only=6f6ab9818f2a4bb288e05ca9e12f540c)).
 We compared these correlations against a baseline that simulated an upper bound for how well the Swadesh CDI could be expected to perform: randomly sample $M$ items from the actual CDI:WS of the target language, where $M$ is the number of Swadesh items that are present on the form.
 On average, the 26 CDI:WS forms included $M=176$ of the Swadesh items.
-Scores from a random subsample of CDI items tends to perform very well at predicting the overall CDI score, as there are no sampling biases related to item difficulty, or cross-linguistic variability in difficulty or inclusion.
-However, note that this is not a viable method to create a new CDI, as the CDI does not yet exist to be sampled from.
-Thus, if the Swadesh CDI gets asymptotically close to performing as well as a random sample from manually curated CDIs, we consider it a success.
-Indeed, the random tests had a mean correlation with full CDI scores of $r=0.997$, only $\epsilon=0.001$ higher than the Swadesh CDI.
 
+Scores from a random subsample of CDI items tends to perform very well at predicting the overall CDI score, as there are no sampling biases related to item difficulty, or cross-linguistic variability in difficulty or inclusion.
+However, note that this is _not_ a viable method to create a new CDI, as in a true CDI construction scenario rather than a simulation, the target CDI would not actually exist! 
+Thus, if the S-CDI comes close to performing as well as a random sample from manually curated CDIs, we consider it a success.
+Indeed, the random tests had a mean correlation with full CDI scores of $r=0.997$, only $\epsilon=0.001$ higher than the S-CDI.
 
 Next, we measured the total test information yielded by the two baselines (recalling that total test information was one criterion for the construction of the S-CDI).
 This metric reflects how well the S-CDI would be able to differentiate the ability of children across different ability levels.
 As reported above, the S-CDI yielded a mean total test information of 66085, while the random uni-lemmas baseline yielded a total test information of 66374. 
+Although test information was slightly lower for the S-CDI, the values were virtually indistinguishable.
 
 ## Testing Generalization of the Swadesh CDI 
 
 We then evaluated the S-CDI's performance in a test of generalization to eight more CDI:WS datasets.
-For the eight low-data languages, a comparison of simulated S-CDI scores to full CDI:WS revealed that the S-CDI's raw scores were again strongly related (mean $r=0.990$; $min=0.983$, $max=0.997$), with an average of $M=153$ S-CDI items appearing per list.
+For the eight low-data languages, a comparison of simulated S-CDI scores to full CDI:WS revealed that the S-CDI's raw scores were again strongly related (mean $r=0.990$), with an average of $M=153$ S-CDI items appearing per list.
 Table 2 shows the results of this comparison, alongside the upper bound random baseline.
 Once again, the S-CDI performed nearly as well as a random sample of the actual CDI (random mean $r=0.994$).
 With the 10-item extension, the S-CDI's correlation rose to mean $r=0.993$, demonstrating the value of including items from the more difficult (and variable) categories that were underrepresented on the original list.
@@ -775,9 +778,13 @@ save(xx, xx_it, #xx_eng, xx_wt,
 
 ```{r gen-results, results='asis'}
 load(here("data/Swadesh_comparisons.Rdata"))
+# mean(gen_xx10$`Swadesh r`) # .993
+
+gen_xx <- gen_xx %>% rename(`S-CDI r` = `Swadesh r`) 
+gen_xx$`S-CDI+10 r` = gen_xx10$`Swadesh r` # get the Swad + 10 extension r
 
 gen_tab <- xtable::xtable(gen_xx, digits=c(3), 
-                       caption = "Generalization test results.")
+                       caption = "Generalization test results for S-CDI vs. random baseline, and extended S-CDI (+10 items).")
 print(gen_tab, type="latex", comment = F, table.placement = "H",
       include.rownames=FALSE, size="\\fontsize{9pt}{10pt}\\selectfont")
 ```
@@ -812,7 +819,7 @@ wsB_int = sort(intersect(short_wsB$word, good_prod$uni_lemma)) # 26
 This study compared psychometric models fitted to 26 CDI datasets in order to find concepts that had low variability in their cross-linguistic difficulty, and that were frequently included on CDI:WS forms. 
 We identified 229 concepts that appeared on at least 9 of the CDIs, and which had more consistent cross-linguistic difficulty than other concepts appearing on multiple CDIs.
 Using real-data simulations, we showed that administering this set of Swadesh CDI items would generate scores that were strongly related to full CDI:WS scores, both for the original 26 datasets, and in a generalization test to eight low-data languages.
-Moreover, the Swadesh CDI items resulted in comparable total test information to tests of the same length composed of uni-lemmas either randomly selected from English, or randomly selected from the original 26 datasets weighted by frequency of occurrence.
+Moreover, the Swadesh CDI items resulted in comparable total test information to tests of the same length composed of randomly-selected uni-lemmas from the target test -- a challenging baseline to beat, and a construction method impossible to use when creating a new CDI.
 The Swadesh CDI contains items with relatively stable cross-linguistic difficulty estimates, and in the absence of access to researchers who are familiar with relevant local cultures and concepts, they may serve as a rapid, simple means of approximating children's ability levels, even in the absence of a large norming dataset.
 
 However, the Swadesh CDI items were also significantly easier than other items, meaning that older children may perform at ceiling if given only the Swadesh CDI items.
