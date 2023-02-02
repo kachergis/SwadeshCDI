@@ -671,11 +671,10 @@ This metric approximately reflects how reliable the S-CDI would be as a measure 
 On average, for the 26 large CDI:WS datasets, the S-CDI's scores were strongly related to the full CDI:WS scores (mean $r=0.996$; $min=0.989$, $max=0.998$; full table on [OSF](https://osf.io/8swhb/?view_only=6f6ab9818f2a4bb288e05ca9e12f540c)).
 We compared these correlations against a baseline that simulated an upper bound for how well the Swadesh CDI could be expected to perform: randomly sample $M$ items from the actual CDI:WS of the target language, where $M$ is the number of Swadesh items that are present on the form.
 On average, the 26 CDI:WS forms included $M=176$ of the Swadesh items.
-Scores from a random subsample of CDI items tends to perform very well at predicting the overall CDI score, as there are no sampling biases related to item difficulty, or cross-linguistic variability in difficulty or inclusion.
+Scores from a random subsample of CDI items tend to perform very well at predicting the overall CDI score, as there are no sampling biases related to item difficulty, or cross-linguistic variability in difficulty or inclusion.
 However, note that this is not a viable method to create a new CDI, as the CDI does not yet exist to be sampled from.
 Thus, if the Swadesh CDI gets asymptotically close to performing as well as a random sample from manually curated CDIs, we consider it a success.
 Indeed, the random tests had a mean correlation with full CDI scores of $r=0.997$, only $\epsilon=0.001$ higher than the Swadesh CDI.
-
 
 Next, we measured the total test information yielded by the two baselines (recalling that total test information was one criterion for the construction of the S-CDI).
 This metric reflects how well the S-CDI would be able to differentiate the ability of children across different ability levels.
