@@ -69,7 +69,7 @@ Thus, over development, the language system is "tightly woven" [@bates1994; @fra
 
 On the CDIs, vocabulary size is assessed via a checklist format, which enables caregivers to scan and recognize words their child produces or understands, rather than relying on recall alone. 
 For example, the American English CDI Words & Sentences (CDI:WS) form, targeting children 16-30 months of age, is comprised of 680 words from 22 semantic categories, including nouns (e.g., Body Parts, Toys, and Clothing), action words, descriptive words, and closed-class words such as pronouns. 
-The vocabulary checklist from the American English CDI Words & Gestures (CDI:WG) form, targeting younger children ages 8 to 18 months, is comprised of $\sim400$ words from a similar set of categories. 
+The vocabulary checklist from the American English CDI Words & Gestures (CDI:WG) form, targeting younger children ages 8 to 18 months, is comprised of $\sim400$ words from a similar set of categories. <!-- shorten this -->
 Items on these original forms were chosen to reflect a range of difficulty levels (i.e., easy, moderate, and more difficult), as well as capture the linguistic and societal contexts of (most) children living in the US.
 Short versions of each of these forms are also available, each with about 100 items [e.g., @Fenson2000], consisting of a set of items that generate scores that more strongly correlate with scores on the long forms, while retaining representation across a broad set of semantic categories.
 
@@ -347,10 +347,6 @@ Finding the $k$ that yielded the highest total test information was the main obj
 As shown in Figure 1 (bottom), test information was maximized with $k=9$, and from these 1309 uni-lemmas appearing on at least 9 forms, 229 Swadesh-CDI items were selected for having cross-linguistic variability below the threshold.
 The mean difficulty of the S-CDI items was also quite close to the difficulty of the other uni-lemmas that appeared on at least 9 forms ($M(d_{Swad})=0.33$; $M(d_{other})=0.37$), suggesting that the S-CDI items were fairly representative.
 
-<!-- The next criterion for Swadesh candidates is to find uni-lemmas of consistent difficulty across languages:
-if an item has relatively similar difficulty across 10 or more languages, we expect that it is more likely to have similar difficulty in a new language, compared to an item that has more variability.
-To evaluate how variable uni-lemmas are in their cross-linguistic difficulty, we calculate the standard deviation (SD) of each uni-lemma's difficulty.
--->
 
 
 ```{r, echo=F, include=F}
@@ -547,7 +543,7 @@ The `r nrow(good_prod)` S-CDI items, shown in Fig. 3, represented 21 of the 22 s
 54% of the S-CDI concepts were nouns, 22% were predicates (verbs and adjectives), 17% were function words, and 7% belonged to other lexical categories.
 This breakdown was comparable to the lexical category percentages on the 680-item English CDI:WS (46% nouns, 24% predicates, 15% function words, and 5% other), suggesting that the S-CDI list did not show a particular lexical category bias.
 The S-CDI items were also present on more forms than typical in the selection set: on average, each item appeared on `r round(mean(good_prod$n), 0)` forms, despite only being required to appear on at least 9 forms.
-Finally, 28 S-CDI uni-lemmas were not present on the American English CDI:WS (see italicized items in Fig. 3). <!--, suggesting that this method may help us move beyond an English-centric approach to studying early language. -->
+Finally, 28 S-CDI uni-lemmas were not present on the American English CDI:WS (italicized in Fig. 3). <!--, suggesting that this method may help us move beyond an English-centric approach to studying early language. -->
 
 Figure 2 shows the average cross-linguistic difficulty of CDI items by semantic category, for both Swadesh and non-Swadesh items. 
 The difficulty of Swadesh items generally tracked with that of non-Swadesh items, although there were cases where one or the other was more or less difficult.
@@ -681,12 +677,6 @@ However, note that this is not a viable method to create a new CDI, as the CDI d
 Thus, if the Swadesh CDI gets asymptotically close to performing as well as a random sample from manually curated CDIs, we consider it a success.
 Indeed, the random tests had a mean correlation with full CDI scores of $r=0.997$, only $\epsilon=0.001$ higher than the Swadesh CDI.
 
-
-<!-- ... methods of sampling items for a hypothetical new CDI form. The first baseline was the "English uni-lemmas" baseline, in which uni-lemmas were randomly sampled from the uni-lemmas that appeared on the American English CDI:WS form. 
-Note that on average, only M uni-lemmas from the Swadesh CDI list were present on CDI:WS forms; thus, only an equal number of concepts were sampled for each form from the English CD:WS. 
-This baseline had a mean correlation to full CDI:WS scores of $r=0.997$. -->
-<!--The second baseline was the "random uni-lemmas" baseline, in which uni-lemmas were randomly sampled from the total set of unique uni-lemmas across all the 26 CDI:WS forms, weighted by the number of forms that each uni-lemma occurred on. 
-This baseline had a mean correlation to full CDI:WS scores of $r=0.997$. -->
 
 Next, we measured the total test information yielded by the two baselines (recalling that total test information was one criterion for the construction of the S-CDI).
 This metric reflects how well the S-CDI would be able to differentiate the ability of children across different ability levels.
