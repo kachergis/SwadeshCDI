@@ -500,7 +500,7 @@ gen_df %>%
 
 
 
-```{r grid-search-plots, fig.cap=c("Number of uni-lemmas appearing on at least $k$ lists (top). Total test information for Swadesh lists, and random tests of the same length (bottom)."), fig.height=5.0, fig.width=3.4}
+```{r grid-search-plots, fig.cap=c("Number of uni-lemmas appearing on at least $k$ lists (top). Total test information for Swadesh lists, and random tests of the same length (bottom)."), fig.height=4.8, fig.width=3.4}
 plot_scale <- scale_color_manual(breaks = c("full", "Swadesh", "random"),
                      values = c("black", "#f8766d", "#00bfc4"))
 
@@ -637,7 +637,7 @@ gen_test_langs <- low_data_langs$Language
 ```
 
 Comparing the IRT parameters of the S-CDI uni-lemmas to the rest of the items (across all CDI:WS forms) showed that the discrimination parameter (i.e., slope) of the Swadesh items did not significantly differ from the others, suggesting that the Swadesh items could measure ability as well as non-Swadesh uni-lemmas.
-However, S-CDI items were significantly easier than the other uni-lemmas (mean S-CDI $d=$ `r round(tmp[2,"d"], 2)`, other items' mean $d=$ `r round(tmp[1,"d"], 2)`, `r report_ttest(swad_diff_ttest)`).
+However, S-CDI items were significantly easier than other uni-lemmas (mean S-CDI $d=$ `r round(tmp[2,"d"], 2)`, others' mean $d=$ `r round(tmp[1,"d"], 2)`, `r report_ttest(swad_diff_ttest)`).
 
 To limit the likelihood of a ceiling effect, we proposed extending the S-CDI with 10 additionanl uni-lemmas chosen from the original Swadesh (1971) list, which were selected to fill gaps in the S-CDI, including pronouns (_I, you, we, this, that_), quantifiers (_all, many, not_), and question words (_who, what_).
 These uni-lemmas are included on a mean of 21 of the 26 forms, but are of greater difficulty (mean $d=0.84$), and cross-linguistic variability (mean $sd(d)=1.36$).
@@ -813,18 +813,18 @@ This study compared psychometric models fitted to 26 CDI datasets in order to fi
 We identified 229 concepts that appeared on at least 9 of the CDIs, and which had more consistent cross-linguistic difficulty than other concepts appearing on multiple CDIs.
 Using real-data simulations, we showed that administering this set of Swadesh CDI items would generate scores that were strongly related to full CDI:WS scores, both for the original 26 datasets, and in a generalization test to eight low-data languages.
 Moreover, the Swadesh CDI items resulted in comparable total test information to tests of the same length composed of uni-lemmas either randomly selected from English, or randomly selected from the original 26 datasets weighted by frequency of occurrence.
-The Swadesh CDI contains items with relatively good difficulty estimates cross-linguistically, and in the absence of access to researchers who are familiar with relevant local cultures and concepts, they may serve as a rapid, simple means of approximating children's ability levels, even in the absence of a large norming dataset.
+The Swadesh CDI contains items with relatively stable cross-linguistic difficulty estimates, and in the absence of access to researchers who are familiar with relevant local cultures and concepts, they may serve as a rapid, simple means of approximating children's ability levels, even in the absence of a large norming dataset.
 
 However, the Swadesh CDI items were also significantly easier than other items, meaning that older children may perform at ceiling if given only the Swadesh CDI items.
 (This may be unsurprising from the perspective that Swadesh words are meant to be universal, and are therefore more frequent and basic---both within and across individual children's experiences.)
 Thus, our suggested use case for the Swadesh CDI list is as a starting point for researchers seeking to develop a CDI in a new language, rather than as a complete short-form CDI based on existing long-form CDI data.
-In particular, researchers should seek to add contextually appropriate items from the categories that were less well-represented on the Swadesh list, including question words, quantifiers, helping verbs, and pronouns. 
-These categories also tended to be more difficult, so adding items from them will likely increase the difficulty ceiling of the form.
-<!--Note that something interesting is how researchers cannot a priori know which items are difficult, so we can't recommend that they "add more difficult items"... I guess they can look at more difficult _uni-lemmas_ and add some of those if they are contextually appropriate?? Not sure exactly what the best recommendation is.-->
+In particular, researchers should seek to add relevant uni-lemmas from categories that were less well-represented on the S-CDI, including question words, quantifiers, helping verbs, and pronouns. 
+These categories also tended to be more difficult, so adding items from them is likely to increase the difficulty ceiling of the form. 
+Indeed, the inclusion of 10 such items drawn from the original Swadesh (1971) list increased generalization performance.
 
 Another potential limitation of this work is that most existing CDIs (and most datsets available in Wordbank) target languages in the Indo-European language family. <!-- add sentence about cultural bias -->
 It is not clear to what extent this bias in the existing data might interfere with generalizing to non-Indo-European languages.
-Nonetheless, our original 26 datasets include 7 non-Indo-European languages (3 Sino-Tibetan, 1 Afro-Asiatic, 1 Uralic, 1 Koreanic, 1 Turkic), and the generalization datasets include 1 Uralic and 2 Niger-Congo languages (a language family not represented in the original datasets); the broad consistency across language families thus suggests that the effectiveness of the Swadesh list may be sufficiently robust.
+Nonetheless, our original 26 datasets include 7 non-Indo-European languages (3 Sino-Tibetan, 1 Afro-Asiatic, 1 Uralic, 1 Koreanic, 1 Turkic), and the generalization datasets include 1 Uralic and 2 Niger-Congo languages (a language family not represented in the original datasets); the broad consistency across language families thus suggests that the effectiveness of the S-CDI may be sufficiently robust.
 <!--Such a robustness also corroborates with results from @floccia2018, who demonstrated that a bilingual vocabulary model based on a set of 30 uni-lemmas had good predictive validity on non-target languages, even those from other language families.-->
 
 Developing a list of appropriate vocabulary words is not the only challenge researchers face when seeking to develop and use parent-report measures in a new language and culture. 
