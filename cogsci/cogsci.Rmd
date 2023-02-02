@@ -539,7 +539,7 @@ ggarrange(plot_k_n, plot_k_testinfo, nrow=2, common.legend = TRUE, legend="botto
 
 ## Characterizing the Swadesh-CDI 
 
-The `r nrow(good_prod)` S-CDI items represented 21 of the 22 semantic categories present on the original American English CDI:WS form, with action words, animals, household, food/drink, body parts, and descriptive words being most prevalent, and connecting words, quantifiers, helping verbs, and articles being rare, and question words being unrepresented.
+The `r nrow(good_prod)` S-CDI items represented 21 of the 22 semantic categories present on the original American English CDI:WS form, with action words, animals, household, food/drink, body parts, and descriptive words being most prevalent, and connecting words, quantifiers, helping verbs, and articles being rare, and question words being unrepresented (but see extended S-CDI proposed below).
 54% of the S-CDI concepts were nouns, 22% were predicates (verbs and adjectives), 17% were function words, and 7% belonged to other lexical categories.
 This breakdown was comparable to the lexical category percentages on the 680-item English CDI:WS (46% nouns, 24% predicates, 15% function words, and 5% other), suggesting that the S-CDI list did not show a particular lexical category bias.
 The S-CDI items were also present on more forms than typical in the selection set: on average, each item appeared on `r round(mean(good_prod$n), 0)` forms, despite only being required to appear on at least 9 forms.
@@ -640,6 +640,9 @@ gen_test_langs <- low_data_langs$Language
 Comparing the IRT parameters of the S-CDI uni-lemmas to the rest of the items (across all CDI:WS forms) showed that the discrimination parameter (i.e., slope) of the Swadesh items did not significantly differ from the others, suggesting that the Swadesh items could measure ability as well as non-Swadesh uni-lemmas.
 However, the candidate Swadesh items were significantly easier than the other uni-lemmas (mean S-CDI $d=$ `r round(tmp[2,"d"], 2)`, other items' mean $d=$ `r round(tmp[1,"d"], 2)`, `r report_ttest(swad_diff_ttest)`).
 
+To mitigate the possibility of a ceiling effect, we propose also including an extension of 10 uni-lemmas, chosen from the original Swadesh (1971) list, which represent the under-represented categories on the S-CDI: 5 pronouns (_I, you, we, this, that_), 3 quantifiers (_all, many, not_), and 2 question words (_who, what_).
+These uni-lemmas are included on a mean of 21 of the 26 forms, but are of greater cross-linguistic variability (mean $sd(d)=1.36$), and--importantly--difficulty (mean $d=0.84$).
+
 
 ```{r, echo=F, results='asis', include=F}
 good_prod2 <- good_prod %>% left_join(xldf %>% distinct(uni_lemma, category, lexical_category))
@@ -691,38 +694,31 @@ We then evaluated the S-CDI's performance in a test of generalization to eight m
 For the eight low-data languages, a comparison of simulated S-CDI scores to full CDI:WS revealed that the S-CDI's raw scores were again strongly related (mean $r=0.990$; $min=0.983$, $max=0.997$), with an average of $M=153$ S-CDI items appearing per list.
 Table 2 shows the results of this comparison, alongside the upper bound random baseline.
 Once again, the S-CDI performed nearly as well as a random sample of the actual CDI (random mean $r=0.994$).
+With the 10-item extension, the S-CDI's correlation rose to mean $r=0.993$, demonstrating the value of including items from the more difficult (and variable) categories that were underrepresented on the original list.
 
 ```{r generalization-test, echo=F, eval=F}
-# use the good_prod words as a short CDI, and compare the correlation 
-# of these words to a random selection (might be worse, due to being biased towards easy words?)
 
 #xx_eng <- run_comparisons(xldf, languages, good_prod$uni_lemma, 
 #                          rand_method="unilemmas_english", metrics=c("sumscore_cor","test_info"))
-xx_wt <- run_comparisons(xldf, languages, good_prod$uni_lemma, 
+#xx_wt <- run_comparisons(xldf, languages, good_prod$uni_lemma, 
                          rand_method="unilemmas_weighted", metrics=c("sumscore_cor","test_info"))
-#xx_it <- run_comparisons(xldf, languages, good_prod$uni_lemma, 
-#                         rand_method="items", metrics=c("sumscore_cor","test_info"))
+xx_it <- run_comparisons(xldf, languages, good_prod$uni_lemma, 
+                         rand_method="items", metrics=c("sumscore_cor","test_info"))
+
+# with 10-item extension
+xx_it_ext <- run_comparisons(xldf, languages, c(swad10, good_prod$uni_lemma), 
+                         rand_method="items", metrics=c("sumscore_cor","test_info"))
 
 #sumscore_ttest_eng <- run_comparison_ttest(xx_eng, "sumscore_cor")
-# S-CDI .996 vs .997 Eng    t = -5.2018, df = 25, p-value = 2.213e-05
 #tinfo_ttest_eng <- run_comparison_ttest(xx_eng, "test_info")
-# n.s. S-CDI info: 66085  vs Eng. info 67866  t = -1.5116, df = 25, p-value = 0.1432
 
 #sumscore_ttest_wt <- run_comparison_ttest(xx_wt, "sumscore_cor") # run with paired=F to get means
-# S-CDI .996 vs .997 weighted 
 #tinfo_ttest_wt <- run_comparison_ttest(xx_wt, "test_info", paired=T)
-# S-CDI 66085  vs weighted unis 64504  n.s. t = 1.6397, df = 25, p-value = 0.1136
 
 # just the Swadesh
 xx <- run_swadesh_comparisons(xldf, languages, good_prod$uni_lemma)
 #summary(xx$`Swadesh r`)
-#   Min.     Mean    Max. 
-# 0.989     0.995   0.998 
-
 #summary(xx$`Rand r`)
-#   Min.     Mean    Max. 
-# 0.996     0.997    0.998
-
 
 all_unis <- bind_rows(xldf, xldf_lowd)
 #gen_xx_eng <- run_comparisons(all_unis, gen_test_langs, good_prod$uni_lemma, 
@@ -731,18 +727,24 @@ all_unis <- bind_rows(xldf, xldf_lowd)
 # Swadesh
 #run_comparison_ttest(gen_xx_eng, metric="sumscore_cor")
 
-#gen_xx_wt <- run_comparisons(xldf, gen_test_langs, good_prod$uni_lemma, 
-#                              rand_method="unilemmas_weighted", metrics=c("sumscore_cor"))
 
 gen_xx_it <- run_comparisons(all_unis, low_data_langs$Language, good_prod$uni_lemma, 
+                              rand_method="items", metrics=c("sumscore_cor"))
+
+gen_xx_it_ext <- run_comparisons(all_unis, low_data_langs$Language, c(swad10, good_prod$uni_lemma), 
                               rand_method="items", metrics=c("sumscore_cor"))
 
 gen_sumscore_ttest <- run_comparison_ttest(gen_xx_it, "sumscore_cor", paired=T)
 # t = -1.6543, df = 7.8226, p-value = 0.1375 
 # Swad mean: .987 vs. 0.995
 
-#gen_sumscore_ttest_wt <- run_comparison_ttest(gen_xx_wt, "sumscore_cor") # run with paired=F to get means
-#gen_tinfo_ttest_wt <- run_comparison_ttest(gen_xx_wt, "test_info", paired=T)
+
+gen_sumscore_ttest <- run_comparison_ttest(gen_xx_it, "sumscore_cor") # run with paired=F to get means
+# n.s.
+
+# with 10-item extension
+gen_sumscore_ttest_ext <- run_comparison_ttest(gen_xx_it_ext, "sumscore_cor") # run with paired=F to get means
+# n.s.
 
 # note that this uses the set of uni-lemmas on these 8 forms; not the full set from the 26 training langs!
 gen_xx <- run_swadesh_comparisons(xldf_lowd, low_data_langs$Language, good_prod$uni_lemma)
@@ -754,9 +756,25 @@ gen_xx <- run_swadesh_comparisons(xldf_lowd, low_data_langs$Language, good_prod$
 #  Min.       Mean      Max. 
 # 0.987     0.995    0.997 
 
+### Add some difficult Swadesh words, from underrepresented S-CDI categories
+# (pronouns, question words)
+#"I","you","we","this","that","who","what","not","all","many" 
+swad10 <- c("1SG","2SG","1PL","this","that","who","what","not","all","many")
 
-save(xx, #xx_eng, xx_wt,
-     gen_xx, # gen_xx_eng, gen_xx_wt,
+#low_var <- uni_per_form %>% filter(!is.element(uni_lemma, good_prod$uni_lemma), d_sd<1.18, n>=9)
+
+View(subset(uni_per_form, is.element(uni_lemma, swad10)))
+
+xx10 <- run_swadesh_comparisons(xldf, languages, c(swad10, good_prod$uni_lemma))
+mean(xx10$`Swadesh r`)
+# .996 # 190 available vs 176 
+
+gen_xx10 <- run_swadesh_comparisons(xldf_lowd, low_data_langs$Language, c(swad10, good_prod$uni_lemma))
+mean(gen_xx10$`Swadesh r`)
+# .993 vs 
+
+save(xx, xx10, #xx_eng, xx_wt,
+     gen_xx, gen_xx10, # gen_xx_eng, gen_xx_wt,
      file=here("data/Swadesh_comparisons.Rdata"))
 ```
 
@@ -794,7 +812,7 @@ wsB_int = sort(intersect(short_wsB$word, good_prod$uni_lemma)) # 26
 ```
 
 
-```{r, out.width="\\linewidth", include=TRUE, fig.align="center", fig.cap=c("The 229 Swadesh CDI concepts by semantic category. Italicized items indicate concepts that are not included on the American English CDI:WS."), echo=FALSE}
+```{r, out.width="\\linewidth", include=TRUE, fig.align="center", fig.cap=c("The 239 Swadesh CDI concepts by semantic category. Italicized items indicate concepts that are not included on the American English CDI:WS."), echo=FALSE}
 knitr::include_graphics("figs/SwadeshCDI_list.pdf")
 ```
 
