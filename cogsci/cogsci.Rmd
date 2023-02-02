@@ -819,7 +819,7 @@ wsB_int = sort(intersect(short_wsB$word, good_prod$uni_lemma)) # 26
 This study compared psychometric models fitted to 26 CDI datasets in order to find concepts that had low variability in their cross-linguistic difficulty, and that were frequently included on CDI:WS forms. 
 We identified 229 concepts that appeared on at least 9 of the CDIs, and which had more consistent cross-linguistic difficulty than other concepts appearing on multiple CDIs.
 Using real-data simulations, we showed that administering this set of Swadesh CDI items would generate scores that were strongly related to full CDI:WS scores, both for the original 26 datasets, and in a generalization test to eight low-data languages.
-Moreover, the Swadesh CDI items resulted in comparable total test information to tests of the same length composed of randomly-selected uni-lemmas from the target test -- a challenging baseline to beat, and a construction method impossible to use when creating a new CDI.
+Moreover, the Swadesh CDI items resulted in comparable total test information to tests of the same length composed of randomly-selected uni-lemmas from the target test---a challenging baseline to beat, and a construction method impossible to use when creating a new CDI.
 The Swadesh CDI contains items with relatively stable cross-linguistic difficulty estimates, and in the absence of access to researchers who are familiar with relevant local cultures and concepts, they may serve as a rapid, simple means of approximating children's ability levels, even in the absence of a large norming dataset.
 
 However, the Swadesh CDI items were also significantly easier than other items, meaning that older children may perform at ceiling if given only the Swadesh CDI items.
