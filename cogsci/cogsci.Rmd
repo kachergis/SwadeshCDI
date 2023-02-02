@@ -5,10 +5,12 @@ csl: apa6.csl
 document-params: "10pt, letterpaper"
 
 author-information: > 
-    \author{{\large \bf George Kachergis* (kachergis@stanford.edu)} 
-    \AND {\large \bf Alvin Wei Ming Tan* (tanawm@stanford.edu)}
-    \AND {\large \bf Virginia A. Marchman (marchman@stanford.edu)} 
-    \AND {\large \bf Michael C. Frank (mcfrank@stanford.edu)} \\ Department of Psychology, 450 Jane Stanford Way \\ Stanford, CA 94305 USA}
+    \author{{\large \bf George Kachergis* (kachergis@stanford.edu)}^{1}
+    \AND {\large \bf Alvin Wei Ming Tan* (tanawm@stanford.edu)}^{1}
+    \AND {\large \bf Virginia A. Marchman (marchman@stanford.edu)}^{1} 
+    \AND {\large \bf Philip S. Dale (dalep@unm.edu)}^{2}
+    \AND {\large \bf Michael C. Frank (mcfrank@stanford.edu)}^1 \\ ^{1}Department of Psychology, Stanford University \\
+      ^{2}Department of Speach and Hearing Sciences, University of New Mexico}
 
 abstract: >
     Early language skill is predictive of later life outcomes, and is thus of great interest to
