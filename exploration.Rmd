@@ -655,3 +655,61 @@ theta_ttest <- run_comparison_ttest(xx_g |> filter(language != "French (French)"
 testinfo_ttest <- run_comparison_ttest(xx_g |> filter(language != "French (French)"), "test_info")
 ```
 
+
+
+Greedy low variability in underrepresented categories
+```{r}
+cat_props <- xldf |> 
+  mutate(category = fct_recode(category, descriptive_words = "descriptive_words (adverbs)")) |> 
+  pull(category) |> table() |> as.data.frame() |> 
+  filter(Freq >= 20) |> 
+  mutate(prop = Freq / sum(Freq))
+
+cat_props <- xldf |> 
+  filter(language == "English (American)") |> 
+  pull(category) |> table() |> as.data.frame() |> 
+  mutate(prop = Freq / sum(Freq))
+
+# add_list <- c("shout", "bump", "3PL", 
+#               "remove", "2SG", "stand", 
+#               "the", "work (action)", "high", "2PL.POSS")
+add_list <- c("be", "3PL", "not",
+              "the", "2SG", "want",
+              "also", "high", "remove", "don't")
+
+swad_list <- swad_lists[[9]] |> bind_rows(tibble(uni_lemma = add_list))
+
+true_cats <- xldf |> select(uni_lemma, category) |> table() |> as.data.frame() |> 
+  arrange(desc(Freq)) |> 
+  group_by(uni_lemma) |> 
+  slice(1)
+
+swad_list_cats <- swad_list |> left_join(true_cats, by = "uni_lemma") |> 
+  pull(category) |> table() |> as.data.frame() |> 
+  mutate(prop_swad = Freq / sum(Freq)) |> 
+  left_join(cat_props, by = "Var1") |> 
+  mutate(prop_diff = prop - prop_swad) |> 
+  arrange(desc(prop_diff)) |> 
+  filter(!is.na(prop_diff))
+
+sds <- xldf |> group_by(uni_lemma) |> summarise(sd_d = sd(d, na.rm=T),
+                                                n_forms = length(unique(language))) |> 
+  left_join(true_cats |> select(-Freq), by = "uni_lemma") |> 
+  filter(!uni_lemma %in% swad_list$uni_lemma) |> 
+  arrange(category, sd_d) |> 
+  filter(n_forms >= 9)
+
+```
+
+```{r}
+xx_hard_ <- run_comparisons(xldf, languages |> sort(), 
+                           swad_list$uni_lemma, 
+                           metrics = c("sumscore_cor", "test_info"))
+xx_hard_sum_ <- xx_hard_ |> group_by(sublist, metric) |> summarise(value = mean(value))
+gen_xx_hard_ <- run_comparisons(xldf |> bind_rows(xldf_lowd), 
+                               low_data_langs$Language, 
+                               swad_list$uni_lemma, 
+                               metrics = c("sumscore_cor"))
+gen_xx_hard_sum_ <- gen_xx_hard_ |> group_by(sublist, metric) |> summarise(value = mean(value))
+```
+

@@ -1,0 +1,150 @@
+---
+title: "stitching"
+format: html
+editor: visual
+---
+
+```{r}
+library(wordbankr)
+library(tidyverse)
+library(glue)
+```
+
+## Read data
+```{r}
+languages <- list.files("data/new_items") |> str_sub(end = -5)
+
+get_new_items <- function(language) {
+  new_items <- read_csv(glue("data/new_items/{language}.csv"))
+  forms <- setdiff(colnames(new_items), 
+                   c("category", "definition", "gloss", "uni_lemma"))
+  
+  new_items_ <- new_items |> 
+    pivot_longer(cols = forms,
+                 names_to = "form",
+                 values_to = "item_id") |> 
+    mutate(uid = ifelse(is.na(item_id), NA, glue("{form}_{item_id}"))) |> 
+    select(-item_id) 
+  new_items_ <- new_items_ |> 
+    pivot_wider(names_from = form, values_from = uid)
+  new_items_ <- new_items_ |> 
+    mutate(uid = do.call(coalesce, select(new_items_, forms))) |> 
+    select(-forms) |> 
+    cbind(new_items |> select(forms))
+  
+  list(forms = forms,
+       new_items = new_items_)
+}
+
+```
+
+## Validate repeated item definitions
+```{r}
+rep_items <- list()
+
+for (language in languages) {
+  ni <- get_new_items(language)
+  forms <- ni$forms
+  new_items <- ni$new_items
+  rep_ids <- new_items |> 
+    select(category, definition) |> 
+    duplicated()
+  repeated <- new_items[rep_ids,]
+  
+  if (nrow(repeated) > 0) {
+    repeated <- repeated |> 
+      mutate(language = language)
+    rep_items <- c(rep_items, list(repeated))
+  }
+}
+```
+
+## Make data in correct format
+```{r}
+make_matrix <- function(df) {
+  d_vals <- df |> 
+    select(data_id, uid, value) |> 
+    pivot_wider(id_cols = data_id, 
+                names_from = uid, 
+                values_from = value) |> 
+    data.frame()
+  
+  d_vals <- d_vals |> 
+    `rownames<-`(value = d_vals$data_id) |> 
+    select(-data_id) |> 
+    data.matrix()
+  
+  d_vals
+}
+
+make_data <- function(language, forms, new_items) {
+  all_demo <- c()
+  all_long <- c()
+  
+  for (form in forms) {
+    d_demo <- get_administration_data(language = language, form = form) 
+    
+    items <- get_item_data(language = language, form = form) |> 
+      filter(item_kind == "word") 
+    
+    d_long <- get_instrument_data(language = language, form = form) |> 
+      left_join(items |> select(-complexity_category), by = "item_id") |> 
+      filter(item_kind == "word")
+    
+    d_long <- d_long |> 
+      mutate(produces = as.numeric(produces),
+             understands = as.numeric(understands)) |> 
+      left_join(new_items |> select(uid, all_of(form)), by = c("item_id" = form))
+    
+    print(paste("Retrieved data for", length(unique(d_long$data_id)), 
+                language, form, "participants"))
+    
+    all_demo <- c(all_demo, list(d_demo))
+    all_long <- c(all_long, list(d_long))
+  }
+  
+  all_demo <- bind_rows(all_demo)
+  all_long <- bind_rows(all_long)
+  all_prod <- all_long |> 
+    mutate(value = produces) |> 
+    make_matrix()
+  
+  list(all_demo = all_demo,
+       all_long = all_long,
+       all_prod = all_prod)
+}
+
+# comprehension doesn't work---1 + NA = NA...
+# 
+# d_comp <- d_long |> 
+#   select(data_id, item_id, understands) |> 
+#   pivot_wider(id_cols = data_id, 
+#               names_from = item_id, 
+#               values_from = understands) |> 
+#   data.frame()
+# 
+# d_comp <- d_comp |> 
+#   `rownames<-`(value = d_comp$data_id) |> 
+#   select(-data_id) |> 
+#   data.matrix()
+# 
+# d_comp <- d_prod + d_comp
+
+# if(save) save(all_demo, new_items_, all_long, all_prod, all_comp,
+#               file = glue("data/all_forms/{language}_data.Rdata"))
+```
+
+```{r}
+for (language in languages) {
+  ni <- get_new_items(language)
+  df <- make_data(language, ni$forms, ni$new_items)
+  
+  output <- list(all_demo = df$all_demo,
+                 items = ni$new_items,
+                 all_long = df$all_long,
+                 all_prod = df$all_prod)
+  
+  saveRDS(output, glue("data/all_forms/{language}_data.rds"))
+}
+```
+
