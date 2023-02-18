@@ -108,7 +108,7 @@ item_106,,food_drink,Kiboma,Kingfish,NA
 item_107,,food_drink,Kiboma_2,Kingfish,NA
 item_108,,food_drink,Kinywadzi/Nyunya,DrinkN,drink (beverage)
 item_109,item_56,food_drink,Kirazi,Potato,potato
-item_109,item_69,food_drink,Kirazi,,potato
+,item_69,food_drink,Kirazi,,potato
 item_110,,food_drink,Kitumbua,Bun2,NA
 item_111,,food_drink,Koo,Sweet,sweets
 item_112,item_57,food_drink,Kuku,Chicken,chicken (food)

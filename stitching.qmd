@@ -11,6 +11,7 @@ library(glue)
 ```
 
 ## Read data
+
 ```{r}
 languages <- list.files("data/new_items") |> str_sub(end = -5)
 
@@ -30,7 +31,7 @@ get_new_items <- function(language) {
   new_items_ <- new_items_ |> 
     mutate(uid = do.call(coalesce, select(new_items_, forms))) |> 
     select(-forms) |> 
-    cbind(new_items |> select(forms))
+    cbind(new_items |> select(all_of(forms)))
   
   list(forms = forms,
        new_items = new_items_)
@@ -39,6 +40,7 @@ get_new_items <- function(language) {
 ```
 
 ## Validate repeated item definitions
+
 ```{r}
 rep_items <- list()
 
@@ -60,6 +62,7 @@ for (language in languages) {
 ```
 
 ## Make data in correct format
+
 ```{r}
 make_matrix <- function(df) {
   d_vals <- df |> 
@@ -137,6 +140,8 @@ make_data <- function(language, forms, new_items) {
 ```{r}
 for (language in languages) {
   ni <- get_new_items(language)
+  # Finnish WG/WGShort not yet imported
+  if (language == "Finnish") ni$forms <- c("WS", "WSShort")
   df <- make_data(language, ni$forms, ni$new_items)
   
   output <- list(all_demo = df$all_demo,
@@ -147,4 +152,3 @@ for (language in languages) {
   saveRDS(output, glue("data/all_forms/{language}_data.rds"))
 }
 ```
-

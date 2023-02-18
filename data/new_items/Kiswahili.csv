@@ -134,7 +134,7 @@ item_132,,food_drink,Njugu (karanga),Groundnuts,peanut
 item_133,item_71,food_drink,Nyama,Meat,meat
 item_134,item_72,food_drink,nyanya/Tomato,Tomatoes,tomato
 item_135,item_58,food_drink,Omena/Kumbu,Sardine,sardine
-item_135,item_68,food_drink,Omena/Kumbu,,sardine
+,item_68,food_drink,Omena/Kumbu,,sardine
 item_136,,food_drink,Paipai,Paw paw,papaya
 item_137,,food_drink,Papa,Shark,shark
 item_138,item_75,food_drink,Peremende,Sweets,sweets
@@ -397,7 +397,7 @@ item_394,,games_routines,Ukuti,Game involving going round,ring around the rosie
 item_395,,games_routines,Umeshindaje?,Good evening,good evening
 item_396,,games_routines,Unacho,You have it,NA
 item_397,item_205,games_routines,Usiku mwema/Lala salama/Ulaze salama,Good night,good night
-item_397,item_210,games_routines,Usiku mwema/Lala salama/Ulaze salama,,NA
+,item_210,games_routines,Usiku mwema/Lala salama/Ulaze salama,,NA
 item_398,item_229,action_words,Acha,Leave,stop
 item_399,item_239,action_words,Amka/Zinduka,Wake up,wake
 item_400,item_246,action_words,Andika,Write,write
@@ -412,9 +412,7 @@ item_408,item_250,action_words,Busu/Shumu,Kiss,kiss
 item_409,,action_words,Chagua,Choose,choose
 item_410,item_216,action_words,Cheka/tabasamu,Laugh/Smile,smile
 item_411,item_225,action_words,Cheza,Dance,dance
-item_411,item_267,action_words,Cheza_2,,NA
-item_412,item_225,action_words,Cheza_3,Play,play
-item_412,item_267,action_words,Cheza_4,,NA
+item_412,item_267,action_words,Cheza_2,Play,play
 item_413,item_254,action_words,Chora,Draw,draw
 item_414,,action_words,Chukia,Hate,angry
 item_415,,action_words,Chukua,Take,take

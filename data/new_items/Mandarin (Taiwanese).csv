@@ -262,7 +262,7 @@ item_260,item_154,household,圖片,picture,picture
 item_261,,household,手機,cell-phone,telephone
 item_262,,household,電燈,lamp,lamp
 item_263,,household,衛生紙(面紙),tissue paper,tissue
-item_264,,household,冰箱,refrigerator,refrigerator
+item_264,item_159,household,冰箱,refrigerator,refrigerator
 item_265,,household,牙膏,toothpaste,toothpaste
 item_266,,household,吹風機,dryer,dryer
 item_267,,household,剪刀,scissors,scissors
@@ -342,16 +342,16 @@ item_340,,outside,水管,water pipe,pipe
 item_341,,outside,旗子,flag,flag
 item_342,,outside,梯子,ladder,ladder
 item_343,,outside,鏟子,shovel,shovel
-item_344,,places,家,home,home
-item_345,,places,房子,house,house
+item_344,item_177,places,家,home,home
+item_345,item_181,places,房子,house,house
 item_346,,places,學校/幼稚園,school/ kindergarten,school
-item_347,,places,7-11(任何便利商店),convenience store,store
+item_347,item_182,places,7-11(任何便利商店),convenience store,store
 item_348,,places,**的家,one's home,home
-item_349,,places,公園,park,park
+item_349,item_184,places,公園,park,park
 item_350,,places,菜市場,market,market
 item_351,,places,XX園(某遊戲樂園名稱),specific name of a playground,NA
 item_352,,places,動物園,zoo,zoo
-item_353,,places,醫院(或診所),clinic,hospital
+item_353,item_189,places,醫院(或診所),clinic,hospital
 item_354,,places,火車站(車站),train station,station
 item_355,,places,商店/百貨公司,store,store
 item_356,,places,加油站,gas station,gas station
@@ -359,7 +359,7 @@ item_357,,places,游泳池,swimming pool,pool
 item_358,,places,海,sea,sea
 item_359,,places,停車場,parking lot,parking lot
 item_360,,places,餐廳,restaurant,restaurant
-item_361,,places,運動場/操場,playground,playground
+item_361,item_185,places,運動場/操場,playground,playground
 item_362,,places,郵局,post office,post office
 item_363,,places,圖書館,library,library
 item_364,,places,河,river,river
@@ -668,12 +668,12 @@ item_666,,descriptive_words,好吵/吵鬧的,noise,noisy
 item_667,,descriptive_words,冰冰的,cold,cold
 item_668,,descriptive_words,快一點,quickly,quickly
 item_669,,descriptive_words,太多了,over,over
-item_670,,quantifiers,這個,this,this
-item_671,,quantifiers,一個(二、三個…),"one (two, three...)",one two three
-item_672,,quantifiers,好多,much,much
-item_673,,quantifiers,沒半個/沒有,none,none
-item_674,,quantifiers,還有,furthermore,also
-item_675,,quantifiers,那個,that,that
+item_670,item_343,quantifiers,這個,this,this
+item_671,item_344,quantifiers,一個(二、三個…),"one (two, three...)",one two three
+item_672,item_345,quantifiers,好多,much,much
+item_673,item_346,quantifiers,沒半個/沒有,none,none
+item_674,item_347,quantifiers,還有,furthermore,also
+item_675,item_348,quantifiers,那個,that,that
 item_676,,quantifiers,一樣多,as many as,NA
 item_677,,quantifiers,全部(通通),all,all
 item_678,,quantifiers,也有、也是,also,also

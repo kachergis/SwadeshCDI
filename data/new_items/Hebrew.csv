@@ -607,7 +607,7 @@ item_597,item_472,quantifiers,עוד,more,more
 ,item_45,animals,אייל,Eyal,deer
 ,item_49,animals,ג'וק,Jock,bug
 ,item_54,animals,דובי,Bear,teddybear
-,item_57,animals,חזיר,Pig,pig
+item_639,item_57,animals,חזיר,Pig,pig
 ,item_81,animals,שפן,Rabbit,bunny
 ,item_85,vehicles,אוטו,car,car
 ,item_92,vehicles,מטוס,Plane,airplane
@@ -676,3 +676,10 @@ item_597,item_472,quantifiers,עוד,more,more
 ,item_457,locations,בפנים,Inside,inside
 ,item_469,quantifiers,כולם,Everyone,everyone
 ,item_471,quantifiers,מעט,Slightly,a little
+item_640,,vehicles,סירה,boat,boat
+item_641,,body_parts,טוסיק/ישבן,buttocks/buttom,butt
+item_642,,body_parts,בולבול/פיפי,penis,penis
+item_643,,household,סיר בישול,blanket,blanket
+item_644,,household,טייפ/קלטת,tape,tape
+item_645,,games_routines,יש לי/שלי,I have mine,
+item_646,,action_words,לדפוק,knock,knock
