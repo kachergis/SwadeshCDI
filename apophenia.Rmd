@@ -187,9 +187,14 @@ unis <- xldf %>% filter(uni_lemma!="NA") %>%
 ws_tab <- get_item_n_subject_counts(models)
 languages = subset(ws_tab, N>=200)$Language
 
-make_swadesh_list <- function(unis, n_items=100, iters=1000) {
+make_swadesh_list <- function(unis, n_items=100, iters=1000, cur_list=c()) {
   cors <- rep(NA, iters)
-  swad_inds = sample(1:nrow(unis), n_items, replace = F) # could weight by n, 1/d_sd...
+  if(length(cur_list)==0) {
+    swad_inds = sample(1:nrow(unis), n_items, replace = F) # could weight by n, 1/d_sd...
+  } else {
+    swad_inds = cur_list
+  }
+  start_list = swad_inds
   for (i in 1:iters) {
     xx_g <- run_swadesh_comparisons(xldf, languages, unis[swad_inds,]$uni_lemma, form='WS') 
     # swap in 1 new item
@@ -201,9 +206,21 @@ make_swadesh_list <- function(unis, n_items=100, iters=1000) {
     if(l1r < l2r && runif(1)<=.95) swad_inds = swad_inds2
     cors[i] = max(l1r, l2r)
   }
-  return(swad_list)
+  return(list(start_list = start_list, 
+              swad_inds=swad_inds, 
+              cors=cors))
 }
 
-swad_list <- make_swadesh_list(unis, n_items=100)
+result <- make_swadesh_list(unis, n_items=100, iters=1000)
+# do more iterations:
+#result <- make_swadesh_list(unis, n_items=100, iters=10000, cur_list=result$swad_list)
+
+result2 <- make_swadesh_list(unis, n_items=100, iters=1000)
+result3 <- make_swadesh_list(unis, n_items=100, iters=1000)
+
+# are these converging at all?
+length(intersect(result$swad_list, result2$swad_list))
+length(intersect(result2$swad_list, result3$swad_list))
+length(intersect(result$swad_list, result3$swad_list))
 ```
 
