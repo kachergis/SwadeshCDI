@@ -195,15 +195,20 @@ make_swadesh_list <- function(unis, n_items=100, iters=1000, cur_list=c()) {
     swad_inds = cur_list
   }
   start_list = swad_inds
+  xx_g <- run_swadesh_comparisons(xldf, languages, unis[swad_inds,]$uni_lemma, form='WS')
   for (i in 1:iters) {
-    xx_g <- run_swadesh_comparisons(xldf, languages, unis[swad_inds,]$uni_lemma, form='WS') 
     # swap in 1 new item
-    swad_inds2 = c(swad_inds[1:(n_items-1)], sample(setdiff(1:nrow(unis), swad_inds), 1))
+    drop_i = sample(1:n_items, 1)
+    new_i = sample(setdiff(1:nrow(unis), swad_inds), 1) 
+    swad_inds2 = c(swad_inds[-drop_i], new_i)
     xx_g2 <- run_swadesh_comparisons(xldf, languages, unis[swad_inds2,]$uni_lemma, form='WS') 
     l1r = mean(xx_g$`Swadesh r`) 
     l2r = mean(xx_g2$`Swadesh r`)
     # if l2 has better r than l1, use it (5% chance of keeping l1 even if worse)
-    if(l1r < l2r && runif(1)<=.95) swad_inds = swad_inds2
+    if(l1r < l2r && runif(1)<=.95) {
+      swad_inds = swad_inds2
+      xx_g = xx_g2
+    }
     cors[i] = max(l1r, l2r)
   }
   return(list(start_list = start_list, 
@@ -212,15 +217,21 @@ make_swadesh_list <- function(unis, n_items=100, iters=1000, cur_list=c()) {
 }
 
 result <- make_swadesh_list(unis, n_items=100, iters=1000)
-# do more iterations:
-#result <- make_swadesh_list(unis, n_items=100, iters=10000, cur_list=result$swad_list)
-
 result2 <- make_swadesh_list(unis, n_items=100, iters=1000)
 result3 <- make_swadesh_list(unis, n_items=100, iters=1000)
 
+# do more iterations:
+result1_2 <- make_swadesh_list(unis, n_items=100, iters=4000, cur_list=result$swad_inds)
+result2_2 <- make_swadesh_list(unis, n_items=100, iters=4000, cur_list=result2$swad_inds)
+result3_2 <- make_swadesh_list(unis, n_items=100, iters=4000, cur_list=result3$swad_inds)
+
 # are these converging at all?
-length(intersect(result$swad_list, result2$swad_list))
-length(intersect(result2$swad_list, result3$swad_list))
-length(intersect(result$swad_list, result3$swad_list))
+length(intersect(result$swad_inds, result2$swad_inds)) # 1000: 1
+length(intersect(result2$swad_inds, result3$swad_inds)) # 1000: 6
+length(intersect(result$swad_inds, result3$swad_inds)) # 1000: 7
+
+length(intersect(result1_2$swad_inds, result2_2$swad_inds)) # 5k: 
+length(intersect(result2_2$swad_inds, result3_2$swad_inds)) # 5k: 
+length(intersect(result1_2$swad_inds, result3_2$swad_inds)) # 5k: 
 ```
 
