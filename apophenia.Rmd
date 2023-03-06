@@ -117,3 +117,93 @@ dat %>% group_by(N, Random) %>%
   geom_line() + theme_bw() + ylim(.97, 1)
 ```
 
+## Monte Carlo Construction of Swadesh Lists
+
+Want to build a Swadesh list (SL) of a given length (N)?
+1) construct SL from N randomly-selected uni-lemmas
+	- try biasing this selection: weight by uni-lemma frequency, 1/variance of difficulty, discrimination (slope)...
+2) evaluate correlation between SL and full CDI (per language, then average those correlations--shouldn't bias based on CDI admins)
+3) select a random item i to consider removing from SL; evaluate correlation of SL sans i; 
+
+Fun fact: there are $\sim10^{100}$ potential lists of length 50 (2000 choose 50).
+
+```{r, echo=F}
+# for each language, look for uni-lemmas in swad_list in xldf (may not find all of them!)
+# and test correlation between swad_list subsample and full CDI.
+# also test correlation of full CDI against many random samples of size length(swad_list)
+
+# run once to resave d_prod data in 1 list (to save loading time)
+resave_prod_data <- function(form="WS") {
+  d_prodl = list()
+  for(lang in languages) {
+    load(here(paste("data/",form,"/",lang,"_",form,"_data.Rdata", sep='')))
+    d_prodl[[lang]] = d_prod
+  }
+  save(d_prodl, file="data/WS_prod_per_lang.Rdata")
+}
+
+run_swadesh_comparisons <- function(xldf, languages, swad_list, form='WS') {
+  xx <- tibble()
+  for(lang in languages) {
+    #load(here(paste("data/",form,"/",lang,"_",form,"_data.Rdata", sep='')))
+    swad_l <- subset(xldf, language==lang & is.element(uni_lemma, swad_list)) 
+    swad_cor = cor(rowSums(d_prodl[[lang]], na.rm=T), rowSums(d_prodl[[lang]][,swad_l$item_id], na.rm=T))
+    
+    xx <- xx %>% bind_rows(tibble(language = lang, sublist = "Swadesh", 
+                                  run = NA, cor = swad_cor, N = nrow(swad_l)))
+  }
+  
+  xx_sum <- xx %>% 
+    group_by(language, sublist, N) %>%
+    summarise(r = mean(cor)) %>%
+    pivot_wider(names_from = sublist, values_from = r) %>%
+    rename(`Swadesh r` = Swadesh)
+  return(xx_sum)
+}
+```
+
+
+
+```{r, echo=F, warning=F}
+# WS production fits
+load(here("data/multiling_2pl_WS_prod_fits.Rdata"))
+load(here("data/xling-WSprod-IRTparms.Rdata")) # 23179, 
+#languages = names(coefs)
+
+# combined d_prod data
+load(here("data/WS_prod_per_lang.Rdata"))
+
+xldf <- xldf %>% mutate(uni_lemma = ifelse(uni_lemma=="NA", NA, uni_lemma)) %>%
+  mutate(d = -d) %>% # easiness -> difficulty
+  filter(!is.na(d)) # removes 1 Slovak word with NA parameters (because all responses were 0)
+
+xldf <- xldf %>% filter(!is.na(uni_lemma)) # 21824 out of 23020 have uni-lemmas defined 95%
+
+unis <- xldf %>% filter(uni_lemma!="NA") %>%
+  group_by(uni_lemma) %>% # category <- but many uni-lemmas are categorized differently across languages
+  summarise(d_m=mean(d), a1_m=mean(a1), d_sd = sd(d), a1_sd = sd(a1), n=n())
+# maybe should just take the highest-discrimination uni-lemma per form? (some forms have >1 of some unis)
+
+ws_tab <- get_item_n_subject_counts(models)
+languages = subset(ws_tab, N>=200)$Language
+
+make_swadesh_list <- function(unis, n_items=100, iters=1000) {
+  cors <- rep(NA, iters)
+  swad_inds = sample(1:nrow(unis), n_items, replace = F) # could weight by n, 1/d_sd...
+  for (i in 1:iters) {
+    xx_g <- run_swadesh_comparisons(xldf, languages, unis[swad_inds,]$uni_lemma, form='WS') 
+    # swap in 1 new item
+    swad_inds2 = c(swad_inds[1:(n_items-1)], sample(setdiff(1:nrow(unis), swad_inds), 1))
+    xx_g2 <- run_swadesh_comparisons(xldf, languages, unis[swad_inds2,]$uni_lemma, form='WS') 
+    l1r = mean(xx_g$`Swadesh r`) 
+    l2r = mean(xx_g2$`Swadesh r`)
+    # if l2 has better r than l1, use it (5% chance of keeping l1 even if worse)
+    if(l1r < l2r && runif(1)<=.95) swad_inds = swad_inds2
+    cors[i] = max(l1r, l2r)
+  }
+  return(swad_list)
+}
+
+swad_list <- make_swadesh_list(unis, n_items=100)
+```
+
