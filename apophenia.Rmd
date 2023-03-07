@@ -243,16 +243,27 @@ length(intersect(result2$swad_inds, result3$swad_inds)) # 1000: 15
 length(intersect(result$swad_inds, result3$swad_inds)) # 1000: 17
 length(intersect(result$swad_inds, result4$swad_inds)) # 1000: 17
 
-# how many of the initial items remain?
+length(intersect(result$swad_inds, result2$swad_inds)) # 1000: 19
+length(intersect(result2$swad_inds, result3$swad_inds)) # 1000: 15
+length(intersect(result$swad_inds, result3$swad_inds)) # 1000: 17
+length(intersect(result$swad_inds, result4$swad_inds)) # 1000: 17
+
+# how many of the initial items remain? (after 10k iterations)
 intersect(result$start_list, result1_2$swad_inds) # 9
 intersect(result2$start_list, result2_2$swad_inds) # 10
 intersect(result3$start_list, result3_2$swad_inds) # 5
 intersect(result4$start_list, result4_2$swad_inds) # 7
+# (after 30k iterations)
+intersect(result$start_list, result1_3$swad_inds) # 8
+intersect(result2$start_list, result2_3$swad_inds) # 9
+intersect(result3$start_list, result3_3$swad_inds) # 7
+intersect(result4$start_list, result4_3$swad_inds) # 5
 
-save(result, result1_2,
-     result2, result2_2,
-     result3, result3_2, 
-     result4, result4_2,
+
+save(result, result1_2, result1_3,
+     result2, result2_2, result2_3,
+     result3, result3_2, result3_3,
+     result4, result4_2, result4_3,
      file=here("data/MH_Swadesh_lists.Rdata"))
 ```
 
@@ -268,10 +279,21 @@ l1_l2 <- intersect(result1_2$swad_inds, result2_2$swad_inds) # 10k: 37
 l2_l3 <- intersect(result2_2$swad_inds, result3_2$swad_inds) # 10k: 38
 l1_l3 <- intersect(result1_2$swad_inds, result3_2$swad_inds) # 10k: 30
 
-on2lists <- union(union(l1_l2, l2_l3), l1_l3)
-# 77 items on 2/3 lists
+l1_l2 <- intersect(result1_3$swad_inds, result2_3$swad_inds) # 30k: 42
+l2_l3 <- intersect(result2_3$swad_inds, result3_3$swad_inds) # 30k: 42
+l1_l3 <- intersect(result1_3$swad_inds, result3_3$swad_inds) # 30k: 42
+l1_l4 <- intersect(result1_3$swad_inds, result4_3$swad_inds) # 30k: 43
 
-all3 <- intersect(l1_l2, l2_l3) # 14 on all 3
+on2lists <- union(union(l1_l2, l2_l3), l1_l3)
+# after 10k iterations, 77 items on 2/3 lists
+# after 30k iterations, 76 items on 2/3 lists
+
+on2lists <- union(union(l1_l2, l2_l3), union(l1_l3, l1_l4))
+# after 30k iterations, 85 items on 2/4 lists (need to add l2_l4, l3_l4...)
+
+all3 <- intersect(l1_l2, l2_l3) 
+# after 10k, 14 on all 3
+# after 30k, 25 on all 3
 
 swad_unis <- unis[on2lists,]$uni_lemma
 
