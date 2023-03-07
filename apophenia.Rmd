@@ -122,10 +122,11 @@ dat %>% group_by(N, Random) %>%
 ## Monte Carlo Construction of Swadesh Lists
 
 Want to build a Swadesh list (SL) of a given length (N)?
-1) construct SL from N randomly-selected uni-lemmas
-	- try biasing this selection: weight by uni-lemma frequency, 1/variance of difficulty, discrimination (slope)...
-2) evaluate correlation between SL and full CDI (per language, then average those correlations--shouldn't bias based on CDI admins)
-3) select a random item i to consider removing from SL; evaluate correlation of SL sans i; 
+
+  1) construct SL from N randomly-selected uni-lemmas (ToDo: try biasing this selection: weight by uni-lemma frequency, 1/variance of difficulty, discrimination...)
+  2) evaluate correlation between SL and full CDI (per language, then average those correlations--shouldn't bias based on CDI admins)
+  3) select a random item i to consider removing from SL, and a replacement uni-lemma 
+  4) evaluate correlation of SL vs. SL with swapped item: if swap is better, accept with 95% probability.
 
 Fun fact: there are $\sim10^{100}$ potential lists of length 50 (2000 choose 50).
 
@@ -162,11 +163,7 @@ run_swadesh_comparisons <- function(xldf, languages, swad_list, form='WS') {
     rename(`Swadesh r` = Swadesh)
   return(xx_sum)
 }
-```
 
-
-
-```{r, echo=F, warning=F}
 # WS production fits
 load(here("data/multiling_2pl_WS_prod_fits.Rdata"))
 load(here("data/xling-WSprod-IRTparms.Rdata")) # 23179, 
@@ -188,7 +185,11 @@ unis <- xldf %>% filter(uni_lemma!="NA") %>%
 
 ws_tab <- get_item_n_subject_counts(models)
 languages = subset(ws_tab, N>=200)$Language
+```
 
+
+
+```{r, warning=F}
 make_swadesh_list <- function(unis, n_items=100, iters=1000, cur_list=c()) {
   cors <- rep(NA, iters)
   if(length(cur_list)==0) {
@@ -219,7 +220,7 @@ make_swadesh_list <- function(unis, n_items=100, iters=1000, cur_list=c()) {
 }
 ```
 
-```{r, eval=F}
+```{r, echo=F, eval=F}
 result <- make_swadesh_list(unis, n_items=100, iters=1000)
 result2 <- make_swadesh_list(unis, n_items=100, iters=1000)
 result3 <- make_swadesh_list(unis, n_items=100, iters=1000)
@@ -266,8 +267,10 @@ swad_unis <- unis[on2lists,]$uni_lemma
 
 unis <- unis %>% mutate(Swadesh = ifelse(is.element(uni_lemma, swad_unis), T, F))
 
-unis %>% group_by(Swadesh) %>%
-  summarise(d_m = mean(d_m), n = mean(n), a1_m = mean(a1_m))
+unis %>% filter(n>1) %>%
+  group_by(Swadesh) %>%
+  summarise(d_m = mean(d_m), d_sd = mean(d_sd), 
+            n = mean(n), a1_m = mean(a1_m))
 
 #unis %>% 
 #  ggplot(aes(x=a1_m, y=d_m, color=Swadesh)) +
