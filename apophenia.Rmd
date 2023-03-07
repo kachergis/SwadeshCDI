@@ -1,7 +1,7 @@
 ---
 title: "Apophenia"
 author: "George"
-date: "2023-02-01"
+date: "`r Sys.Date()`"
 output: html_document
 ---
 
@@ -9,6 +9,8 @@ output: html_document
 require(here)
 require(tidyverse)
 require(glue)
+
+source(here("cross-ling-comparison-helpers.R"))
 ```
 
 
@@ -215,23 +217,87 @@ make_swadesh_list <- function(unis, n_items=100, iters=1000, cur_list=c()) {
               swad_inds=swad_inds, 
               cors=cors))
 }
+```
 
+```{r, eval=F}
 result <- make_swadesh_list(unis, n_items=100, iters=1000)
 result2 <- make_swadesh_list(unis, n_items=100, iters=1000)
 result3 <- make_swadesh_list(unis, n_items=100, iters=1000)
 
 # do more iterations:
-result1_2 <- make_swadesh_list(unis, n_items=100, iters=4000, cur_list=result$swad_inds)
-result2_2 <- make_swadesh_list(unis, n_items=100, iters=4000, cur_list=result2$swad_inds)
-result3_2 <- make_swadesh_list(unis, n_items=100, iters=4000, cur_list=result3$swad_inds)
+result1_2 <- make_swadesh_list(unis, n_items=100, iters=9000, cur_list=result$swad_inds)
+result2_2 <- make_swadesh_list(unis, n_items=100, iters=9000, cur_list=result2$swad_inds)
+result3_2 <- make_swadesh_list(unis, n_items=100, iters=9000, cur_list=result3$swad_inds)
 
 # are these converging at all?
-length(intersect(result$swad_inds, result2$swad_inds)) # 1000: 1
-length(intersect(result2$swad_inds, result3$swad_inds)) # 1000: 6
-length(intersect(result$swad_inds, result3$swad_inds)) # 1000: 7
+length(intersect(result$swad_inds, result2$swad_inds)) # 1000: 19
+length(intersect(result2$swad_inds, result3$swad_inds)) # 1000: 15
+length(intersect(result$swad_inds, result3$swad_inds)) # 1000: 17
 
-length(intersect(result1_2$swad_inds, result2_2$swad_inds)) # 5k: 
-length(intersect(result2_2$swad_inds, result3_2$swad_inds)) # 5k: 
-length(intersect(result1_2$swad_inds, result3_2$swad_inds)) # 5k: 
+# how many of the initial items remain?
+intersect(result$start_list, result1_2$swad_inds) # 9
+intersect(result2$start_list, result2_2$swad_inds) # 10
+intersect(result3$start_list, result3_2$swad_inds) # 5
+
+save(result, result1_2,
+     result2, result2_2,
+     result3, result3_2, 
+     file=here("data/MH_Swadesh_lists.Rdata"))
+```
+
+Correlations on the three chains went from an initial (random) .986, .985, and .984 to .996 for all three chains. 
+On average, only 8 of the initial 100 (random) items still remain after 10k swaps.
+Surprisingly, the three chains started to converge: 14 uni-lemmas were on the final list of all 3 chains, and 30, 37, and 38 uni-lemmas were on the final lists of 2 of the 3 chains.
+Below, we look at how the union of these 77 items compares to the rest of the uni-lemmas.
+
+```{r, echo=F, warning=F}
+load(here("data/MH_Swadesh_lists.Rdata"))
+
+l1_l2 <- intersect(result1_2$swad_inds, result2_2$swad_inds) # 10k: 37
+l2_l3 <- intersect(result2_2$swad_inds, result3_2$swad_inds) # 10k: 38
+l1_l3 <- intersect(result1_2$swad_inds, result3_2$swad_inds) # 10k: 30
+
+on2lists <- union(union(l1_l2, l2_l3), l1_l3)
+# 77 items on 2/3 lists
+
+all3 <- intersect(l1_l2, l2_l3) # 14 on all 3
+
+swad_unis <- unis[on2lists,]$uni_lemma
+
+unis <- unis %>% mutate(Swadesh = ifelse(is.element(uni_lemma, swad_unis), T, F))
+
+unis %>% group_by(Swadesh) %>%
+  summarise(d_m = mean(d_m), n = mean(n), a1_m = mean(a1_m))
+
+#unis %>% 
+#  ggplot(aes(x=a1_m, y=d_m, color=Swadesh)) +
+#  geom_point()
+
+p1 <- unis %>% 
+  ggplot(aes(x=Swadesh, y=d_m)) +
+  geom_violin() + theme_bw() + ylab("Difficulty") +
+  stat_summary(fun.data=mean_sdl, geom="pointrange", color="black") +
+  xlab("On 2/3 Swadesh lists")
+
+p2 <- unis %>% 
+  ggplot(aes(x=Swadesh, y=d_sd)) +
+  geom_violin() + theme_bw() + ylab("sd(Difficulty)") +
+  stat_summary(fun.data=mean_sdl, geom="pointrange", color="black") +
+  xlab("On 2/3 Swadesh lists")
+
+p3 <- unis %>% 
+  ggplot(aes(x=Swadesh, y=a1_m)) +
+  geom_violin() + theme_bw() + ylab("Discrimination") +
+  stat_summary(fun.data=mean_sdl, geom="pointrange", color="black") +
+  xlab("On 2/3 Swadesh lists")
+
+p4 <- unis %>% filter(n<50) %>%
+  ggplot(aes(x=Swadesh, y=n)) +
+  geom_violin() + theme_bw() + ylab("# of WS forms") +
+  stat_summary(fun.data=mean_sdl, geom="pointrange", color="black") +
+  xlab("On 2/3 Swadesh lists")
+
+
+ggpubr::ggarrange(p1, p2, p3, p4, nrow=2, ncol=2)
 ```
 
