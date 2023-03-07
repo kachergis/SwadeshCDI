@@ -224,25 +224,35 @@ make_swadesh_list <- function(unis, n_items=100, iters=1000, cur_list=c()) {
 result <- make_swadesh_list(unis, n_items=100, iters=1000)
 result2 <- make_swadesh_list(unis, n_items=100, iters=1000)
 result3 <- make_swadesh_list(unis, n_items=100, iters=1000)
+result4 <- make_swadesh_list(unis, n_items=100, iters=1000)
 
 # do more iterations:
 result1_2 <- make_swadesh_list(unis, n_items=100, iters=9000, cur_list=result$swad_inds)
 result2_2 <- make_swadesh_list(unis, n_items=100, iters=9000, cur_list=result2$swad_inds)
 result3_2 <- make_swadesh_list(unis, n_items=100, iters=9000, cur_list=result3$swad_inds)
+result4_2 <- make_swadesh_list(unis, n_items=100, iters=9000, cur_list=result4$swad_inds)
+
+result1_3 <- make_swadesh_list(unis, n_items=100, iters=20000, cur_list=result1_2$swad_inds)
+result2_3 <- make_swadesh_list(unis, n_items=100, iters=20000, cur_list=result2_2$swad_inds)
+result3_3 <- make_swadesh_list(unis, n_items=100, iters=20000, cur_list=result3_2$swad_inds)
+result4_3 <- make_swadesh_list(unis, n_items=100, iters=20000, cur_list=result4_2$swad_inds)
 
 # are these converging at all?
 length(intersect(result$swad_inds, result2$swad_inds)) # 1000: 19
 length(intersect(result2$swad_inds, result3$swad_inds)) # 1000: 15
 length(intersect(result$swad_inds, result3$swad_inds)) # 1000: 17
+length(intersect(result$swad_inds, result4$swad_inds)) # 1000: 17
 
 # how many of the initial items remain?
 intersect(result$start_list, result1_2$swad_inds) # 9
 intersect(result2$start_list, result2_2$swad_inds) # 10
 intersect(result3$start_list, result3_2$swad_inds) # 5
+intersect(result4$start_list, result4_2$swad_inds) # 7
 
 save(result, result1_2,
      result2, result2_2,
      result3, result3_2, 
+     result4, result4_2,
      file=here("data/MH_Swadesh_lists.Rdata"))
 ```
 
