@@ -9,6 +9,7 @@ output: html_document
 require(here)
 require(tidyverse)
 require(glue)
+require(Hmisc)
 
 source(here("cross-ling-comparison-helpers.R"))
 ```
@@ -299,7 +300,7 @@ length(which(un30k>2)) # 52 on 3+ chains
 length(which(un30k>1)) # 110 on 2+ chains
 ```
 
-```{r, echo=F}
+```{r, echo=F, warning=F}
 sinds = as.numeric(names(un30k[which(un30k>2)]))
 
 swad_unis <- unis[sinds,]$uni_lemma
@@ -319,27 +320,43 @@ p1 <- unis %>%
   ggplot(aes(x=Swadesh, y=d_m)) +
   geom_violin() + theme_bw() + ylab("Difficulty") +
   stat_summary(fun.data=mean_sdl, geom="pointrange", color="black") +
-  xlab("On 2/3 Swadesh lists")
+  xlab("On 75%+ of Swadesh lists")
 
 p2 <- unis %>% 
   ggplot(aes(x=Swadesh, y=d_sd)) +
   geom_violin() + theme_bw() + ylab("sd(Difficulty)") +
   stat_summary(fun.data=mean_sdl, geom="pointrange", color="black") +
-  xlab("On 2/3 Swadesh lists")
+  xlab("On 75%+ of Swadesh lists")
 
 p3 <- unis %>% 
   ggplot(aes(x=Swadesh, y=a1_m)) +
   geom_violin() + theme_bw() + ylab("Discrimination") +
   stat_summary(fun.data=mean_sdl, geom="pointrange", color="black") +
-  xlab("On 2/3 Swadesh lists")
+  xlab("On 75%+ of Swadesh lists")
 
 p4 <- unis %>% filter(n<50) %>%
   ggplot(aes(x=Swadesh, y=n)) +
   geom_violin() + theme_bw() + ylab("# of WS forms") +
   stat_summary(fun.data=mean_sdl, geom="pointrange", color="black") +
-  xlab("On 2/3 Swadesh lists")
+  xlab("On 75%+ of Swadesh lists")
 
 
 ggpubr::ggarrange(p1, p2, p3, p4, nrow=2, ncol=2)
+```
+
+## Items on 4/4 chains
+
+```{r}
+alvins <- c("sweater","sick","knife","long","morning","animal","hear","jam","and",
+            "motorcycle","camera","tear","brush (object)",
+            "before","box","above","want","shoulder","skirt")
+
+unis[as.numeric(names(un30k[which(un30k==4)])),]$uni_lemma
+```
+
+## Items on 3/4 chains
+
+```{r}
+unis[as.numeric(names(un30k[which(un30k==3)])),]$uni_lemma
 ```
 
