@@ -216,7 +216,7 @@ ggplot() +
 ```
 
 ```{r}
-combine_plot <- function(res_list) {
+combine_res <- function(res_list) {
   all_cor <- c()
   all_val <- tibble()
   for (res in res_list) {
@@ -230,16 +230,29 @@ combine_plot <- function(res_list) {
     all_val <- bind_rows(all_val, cur_val)
   }
   
+  list(all_cor = all_cor,
+       all_val = all_val)
+}
+
+combine_plot <- function(combined_res) {
+  all_cor <- combined_res$all_cor
+  all_val <- combined_res$all_val
+  
   ggplot() + 
     geom_line(aes(x = 1:length(all_cor), y = all_cor)) + 
     geom_line(aes(x = i, y = val_cor, col = val_lang), 
               data = all_val)
 }
 
-combine_plot(list(result1, result1_2, result1_3))
-combine_plot(list(result2, result2_2, result2_3))
-combine_plot(list(result3, result3_2, result3_3))
-combine_plot(list(result4, result4_2, result4_3))
+combined1 <- combine_res(list(result1, result1_2, result1_3))
+combined2 <- combine_res(list(result2, result2_2, result2_3))
+combined3 <- combine_res(list(result3, result3_2, result3_3))
+combined4 <- combine_res(list(result4, result4_2, result4_3))
+
+combine_plot(combined1)
+combine_plot(combined2)
+combine_plot(combined3)
+combine_plot(combined4)
 ```
 
 

@@ -1,7 +1,7 @@
 ---
 title: "stitching"
 format: html
-editor: visual
+editor: source
 ---
 
 ```{r}
@@ -14,27 +14,35 @@ library(glue)
 
 ```{r}
 languages <- list.files("data/new_items") |> str_sub(end = -5)
+pronouns <- read_csv("data/pronouns.csv") |> 
+  mutate(uid = glue("{form}_{itemID}"))
 
 get_new_items <- function(language) {
-  new_items <- read_csv(glue("data/new_items/{language}.csv"))
-  forms <- setdiff(colnames(new_items), 
+  lang <- language
+  items <- read_csv(glue("data/new_items/{language}.csv"))
+  forms <- setdiff(colnames(items), 
                    c("category", "definition", "gloss", "uni_lemma"))
+  prons <- pronouns |> 
+    filter(language == lang) |> 
+    select(uid, new_uni_lemma)
   
-  new_items_ <- new_items |> 
-    pivot_longer(cols = forms,
+  new_items <- items |> 
+    pivot_longer(cols = all_of(forms),
                  names_to = "form",
                  values_to = "item_id") |> 
     mutate(uid = ifelse(is.na(item_id), NA, glue("{form}_{item_id}"))) |> 
-    select(-item_id) 
-  new_items_ <- new_items_ |> 
+    select(-item_id) |> 
     pivot_wider(names_from = form, values_from = uid)
-  new_items_ <- new_items_ |> 
-    mutate(uid = do.call(coalesce, select(new_items_, forms))) |> 
-    select(-forms) |> 
-    cbind(new_items |> select(all_of(forms)))
+  new_items <- new_items |> 
+    mutate(uid = do.call(coalesce, select(new_items, all_of(forms)))) |> 
+    select(-all_of(forms)) |> 
+    cbind(items |> select(all_of(forms))) |> 
+    left_join(prons, by = "uid") |> 
+    mutate(uni_lemma = coalesce(new_uni_lemma, uni_lemma)) |> 
+    select(-new_uni_lemma)
   
   list(forms = forms,
-       new_items = new_items_)
+       new_items = new_items)
 }
 
 ```
@@ -152,3 +160,4 @@ for (language in languages) {
   saveRDS(output, glue("data/all_forms/{language}_data.rds"))
 }
 ```
+
