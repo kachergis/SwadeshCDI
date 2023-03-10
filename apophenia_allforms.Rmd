@@ -1,0 +1,314 @@
+---
+title: "Apophenia"
+author: "George"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r, include=F}
+require(here)
+require(tidyverse)
+require(glue)
+
+options(dplyr.summarise.inform = FALSE)
+source(here("cross-ling-comparison-helpers.R"))
+```
+
+## Monte Carlo Construction of Swadesh Lists
+
+Want to build a Swadesh list (SL) of a given length (N)?
+
+  1) construct SL from N randomly-selected uni-lemmas (ToDo: try biasing this selection: weight by uni-lemma frequency, 1/variance of difficulty, discrimination...)
+  2) evaluate correlation between SL and full CDI (per language, then average those correlations--shouldn't bias based on CDI admins)
+  3) select a random item i to consider removing from SL, and a replacement uni-lemma 
+  4) evaluate correlation of SL vs. SL with swapped item: if swap is better, accept with 95% probability.
+
+Fun fact: there are $\sim10^{100}$ potential lists of length 50 (2000 choose 50).
+
+```{r, echo=F}
+# for each language, look for uni-lemmas in swad_list in xldf (may not find all of them!)
+# and test correlation between swad_list subsample and full CDI.
+# also test correlation of full CDI against many random samples of size length(swad_list)
+
+# run once to resave d_prod data in 1 list (to save loading time)
+languages <- list.files("data/all_forms") |> str_sub(end = -10)
+resave_prod_data <- function() {
+  d_prodl = list()
+  for(language in languages) {
+    lang_data <- readRDS(glue("data/all_forms/{language}_data.rds"))
+    d_prodl[[language]] = lang_data$all_prod
+  }
+  saveRDS(d_prodl, "data/allforms_prod_per_lang.rds")
+}
+
+run_swadesh_comparisons <- function(xldf, languages, swad_list) {
+  xx <- tibble()
+  for(lang in languages) {
+    swad_l <- xldf |> 
+      filter(language == lang,
+             uni_lemma %in% swad_list)
+    swad_cor = cor(rowSums(d_prodl[[lang]], na.rm=T), rowSums(d_prodl[[lang]][,swad_l$uid], na.rm=T))
+    
+    xx <- xx %>% bind_rows(tibble(language = lang, cor = swad_cor, N = nrow(swad_l)))
+  }
+  
+  xx_sum <- xx %>% 
+    group_by(language, N) %>%
+    summarise(r = mean(cor))
+  return(xx_sum)
+}
+
+# WS production fits
+xldf <- readRDS("data/xldf_prod_allforms.rds") |> 
+  mutate(d = -d) |> 
+  filter(!is.na(uni_lemma))
+# load(here("data/multiling_2pl_WS_prod_fits.Rdata"))
+# load(here("data/xling-WSprod-IRTparms.Rdata")) # 23179, 
+#languages = names(coefs)
+
+# combined d_prod data
+d_prodl <- readRDS("data/allforms_prod_per_lang.rds")
+
+unis <- xldf |> 
+  group_by(uni_lemma) |> 
+  summarise(d_m = mean(d), 
+            a1_m = mean(a1),
+            d_sd = sd(d), 
+            a1_sd = sd(a1), 
+            n = n())
+
+test_langs <- c("Kigiriama",
+                "American Sign Language",
+                "Greek (Cypriot)",
+                "Spanish (Peruvian)",
+                "British Sign Language",
+                "Persian",
+                "Kiswahili",
+                "English (Irish)",
+                "Irish",
+                "Spanish (Chilean)")
+
+val_langs <- c("Hungarian",
+               "Finnish")
+
+train_langs <- setdiff(languages, c(val_langs, test_langs))
+```
+
+
+
+```{r, warning=F}
+make_swadesh_list <- function(unis, n_items=100, iters=1000, 
+                              keep_chance=.5, val_every=100,
+                              cur_list=c()) {
+  cors <- rep(NA, iters)
+  if(length(cur_list)==0) {
+    swad_inds = sample(1:nrow(unis), n_items, replace = F) # could weight by n, 1/d_sd...
+  } else {
+    swad_inds = cur_list
+  }
+  # val_lang <- sample(train_langs, 1)
+  
+  lists <- list(list(swad_inds))
+  # val_langs <- c(val_lang)
+  val_cors <- c(run_swadesh_comparisons(xldf, val_langs, 
+                                        unis[swad_inds,]$uni_lemma)$r)
+  
+  xx_g <- run_swadesh_comparisons(xldf, train_langs, #setdiff(train_langs, val_lang), 
+                                  unis[swad_inds,]$uni_lemma)
+  message("Iteration 0", appendLF = F)
+  for (i in 1:iters) {
+    if (i %% val_every == 0) {
+      message(glue("\rIteration {i}"), appendLF = F)
+      # val_lang <- sample(train_langs, 1)
+      lists <- c(lists, list(swad_inds))
+      # val_langs <- c(val_langs, val_lang)
+      val_cors <- c(val_cors, run_swadesh_comparisons(xldf, val_langs, 
+                                                      unis[swad_inds,]$uni_lemma)$r)
+    }
+    
+    # swap in 1 new item
+    drop_i <- sample(1:n_items, 1)
+    new_i <- sample(setdiff(1:nrow(unis), swad_inds), 1) 
+    swad_inds2 <- c(swad_inds[-drop_i], new_i)
+    xx_g2 <- run_swadesh_comparisons(xldf, train_langs, #setdiff(train_langs, val_lang), 
+                                     unis[swad_inds2,]$uni_lemma) 
+    l1r <- mean(xx_g$r, na.rm=T) 
+    l2r <- mean(xx_g2$r, na.rm=T)
+    # if l2 has better r than l1, use it (5% chance of keeping l1 even if worse)
+    if (l1r < l2r && runif(1) >= keep_chance) {
+      swad_inds <- swad_inds2
+      xx_g <- xx_g2
+    }
+    cors[i] = max(l1r, l2r)
+  }
+  
+  val <- tibble(i = rep(seq(0, iters, val_every), each = 2),
+                val_lang = rep(val_langs, times = (iters %/% val_every) + 1),
+                swad_inds = rep(lists, each = 2),
+                val_cor = val_cors)
+  
+  return(list(swad_inds = swad_inds, 
+              cors = cors,
+              val = val))
+}
+```
+
+```{r, echo=F, eval=F}
+result1 <- make_swadesh_list(unis, n_items=150, iters=10000)
+result2 <- make_swadesh_list(unis, n_items=150, iters=10000)
+result3 <- make_swadesh_list(unis, n_items=150, iters=10000)
+result4 <- make_swadesh_list(unis, n_items=150, iters=10000)
+
+# do more iterations:
+result1_2 <- make_swadesh_list(unis, n_items=150, iters=10000, cur_list=result1$swad_inds)
+result2_2 <- make_swadesh_list(unis, n_items=150, iters=10000, cur_list=result2$swad_inds)
+result3_2 <- make_swadesh_list(unis, n_items=150, iters=10000, cur_list=result3$swad_inds)
+result4_2 <- make_swadesh_list(unis, n_items=150, iters=10000, cur_list=result4$swad_inds)
+
+result1_3 <- make_swadesh_list(unis, n_items=150, iters=10000, cur_list=result1_2$swad_inds)
+result2_3 <- make_swadesh_list(unis, n_items=150, iters=10000, cur_list=result2_2$swad_inds)
+result3_3 <- make_swadesh_list(unis, n_items=150, iters=10000, cur_list=result3_2$swad_inds)
+result4_3 <- make_swadesh_list(unis, n_items=150, iters=10000, cur_list=result4_2$swad_inds)
+
+# are these converging at all?
+length(intersect(result$swad_inds, result2$swad_inds)) # 1000: 19
+length(intersect(result2$swad_inds, result3$swad_inds)) # 1000: 15
+length(intersect(result$swad_inds, result3$swad_inds)) # 1000: 17
+length(intersect(result$swad_inds, result4$swad_inds)) # 1000: 17
+
+length(intersect(result$swad_inds, result2$swad_inds)) # 1000: 19
+length(intersect(result2$swad_inds, result3$swad_inds)) # 1000: 15
+length(intersect(result$swad_inds, result3$swad_inds)) # 1000: 17
+length(intersect(result$swad_inds, result4$swad_inds)) # 1000: 17
+
+# how many of the initial items remain? (after 10k iterations)
+intersect(result$start_list, result1_2$swad_inds) # 9
+intersect(result2$start_list, result2_2$swad_inds) # 10
+intersect(result3$start_list, result3_2$swad_inds) # 5
+intersect(result4$start_list, result4_2$swad_inds) # 7
+# (after 30k iterations)
+intersect(result$start_list, result1_3$swad_inds) # 8
+intersect(result2$start_list, result2_3$swad_inds) # 9
+intersect(result3$start_list, result3_3$swad_inds) # 7
+intersect(result4$start_list, result4_3$swad_inds) # 5
+
+
+save(result, result1_2, result1_3,
+     result2, result2_2, result2_3,
+     result3, result3_2, result3_3,
+     result4, result4_2, result4_3,
+     file=here("data/MH_Swadesh_lists.Rdata"))
+```
+
+```{r}
+ggplot() + 
+  geom_line(aes(x=1:10000, y = result1$cor)) + 
+  geom_line(aes(x = i, y = val_cor), data=result1$val, col = "red")
+ggplot() + 
+  geom_line(aes(x=1:10000, y = result2$cor)) + 
+  geom_line(aes(x = i, y = val_cor), data=result2$val, col = "red")
+ggplot() + 
+  geom_line(aes(x=1:10000, y = result3$cor)) + 
+  geom_line(aes(x = i, y = val_cor, col = val_lang), data=result3$val)
+ggplot() + 
+  geom_line(aes(x=1:10000, y = result4_3$cor)) + 
+  geom_line(aes(x = i, y = val_cor, col = val_lang), data=result4_3$val)
+```
+
+```{r}
+combine_plot <- function(res_list) {
+  all_cor <- c()
+  all_val <- tibble()
+  for (res in res_list) {
+    all_cor <- c(all_cor, res$cor)
+    cur_val <- res$val
+    if (nrow(all_val) > 0) {
+      cur_val <- cur_val |> 
+        mutate(i = i + max(all_val$i)) |> 
+        slice(-1)
+    }
+    all_val <- bind_rows(all_val, cur_val)
+  }
+  
+  ggplot() + 
+    geom_line(aes(x = 1:length(all_cor), y = all_cor)) + 
+    geom_line(aes(x = i, y = val_cor, col = val_lang), 
+              data = all_val)
+}
+
+combine_plot(list(result1, result1_2, result1_3))
+combine_plot(list(result2, result2_2, result2_3))
+combine_plot(list(result3, result3_2, result3_3))
+combine_plot(list(result4, result4_2, result4_3))
+```
+
+
+Correlations on the three chains went from an initial (random) .986, .985, and .984 to .996 for all three chains. 
+On average, only 8 of the initial 100 (random) items still remain after 10k swaps.
+Surprisingly, the three chains started to converge: 14 uni-lemmas were on the final list of all 3 chains, and 30, 37, and 38 uni-lemmas were on the final lists of 2 of the 3 chains.
+Below, we look at how the union of these 77 items compares to the rest of the uni-lemmas.
+
+```{r, echo=F, warning=F}
+load(here("data/MH_Swadesh_lists.Rdata"))
+
+l1_l2 <- intersect(result1_2$swad_inds, result2_2$swad_inds) # 10k: 37
+l2_l3 <- intersect(result2_2$swad_inds, result3_2$swad_inds) # 10k: 38
+l1_l3 <- intersect(result1_2$swad_inds, result3_2$swad_inds) # 10k: 30
+
+l1_l2 <- intersect(result1_3$swad_inds, result2_3$swad_inds) # 30k: 42
+l2_l3 <- intersect(result2_3$swad_inds, result3_3$swad_inds) # 30k: 42
+l1_l3 <- intersect(result1_3$swad_inds, result3_3$swad_inds) # 30k: 42
+l1_l4 <- intersect(result1_3$swad_inds, result4_3$swad_inds) # 30k: 43
+
+on2lists <- union(union(l1_l2, l2_l3), l1_l3)
+# after 10k iterations, 77 items on 2/3 lists
+# after 30k iterations, 76 items on 2/3 lists
+
+on2lists <- union(union(l1_l2, l2_l3), union(l1_l3, l1_l4))
+# after 30k iterations, 85 items on 2/4 lists (need to add l2_l4, l3_l4...)
+
+all3 <- intersect(l1_l2, l2_l3) 
+# after 10k, 14 on all 3
+# after 30k, 25 on all 3
+
+swad_unis <- unis[on2lists,]$uni_lemma
+
+unis <- unis %>% mutate(Swadesh = ifelse(is.element(uni_lemma, swad_unis), T, F))
+
+unis %>% filter(n>1) %>%
+  group_by(Swadesh) %>%
+  summarise(d_m = mean(d_m), d_sd = mean(d_sd), 
+            n = mean(n), a1_m = mean(a1_m))
+
+#unis %>% 
+#  ggplot(aes(x=a1_m, y=d_m, color=Swadesh)) +
+#  geom_point()
+
+p1 <- unis %>% 
+  ggplot(aes(x=Swadesh, y=d_m)) +
+  geom_violin() + theme_bw() + ylab("Difficulty") +
+  stat_summary(fun.data=mean_sdl, geom="pointrange", color="black") +
+  xlab("On 2/3 Swadesh lists")
+
+p2 <- unis %>% 
+  ggplot(aes(x=Swadesh, y=d_sd)) +
+  geom_violin() + theme_bw() + ylab("sd(Difficulty)") +
+  stat_summary(fun.data=mean_sdl, geom="pointrange", color="black") +
+  xlab("On 2/3 Swadesh lists")
+
+p3 <- unis %>% 
+  ggplot(aes(x=Swadesh, y=a1_m)) +
+  geom_violin() + theme_bw() + ylab("Discrimination") +
+  stat_summary(fun.data=mean_sdl, geom="pointrange", color="black") +
+  xlab("On 2/3 Swadesh lists")
+
+p4 <- unis %>% filter(n<50) %>%
+  ggplot(aes(x=Swadesh, y=n)) +
+  geom_violin() + theme_bw() + ylab("# of WS forms") +
+  stat_summary(fun.data=mean_sdl, geom="pointrange", color="black") +
+  xlab("On 2/3 Swadesh lists")
+
+
+ggpubr::ggarrange(p1, p2, p3, p4, nrow=2, ncol=2)
+```
+
