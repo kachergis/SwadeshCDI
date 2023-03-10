@@ -267,35 +267,42 @@ save(result, result1_2, result1_3,
      file=here("data/MH_Swadesh_lists.Rdata"))
 ```
 
-Correlations on the three chains went from an initial (random) .986, .985, and .984 to .996 for all three chains. 
-On average, only 8 of the initial 100 (random) items still remain after 10k swaps.
-Surprisingly, the three chains started to converge: 14 uni-lemmas were on the final list of all 3 chains, and 30, 37, and 38 uni-lemmas were on the final lists of 2 of the 3 chains.
-Below, we look at how the union of these 77 items compares to the rest of the uni-lemmas.
+Correlations on the four chains went from an initial (random) .986, .985, .984, and .981 to .996 for all four chains after 10k iterations (and still .9962 after 30k swaps). 
+On average, only 8 of the initial 100 (random) items still remain after 10k swaps (7.25 after 30k).
+Surprisingly, the chains started to converge: after 10k swaps, 11 uni-lemmas were on the final list of all 4 chains; 49 uni-lemmas were on the final lists of 3 or 4 chains, and 107 uni-lemmas were on the list of 2+ chains.
+After 30k iterations, 21 items were on all four chains, 52 were on 3+ chains, and 110 were on 2+ chains.
+
+Let's look at the properties of the 52 items on 3 or 4 chains after 30k iterations.
 
 ```{r, echo=F, warning=F}
 load(here("data/MH_Swadesh_lists.Rdata"))
 
-l1_l2 <- intersect(result1_2$swad_inds, result2_2$swad_inds) # 10k: 37
-l2_l3 <- intersect(result2_2$swad_inds, result3_2$swad_inds) # 10k: 38
-l1_l3 <- intersect(result1_2$swad_inds, result3_2$swad_inds) # 10k: 30
+un1k <- sort(table(c(result$swad_inds, result2$swad_inds, 
+                     result3$swad_inds, result4$swad_inds)), decr=T)
+#length(which(un1k>2))
+# after 1k, 10 items are on 3 of 4 lists
+un10k <- sort(table(c(result1_2$swad_inds, result2_2$swad_inds, 
+                      result3_2$swad_inds, result4_2$swad_inds)), decr=T)
+un30k <- sort(table(c(result1_3$swad_inds, result2_3$swad_inds, 
+                      result3_3$swad_inds, result4_3$swad_inds)), decr=T)
+```
 
-l1_l2 <- intersect(result1_3$swad_inds, result2_3$swad_inds) # 30k: 42
-l2_l3 <- intersect(result2_3$swad_inds, result3_3$swad_inds) # 30k: 42
-l1_l3 <- intersect(result1_3$swad_inds, result3_3$swad_inds) # 30k: 42
-l1_l4 <- intersect(result1_3$swad_inds, result4_3$swad_inds) # 30k: 43
+```{r eval=F, echo=F}
+# @10k
+length(which(un10k>3)) # 11 on all 4 chains
+length(which(un10k>2)) # 49 on 3+ chains
+length(which(un10k>1)) # 107 on 2+ chains
 
-on2lists <- union(union(l1_l2, l2_l3), l1_l3)
-# after 10k iterations, 77 items on 2/3 lists
-# after 30k iterations, 76 items on 2/3 lists
+# @30k
+length(which(un30k>3)) # 21 on all 4 chains
+length(which(un30k>2)) # 52 on 3+ chains
+length(which(un30k>1)) # 110 on 2+ chains
+```
 
-on2lists <- union(union(l1_l2, l2_l3), union(l1_l3, l1_l4))
-# after 30k iterations, 85 items on 2/4 lists (need to add l2_l4, l3_l4...)
+```{r, echo=F}
+sinds = as.numeric(names(un30k[which(un30k>2)]))
 
-all3 <- intersect(l1_l2, l2_l3) 
-# after 10k, 14 on all 3
-# after 30k, 25 on all 3
-
-swad_unis <- unis[on2lists,]$uni_lemma
+swad_unis <- unis[sinds,]$uni_lemma
 
 unis <- unis %>% mutate(Swadesh = ifelse(is.element(uni_lemma, swad_unis), T, F))
 
