@@ -191,81 +191,69 @@ languages = subset(ws_tab, N>=200)$Language
 
 
 ```{r, warning=F}
-make_swadesh_list <- function(unis, n_items=100, iters=1000, cur_list=c()) {
-  cors <- rep(NA, iters)
-  if(length(cur_list)==0) {
-    swad_inds = sample(1:nrow(unis), n_items, replace = F) # could weight by n, 1/d_sd...
+make_swadesh_list <- function(unis, n_items=100, iters=1000, 
+                              save_every = 50, prev_run=NULL) {
+  cors <- rep(NA, iters/save_every)
+  accepted_rate <- rep(NA, iters/save_every)
+  swad_inds <- matrix(0, nrow=iters/save_every, ncol=n_items)
+  if(is.null(prev_run)) {
+    cur_swad_inds = sample(1:nrow(unis), n_items, replace = F) # could weight by n, 1/d_sd...
   } else {
-    swad_inds = cur_list
+    cur_swad_inds = prev_run$swad_inds[nrow(prev_run$swad_inds),] # start with last saved inds
+    if(ncol(prev_run$swad_inds)!=n_items) return("Error: mismatch in n_items of passed previous result")
   }
-  start_list = swad_inds
-  xx_g <- run_swadesh_comparisons(xldf, languages, unis[swad_inds,]$uni_lemma, form='WS')
+  xx_g <- run_swadesh_comparisons(xldf, languages, unis[cur_swad_inds,]$uni_lemma, form='WS')
+  accepted_count = 0 # track number of accepted swaps
   for (i in 1:iters) {
     # swap in 1 new item
     drop_i = sample(1:n_items, 1)
-    new_i = sample(setdiff(1:nrow(unis), swad_inds), 1) 
-    swad_inds2 = c(swad_inds[-drop_i], new_i)
-    xx_g2 <- run_swadesh_comparisons(xldf, languages, unis[swad_inds2,]$uni_lemma, form='WS') 
+    new_i = sample(setdiff(1:nrow(unis), cur_swad_inds), 1) 
+    new_swad_inds = c(cur_swad_inds[-drop_i], new_i)
+    xx_g2 <- run_swadesh_comparisons(xldf, languages, unis[new_swad_inds,]$uni_lemma, form='WS') 
     l1r = mean(xx_g$`Swadesh r`) 
     l2r = mean(xx_g2$`Swadesh r`)
     # if l2 has better r than l1, use it (5% chance of keeping l1 even if worse)
     if(l1r < l2r && runif(1)<=.95) {
-      swad_inds = swad_inds2
+      accepted_count = accepted_count + 1
+      cur_swad_inds = new_swad_inds
       xx_g = xx_g2
     }
-    cors[i] = max(l1r, l2r)
+    if(i%%save_every==0) {
+      cors[i/save_every] = max(l1r, l2r)
+      swad_inds[(i/save_every),] = cur_swad_inds
+      accepted_rate[i/save_every] = accepted_count / save_every
+      accepted_count = 0
+    }
   }
-  return(list(start_list = start_list, 
-              swad_inds=swad_inds, 
-              cors=cors))
+  
+  if(is.null(prev_run)) {
+    return(list(swad_inds=swad_inds, 
+              cors=cors,
+              acceptance_rate = accepted_rate))
+  } else {
+    return(list(swad_inds = rbind(prev_run$swad_inds, swad_inds),
+                cors = c(prev_run$cors, cors),
+                acceptance_rate = c(prev_run$acceptance_rate, accepted_rate)))
+  }
 }
+
 ```
 
 ```{r, echo=F, eval=F}
-result <- make_swadesh_list(unis, n_items=100, iters=1000)
-result2 <- make_swadesh_list(unis, n_items=100, iters=1000)
-result3 <- make_swadesh_list(unis, n_items=100, iters=1000)
-result4 <- make_swadesh_list(unis, n_items=100, iters=1000)
+r1 <- make_swadesh_list(unis, n_items=150, iters=20000)
+r2 <- make_swadesh_list(unis, n_items=150, iters=20000)
+r3 <- make_swadesh_list(unis, n_items=150, iters=20000)
+r4 <- make_swadesh_list(unis, n_items=150, iters=20000)
 
-# do more iterations:
-result1_2 <- make_swadesh_list(unis, n_items=100, iters=9000, cur_list=result$swad_inds)
-result2_2 <- make_swadesh_list(unis, n_items=100, iters=9000, cur_list=result2$swad_inds)
-result3_2 <- make_swadesh_list(unis, n_items=100, iters=9000, cur_list=result3$swad_inds)
-result4_2 <- make_swadesh_list(unis, n_items=100, iters=9000, cur_list=result4$swad_inds)
-
-result1_3 <- make_swadesh_list(unis, n_items=100, iters=20000, cur_list=result1_2$swad_inds)
-result2_3 <- make_swadesh_list(unis, n_items=100, iters=20000, cur_list=result2_2$swad_inds)
-result3_3 <- make_swadesh_list(unis, n_items=100, iters=20000, cur_list=result3_2$swad_inds)
-result4_3 <- make_swadesh_list(unis, n_items=100, iters=20000, cur_list=result4_2$swad_inds)
-
-# are these converging at all?
-length(intersect(result$swad_inds, result2$swad_inds)) # 1000: 19
-length(intersect(result2$swad_inds, result3$swad_inds)) # 1000: 15
-length(intersect(result$swad_inds, result3$swad_inds)) # 1000: 17
-length(intersect(result$swad_inds, result4$swad_inds)) # 1000: 17
-
-length(intersect(result$swad_inds, result2$swad_inds)) # 1000: 19
-length(intersect(result2$swad_inds, result3$swad_inds)) # 1000: 15
-length(intersect(result$swad_inds, result3$swad_inds)) # 1000: 17
-length(intersect(result$swad_inds, result4$swad_inds)) # 1000: 17
-
-# how many of the initial items remain? (after 10k iterations)
-intersect(result$start_list, result1_2$swad_inds) # 9
-intersect(result2$start_list, result2_2$swad_inds) # 10
-intersect(result3$start_list, result3_2$swad_inds) # 5
-intersect(result4$start_list, result4_2$swad_inds) # 7
-# (after 30k iterations)
-intersect(result$start_list, result1_3$swad_inds) # 8
-intersect(result2$start_list, result2_3$swad_inds) # 9
-intersect(result3$start_list, result3_3$swad_inds) # 7
-intersect(result4$start_list, result4_3$swad_inds) # 5
+# another 10k
+r1 <- make_swadesh_list(unis, n_items=150, iters=30000, prev_run=r1)
+r2 <- make_swadesh_list(unis, n_items=150, iters=30000, prev_run=r2)
+r3 <- make_swadesh_list(unis, n_items=150, iters=30000, prev_run=r3)
+r4 <- make_swadesh_list(unis, n_items=150, iters=30000, prev_run=r4)
 
 
-save(result, result1_2, result1_3,
-     result2, result2_2, result2_3,
-     result3, result3_2, result3_3,
-     result4, result4_2, result4_3,
-     file=here("data/MH_Swadesh_lists.Rdata"))
+save(r1, r2, r3, r4,
+     file=here("data/MH_Swadesh_lists_v2.Rdata"))
 ```
 
 Correlations on the four chains went from an initial (random) .986, .985, .984, and .981 to .996 for all four chains after 10k iterations (and still .9962 after 30k swaps). 
