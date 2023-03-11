@@ -245,12 +245,11 @@ r2 <- make_swadesh_list(unis, n_items=150, iters=20000)
 r3 <- make_swadesh_list(unis, n_items=150, iters=20000)
 r4 <- make_swadesh_list(unis, n_items=150, iters=20000)
 
-# another 10k
+# another 30k
 r1 <- make_swadesh_list(unis, n_items=150, iters=30000, prev_run=r1)
 r2 <- make_swadesh_list(unis, n_items=150, iters=30000, prev_run=r2)
 r3 <- make_swadesh_list(unis, n_items=150, iters=30000, prev_run=r3)
 r4 <- make_swadesh_list(unis, n_items=150, iters=30000, prev_run=r4)
-
 
 save(r1, r2, r3, r4,
      file=here("data/MH_Swadesh_lists_v2.Rdata"))
@@ -289,7 +288,84 @@ length(which(un30k>1)) # 110 on 2+ chains
 ```
 
 ```{r, echo=F, warning=F}
-sinds = as.numeric(names(un30k[which(un30k>2)]))
+load(here("data/MH_Swadesh_lists_v2.Rdata"))
+
+lasti = nrow(r1$swad_inds)
+
+iteration = 1:lasti * 50
+mean_accept_rate = rowMeans(cbind(r1$acceptance_rate, r2$acceptance_rate, 
+                                  r3$acceptance_rate, r4$acceptance_rate))
+plot(x=iteration, y=mean_accept_rate, pch='.')
+```
+
+The swap acceptance rate start ~0.4, but drops quickly and remains low. This means we likely are not exploring enough of the space, and should make it stay higher.
+
+## Correlation of S-CDI with Full CDI scores
+
+(for the 26 training languages)
+
+```{r, echo=F}
+plot(x=iteration, y=r1$cors, ylim=c(.990, 0.998), pch='.',
+     ylab="S-CDI correlation with full CDI")
+points(x=iteration, y=r2$cors, pch=".", col='red')
+points(x=iteration, y=r3$cors, pch=".", col='blue')
+points(x=iteration, y=r4$cors, pch=".", col='green')
+```
+
+
+## Initial items still remaining
+
+```{r, include=F, echo=F}
+length(intersect(r1$swad_inds[1,], r1$swad_inds[lasti,])) # 17 remain
+length(intersect(r2$swad_inds[1,], r2$swad_inds[lasti,])) # 15
+length(intersect(r3$swad_inds[1,], r3$swad_inds[lasti,])) # 15
+length(intersect(r4$swad_inds[1,], r4$swad_inds[lasti,])) # 24
+```
+
+On average, 17 of the 150 original items remain after 50,000 iterations.
+
+## Comparison of final uni-lemmas across chains
+
+Are the chains converging?
+
+```{r, echo=F}
+uni50k <- c(r1$swad_inds[lasti,], r2$swad_inds[lasti,], r3$swad_inds[lasti,], r4$swad_inds[lasti,])
+
+xc_freq <- sort(table(uni50k), decreasing = T)
+on4 <- length(which(xc_freq==4)) # 40 on all 4 (27%)
+on3 <- length(which(xc_freq==3)) # 55 
+on2 <- length(which(xc_freq==2)) # 80 
+on1 <- length(which(xc_freq==1)) # 115/600 = 19%
+```
+
+`r on4` uni-lemmas are on all 4 chains.
+`r on3` uni-lemmas are on 3 chains, `r on2` are on 2 chains.
+`r on1` are only on 1 chain.
+
+## Items on all 4 chains
+
+```{r, echo=F}
+#alvins <- c("sweater","sick","knife","long","morning","animal","hear","jam","and",
+#            "motorcycle","camera","tear","brush (object)",
+#            "before","box","above","want","shoulder","skirt")
+#intersect(alvins, unis[as.numeric(names(xc_freq[which(xc_freq==4)])),]$uni_lemma)
+# sweater, jam, brush (object)
+
+unis[as.numeric(names(xc_freq[which(xc_freq==4)])),]$uni_lemma
+```
+
+
+## Items on 3 of 4 chains
+
+
+```{r, echo=F}
+unis[as.numeric(names(xc_freq[which(xc_freq==3)])),]$uni_lemma
+```
+
+## Properties of items on most/all chains
+
+```{r, echo=F, warning=F}
+sinds = as.numeric(names(xc_freq[which(xc_freq>2)]))
 
 swad_unis <- unis[sinds,]$uni_lemma
 
@@ -332,19 +408,4 @@ p4 <- unis %>% filter(n<50) %>%
 ggpubr::ggarrange(p1, p2, p3, p4, nrow=2, ncol=2)
 ```
 
-## Items on 4/4 chains
-
-```{r}
-alvins <- c("sweater","sick","knife","long","morning","animal","hear","jam","and",
-            "motorcycle","camera","tear","brush (object)",
-            "before","box","above","want","shoulder","skirt")
-
-unis[as.numeric(names(un30k[which(un30k==4)])),]$uni_lemma
-```
-
-## Items on 3/4 chains
-
-```{r}
-unis[as.numeric(names(un30k[which(un30k==3)])),]$uni_lemma
-```
 
