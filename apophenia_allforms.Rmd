@@ -1,6 +1,6 @@
 ---
-title: "Apophenia"
-author: "George"
+title: "Swadesh goes to Monte Carlo"
+author: "George & Alvin"
 date: "`r Sys.Date()`"
 output: html_document
 ---
@@ -325,3 +325,30 @@ p4 <- unis %>% filter(n<50) %>%
 ggpubr::ggarrange(p1, p2, p3, p4, nrow=2, ncol=2)
 ```
 
+## Posterior probability of inclusion
+
+How peaky is the posterior?
+
+```{r}
+r1 <- readRDS("data/MC/result1.rds")
+r2 <- readRDS("data/MC/result2.rds")
+r3 <- readRDS("data/MC/result3.rds")
+r4 <- readRDS("data/MC/result4.rds")
+
+# every 100 iterations, current Swadesh list is saved (but same one for Hungarian and Finnish)
+
+all_inds1 <- r1$all_val %>% filter(val_lang=="Finnish", i>5000) %>% select(swad_inds) %>% unlist()
+all_inds2 <- r2$all_val %>% filter(val_lang=="Finnish", i>5000) %>% select(swad_inds) %>% unlist()
+all_inds3 <- r3$all_val %>% filter(val_lang=="Finnish", i>5000) %>% select(swad_inds) %>% unlist()
+all_inds4 <- r4$all_val %>% filter(val_lang=="Finnish", i>5000) %>% select(swad_inds) %>% unlist()
+
+all_inds <- sort(table(c(all_inds1, all_inds2, all_inds3, all_inds4)), decreasing=T)
+#all_inds <- c(all_inds1, all_inds2, all_inds3, all_inds4)
+#hist(all_inds)
+item_posterior_prob = all_inds / sum(all_inds)
+
+head(all_inds, 10)
+```
+
+`r length(all_inds)` uni-lemmas appear in the four chains, with a median frequency of `r median(all_inds`.
+This means we haven't even fully sampled the space of items (let alone item combinations..); we probably need a higher mutation acceptance rate to more fully explore it.
