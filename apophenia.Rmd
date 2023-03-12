@@ -251,7 +251,12 @@ r2 <- make_swadesh_list(unis, n_items=150, iters=30000, prev_run=r2)
 r3 <- make_swadesh_list(unis, n_items=150, iters=30000, prev_run=r3)
 r4 <- make_swadesh_list(unis, n_items=150, iters=30000, prev_run=r4)
 
-save(r1, r2, r3, r4,
+r5 <- make_swadesh_list(unis, n_items=150, iters=50000)
+r6 <- make_swadesh_list(unis, n_items=150, iters=50000)
+r7 <- make_swadesh_list(unis, n_items=150, iters=50000)
+r8 <- make_swadesh_list(unis, n_items=150, iters=50000)
+
+save(r1, r2, r3, r4, r5, r6, r7, r8,
      file=here("data/MH_Swadesh_lists_v2.Rdata"))
 ```
 
@@ -260,7 +265,8 @@ On average, only 8 of the initial 100 (random) items still remain after 10k swap
 Surprisingly, the chains started to converge: after 10k swaps, 11 uni-lemmas were on the final list of all 4 chains; 49 uni-lemmas were on the final lists of 3 or 4 chains, and 107 uni-lemmas were on the list of 2+ chains.
 After 30k iterations, 21 items were on all four chains, 52 were on 3+ chains, and 110 were on 2+ chains.
 
-Let's look at the properties of the 52 items on 3 or 4 chains after 30k iterations.
+
+Now we have 8 chains with 50k iterations.
 
 ```{r, echo=F, warning=F}
 load(here("data/MH_Swadesh_lists.Rdata"))
@@ -287,6 +293,8 @@ length(which(un30k>2)) # 52 on 3+ chains
 length(which(un30k>1)) # 110 on 2+ chains
 ```
 
+## Acceptance rate
+
 ```{r, echo=F, warning=F}
 load(here("data/MH_Swadesh_lists_v2.Rdata"))
 
@@ -294,7 +302,9 @@ lasti = nrow(r1$swad_inds)
 
 iteration = 1:lasti * 50
 mean_accept_rate = rowMeans(cbind(r1$acceptance_rate, r2$acceptance_rate, 
-                                  r3$acceptance_rate, r4$acceptance_rate))
+                                  r3$acceptance_rate, r4$acceptance_rate,
+                                  r5$acceptance_rate, r6$acceptance_rate,
+                                  r7$acceptance_rate, r8$acceptance_rate))
 plot(x=iteration, y=mean_accept_rate, pch='.')
 ```
 
@@ -310,39 +320,69 @@ plot(x=iteration, y=r1$cors, ylim=c(.990, 0.998), pch='.',
 points(x=iteration, y=r2$cors, pch=".", col='red')
 points(x=iteration, y=r3$cors, pch=".", col='blue')
 points(x=iteration, y=r4$cors, pch=".", col='green')
+points(x=iteration, y=r5$cors, pch=".", col='lightblue')
+points(x=iteration, y=r6$cors, pch=".", col='darkgreen')
+points(x=iteration, y=r7$cors, pch=".", col='darkblue')
+points(x=iteration, y=r8$cors, pch=".", col='magenta')
 ```
 
 
 ## Initial items still remaining
 
 ```{r, include=F, echo=F}
-length(intersect(r1$swad_inds[1,], r1$swad_inds[lasti,])) # 17 remain
-length(intersect(r2$swad_inds[1,], r2$swad_inds[lasti,])) # 15
-length(intersect(r3$swad_inds[1,], r3$swad_inds[lasti,])) # 15
-length(intersect(r4$swad_inds[1,], r4$swad_inds[lasti,])) # 24
+get_initial_items_remaining <- function(results) {
+  lastind = nrow(results$swad_inds)
+  remaining <- rep(NA, lastind)
+  for(i in 1:lastind) {
+    remaining[i] = length(intersect(results$swad_inds[1,], results$swad_inds[i,])) 
+  }
+  return(remaining)
+}
+
+r1$initial_remaining <- get_initial_items_remaining(r1)
+r2$initial_remaining <- get_initial_items_remaining(r2)
+r3$initial_remaining <- get_initial_items_remaining(r3)
+r4$initial_remaining <- get_initial_items_remaining(r4)
+r5$initial_remaining <- get_initial_items_remaining(r5)
+r6$initial_remaining <- get_initial_items_remaining(r6)
+r7$initial_remaining <- get_initial_items_remaining(r7)
+r8$initial_remaining <- get_initial_items_remaining(r8)
+
+plot(x=iteration, y=r1$initial_remaining, ylim=c(0, 150), pch='.',
+     ylab="Number of Initial Items Remaining")
+points(x=iteration, y=r2$initial_remaining, pch=".", col='red')
+points(x=iteration, y=r3$initial_remaining, pch=".", col='blue')
+points(x=iteration, y=r4$initial_remaining, pch=".", col='green')
+points(x=iteration, y=r5$initial_remaining, pch=".", col='lightblue')
+points(x=iteration, y=r6$initial_remaining, pch=".", col='darkgreen')
+points(x=iteration, y=r7$initial_remaining, pch=".", col='darkblue')
+points(x=iteration, y=r8$initial_remaining, pch=".", col='magenta')
 ```
 
 On average, 17 of the 150 original items remain after 50,000 iterations.
 
 ## Comparison of final uni-lemmas across chains
 
-Are the chains converging?
+Are the chains converging? Here are the number of items appearing at each frequency. That is, 19 items appear on all 8 chains; 20 appear on 7 chains, ..., 99 items appear on only one chain.
 
 ```{r, echo=F}
-uni50k <- c(r1$swad_inds[lasti,], r2$swad_inds[lasti,], r3$swad_inds[lasti,], r4$swad_inds[lasti,])
+uni50k <- c(r1$swad_inds[lasti,], r2$swad_inds[lasti,], r3$swad_inds[lasti,], r4$swad_inds[lasti,],
+            r5$swad_inds[lasti,], r6$swad_inds[lasti,], r7$swad_inds[lasti,], r8$swad_inds[lasti,])
 
 xc_freq <- sort(table(uni50k), decreasing = T)
-on4 <- length(which(xc_freq==4)) # 40 on all 4 (27%)
-on3 <- length(which(xc_freq==3)) # 55 
-on2 <- length(which(xc_freq==2)) # 80 
-on1 <- length(which(xc_freq==1)) # 115/600 = 19%
+
+
+freq_freq <- table(xc_freq)
+
+#on4 <- length(which(xc_freq==4)) # 40 on all 4 (27%)
+#on3 <- length(which(xc_freq==3)) # 55 
+#on2 <- length(which(xc_freq==2)) # 80 
+#on1 <- length(which(xc_freq==1)) # 115/600 = 19%
+freq_freq
 ```
 
-`r on4` uni-lemmas are on all 4 chains.
-`r on3` uni-lemmas are on 3 chains, `r on2` are on 2 chains.
-`r on1` are only on 1 chain.
 
-## Items on all 4 chains
+## Items on all 8 chains
 
 ```{r, echo=F}
 #alvins <- c("sweater","sick","knife","long","morning","animal","hear","jam","and",
@@ -351,21 +391,25 @@ on1 <- length(which(xc_freq==1)) # 115/600 = 19%
 #intersect(alvins, unis[as.numeric(names(xc_freq[which(xc_freq==4)])),]$uni_lemma)
 # sweater, jam, brush (object)
 
-unis[as.numeric(names(xc_freq[which(xc_freq==4)])),]$uni_lemma
+unis[as.numeric(names(xc_freq[which(xc_freq==8)])),]$uni_lemma
 ```
 
-
-## Items on 3 of 4 chains
-
+## Items on 7 chains
 
 ```{r, echo=F}
-unis[as.numeric(names(xc_freq[which(xc_freq==3)])),]$uni_lemma
+unis[as.numeric(names(xc_freq[which(xc_freq==7)])),]$uni_lemma
 ```
 
-## Properties of items on most/all chains
+## Items on 6 chains
+
+```{r, echo=F}
+unis[as.numeric(names(xc_freq[which(xc_freq==6)])),]$uni_lemma
+```
+
+## Properties of items on 7+ chains
 
 ```{r, echo=F, warning=F}
-sinds = as.numeric(names(xc_freq[which(xc_freq>2)]))
+sinds = as.numeric(names(xc_freq[which(xc_freq>5)]))
 
 swad_unis <- unis[sinds,]$uni_lemma
 
