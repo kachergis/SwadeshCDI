@@ -212,8 +212,8 @@ make_swadesh_list <- function(unis, n_items=100, iters=1000,
     xx_g2 <- run_swadesh_comparisons(xldf, languages, unis[new_swad_inds,]$uni_lemma, form='WS') 
     l1r = mean(xx_g$`Swadesh r`) 
     l2r = mean(xx_g2$`Swadesh r`)
-    # if l2 has better r than l1, use it (5% chance of keeping l1 even if worse)
-    if(l1r < l2r && runif(1)<=.95) {
+    # if l2 has better r than l1, use it -- otherwise chance of going with l1r
+    if(runif(1) < (l2r/l1r)) {
       accepted_count = accepted_count + 1
       cur_swad_inds = new_swad_inds
       xx_g = xx_g2
@@ -257,7 +257,7 @@ r7 <- make_swadesh_list(unis, n_items=150, iters=50000)
 r8 <- make_swadesh_list(unis, n_items=150, iters=50000)
 
 save(r1, r2, r3, r4, r5, r6, r7, r8,
-     file=here("data/MH_Swadesh_lists_v2.Rdata"))
+     file=here("data/MH_Swadesh_lists_v3.Rdata"))
 ```
 
 Correlations on the four chains went from an initial (random) .986, .985, .984, and .981 to .996 for all four chains after 10k iterations (and still .9962 after 30k swaps). 
@@ -452,4 +452,38 @@ p4 <- unis %>% filter(n<50) %>%
 ggpubr::ggarrange(p1, p2, p3, p4, nrow=2, ncol=2)
 ```
 
+The critical question seems to be: are we trying enough of the items?
+The presence of some of the first items on each list seems a little worrying -- but it seems fine if these items are all consistently good items. So, of the initial items that remain, are (nearly) all of those 'good' items?
+
+On average, 7 of the items that remain on each chain frequently appear on the final list.
+
+```{r, eval=F, echo=F}
+good_inds <- as.numeric(names(xc_freq[which(xc_freq>5)])) # 69 items
+
+intersect(r1$swad_inds[1,], good_inds) # 7
+intersect(r2$swad_inds[1,], good_inds) # 6
+intersect(r3$swad_inds[1,], good_inds) # 7
+intersect(r4$swad_inds[1,], good_inds) # 9
+intersect(r5$swad_inds[1,], good_inds) # 8
+intersect(r6$swad_inds[1,], good_inds) # 5
+intersect(r7$swad_inds[1,], good_inds) # 11
+intersect(r8$swad_inds[1,], good_inds) # 9
+# mean(7,6,7,9,8,5,11,9)
+```
+
+## Posterior probability of selection for Swadesh-CDI
+
+```{r}
+all <- c(unlist(r1$swad_inds[50:lasti,]),
+         unlist(r2$swad_inds[50:lasti,]),
+         unlist(r3$swad_inds[50:lasti,]),
+         unlist(r4$swad_inds[50:lasti,]),
+         unlist(r5$swad_inds[50:lasti,]),
+         unlist(r6$swad_inds[50:lasti,]),
+         unlist(r7$swad_inds[50:lasti,]),
+         unlist(r8$swad_inds[50:lasti,]))
+
+head(sort(table(all), decreasing = T), 100)  # only 643 appear here...
+#tail(sort(table(all), decreasing = T), 10) 
+```
 
