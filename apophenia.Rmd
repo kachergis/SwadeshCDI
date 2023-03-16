@@ -170,6 +170,7 @@ load(here("data/multiling_2pl_WS_prod_fits.Rdata"))
 load(here("data/xling-WSprod-IRTparms.Rdata")) # 23179, 
 #languages = names(coefs)
 
+
 # combined d_prod data
 load(here("data/WS_prod_per_lang.Rdata"))
 
@@ -191,6 +192,71 @@ languages = subset(ws_tab, N>=200)$Language
 
 
 ```{r, warning=F}
+# now we'll constrain to have proportion number of items per semantic category
+category_proportions # 26 proportions <- will round up smaller categories and round down largers ones..
+n_per_category <- category_proportions * n_items
+# minimum of 1 per category?
+
+# unis will have category that is modal cat across all langs
+
+make_swadesh_list <- function(unis, n_items=100, iters=1000, 
+                              save_every = 50, prev_run=NULL) {
+  cors <- rep(NA, iters/save_every)
+  accepted_rate <- rep(NA, iters/save_every)
+  swad_inds <- matrix(0, nrow=iters/save_every, ncol=n_items)
+  if(is.null(prev_run)) {
+    # initial list needs to sample n per category
+    cur_swad_inds = c()
+    for(ci in n_per_category) {
+      this_cat_uni <- subset(unis, category==n_per_category[ci,]$category)
+      new_unis = sample(this_cat_uni$uni_lemma, 
+                             n_per_category[ci,]$n, replace = F)
+      cur_swad_inds = c(cur_swad_inds, which(unis$uni_lemma %in% new_unis))
+    }
+  } else {
+    cur_swad_inds = prev_run$swad_inds[nrow(prev_run$swad_inds),] # start with last saved inds
+    if(ncol(prev_run$swad_inds)!=n_items) return("Error: mismatch in n_items of passed previous result")
+  }
+  xx_g <- run_swadesh_comparisons(xldf, languages, unis[cur_swad_inds,]$uni_lemma, form='WS')
+  accepted_count = 0 # track number of accepted swaps
+  for (i in 1:iters) {
+    # pick item to drop, find its category
+    drop_i = sample(1:n_items, 1)
+    drop_cat = unis[cur_swad_inds[drop_i],]$category
+    drop_unilemma = unis[cur_swad_inds[drop_i],]$unilemma
+    # get item from same category
+    new_unilemma = sample(subset(unis, category==drop_cat & unilemma!=drop_unilemma), 1)
+    new_i = which(unis$unilemma==new_unilemma)
+    #new_i = sample(setdiff(1:nrow(unis), cur_swad_inds), 1) 
+    new_swad_inds = c(cur_swad_inds[-drop_i], new_i)
+    xx_g2 <- run_swadesh_comparisons(xldf, languages, unis[new_swad_inds,]$uni_lemma, form='WS') 
+    l1r = mean(xx_g$`Swadesh r`) 
+    l2r = mean(xx_g2$`Swadesh r`)
+    # if l2 has better r than l1, use it -- otherwise chance of going with l1r
+    if(runif(1) < (l2r/l1r)) {
+      accepted_count = accepted_count + 1
+      cur_swad_inds = new_swad_inds
+      xx_g = xx_g2
+    }
+    if(i%%save_every==0) {
+      cors[i/save_every] = max(l1r, l2r)
+      swad_inds[(i/save_every),] = cur_swad_inds
+      accepted_rate[i/save_every] = accepted_count / save_every
+      accepted_count = 0
+    }
+  }
+  
+  if(is.null(prev_run)) {
+    return(list(swad_inds=swad_inds, 
+              cors=cors,
+              acceptance_rate = accepted_rate))
+  } else {
+    return(list(swad_inds = rbind(prev_run$swad_inds, swad_inds),
+                cors = c(prev_run$cors, cors),
+                acceptance_rate = c(prev_run$acceptance_rate, accepted_rate)))
+  }
+}
+
 make_swadesh_list <- function(unis, n_items=100, iters=1000, 
                               save_every = 50, prev_run=NULL) {
   cors <- rep(NA, iters/save_every)
@@ -240,21 +306,21 @@ make_swadesh_list <- function(unis, n_items=100, iters=1000,
 ```
 
 ```{r, echo=F, eval=F}
-r1 <- make_swadesh_list(unis, n_items=150, iters=20000)
-r2 <- make_swadesh_list(unis, n_items=150, iters=20000)
-r3 <- make_swadesh_list(unis, n_items=150, iters=20000)
-r4 <- make_swadesh_list(unis, n_items=150, iters=20000)
+r1 <- make_swadesh_list(unis, n_items=150, iters=10000)
+r2 <- make_swadesh_list(unis, n_items=150, iters=10000)
+r3 <- make_swadesh_list(unis, n_items=150, iters=10000)
+r4 <- make_swadesh_list(unis, n_items=150, iters=10000)
 
 # another 30k
-r1 <- make_swadesh_list(unis, n_items=150, iters=30000, prev_run=r1)
-r2 <- make_swadesh_list(unis, n_items=150, iters=30000, prev_run=r2)
-r3 <- make_swadesh_list(unis, n_items=150, iters=30000, prev_run=r3)
-r4 <- make_swadesh_list(unis, n_items=150, iters=30000, prev_run=r4)
+r1 <- make_swadesh_list(unis, n_items=150, iters=10000, prev_run=r1)
+r2 <- make_swadesh_list(unis, n_items=150, iters=10000, prev_run=r2)
+r3 <- make_swadesh_list(unis, n_items=150, iters=10000, prev_run=r3)
+r4 <- make_swadesh_list(unis, n_items=150, iters=10000, prev_run=r4)
 
-r5 <- make_swadesh_list(unis, n_items=150, iters=50000)
-r6 <- make_swadesh_list(unis, n_items=150, iters=50000)
-r7 <- make_swadesh_list(unis, n_items=150, iters=50000)
-r8 <- make_swadesh_list(unis, n_items=150, iters=50000)
+r5 <- make_swadesh_list(unis, n_items=150, iters=20000)
+r6 <- make_swadesh_list(unis, n_items=150, iters=20000)
+r7 <- make_swadesh_list(unis, n_items=150, iters=20000)
+r8 <- make_swadesh_list(unis, n_items=150, iters=20000)
 
 save(r1, r2, r3, r4, r5, r6, r7, r8,
      file=here("data/MH_Swadesh_lists_v3.Rdata"))
