@@ -192,25 +192,37 @@ languages = subset(ws_tab, N>=200)$Language
 
 
 ```{r, warning=F}
+uni_lemmas <- xldf |> 
+  group_by(uni_lemma, category) |> 
+  summarise(n = n()) |> 
+  arrange(desc(n)) |> 
+  slice(1) |> select(-n) 
+
+unis <- unis %>% left_join(uni_lemmas)
+
 # now we'll constrain to have proportion number of items per semantic category
-category_proportions # 26 proportions <- will round up smaller categories and round down largers ones..
-n_per_category <- category_proportions * n_items
+category_proportions <- read_csv("data/category_proportions.csv") # 26 proportions <- will round up smaller categories and round down largers ones..
 # minimum of 1 per category?
 
 # unis will have category that is modal cat across all langs
 
 make_swadesh_list <- function(unis, n_items=100, iters=1000, 
                               save_every = 50, prev_run=NULL) {
+  category_proportions <- category_proportions %>% 
+    mutate(n_per_category = round(mean_prop * n_items))
+  
+  actual_n_items = sum(category_proportions$n_per_category) # fixme - when we figure out how to fix rounding
+  
   cors <- rep(NA, iters/save_every)
   accepted_rate <- rep(NA, iters/save_every)
-  swad_inds <- matrix(0, nrow=iters/save_every, ncol=n_items)
+  swad_inds <- matrix(0, nrow=iters/save_every, ncol=actual_n_items)
   if(is.null(prev_run)) {
     # initial list needs to sample n per category
     cur_swad_inds = c()
-    for(ci in n_per_category) {
-      this_cat_uni <- subset(unis, category==n_per_category[ci,]$category)
+    for(ci in 1:nrow(category_proportions)) {
+      this_cat_uni <- subset(unis, category==category_proportions[ci,]$category)
       new_unis = sample(this_cat_uni$uni_lemma, 
-                             n_per_category[ci,]$n, replace = F)
+                             category_proportions[ci,]$n_per_category, replace = F)
       cur_swad_inds = c(cur_swad_inds, which(unis$uni_lemma %in% new_unis))
     }
   } else {
@@ -221,12 +233,12 @@ make_swadesh_list <- function(unis, n_items=100, iters=1000,
   accepted_count = 0 # track number of accepted swaps
   for (i in 1:iters) {
     # pick item to drop, find its category
-    drop_i = sample(1:n_items, 1)
+    drop_i = sample(1:n_items, 1) 
     drop_cat = unis[cur_swad_inds[drop_i],]$category
-    drop_unilemma = unis[cur_swad_inds[drop_i],]$unilemma
+    drop_unilemma = unis[cur_swad_inds[drop_i],]$uni_lemma
     # get item from same category
-    new_unilemma = sample(subset(unis, category==drop_cat & unilemma!=drop_unilemma), 1)
-    new_i = which(unis$unilemma==new_unilemma)
+    new_unilemma = sample(subset(unis, category==drop_cat & uni_lemma!=drop_unilemma)$uni_lemma, 1)
+    new_i = which(unis$uni_lemma==new_unilemma) # error fixme
     #new_i = sample(setdiff(1:nrow(unis), cur_swad_inds), 1) 
     new_swad_inds = c(cur_swad_inds[-drop_i], new_i)
     xx_g2 <- run_swadesh_comparisons(xldf, languages, unis[new_swad_inds,]$uni_lemma, form='WS') 
@@ -257,7 +269,8 @@ make_swadesh_list <- function(unis, n_items=100, iters=1000,
   }
 }
 
-make_swadesh_list <- function(unis, n_items=100, iters=1000, 
+
+make_swadesh_list_old <- function(unis, n_items=100, iters=1000, 
                               save_every = 50, prev_run=NULL) {
   cors <- rep(NA, iters/save_every)
   accepted_rate <- rep(NA, iters/save_every)
