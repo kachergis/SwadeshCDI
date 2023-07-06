@@ -79,6 +79,18 @@ run_swadesh_comparisons <- function(xldf, d_prodl, languages, swad_list) {
 
 MC function
 ```{r}
+
+# ideas: maximize correlation OR minimize sd(sorted difficulty differences),
+# minimize variance of xling difficulty (as long as we get >>2 items)
+# (OR maximize number of forms -- but then we get easy items)
+objective <- function(xx_g) {
+  spacing <- sd(sort(diff(xx_g$difficulty)))
+  var(unis)
+  # var(diff) and spacing 
+}
+# does convergence happen for each of these alone? (each of these will bias it somehow -- e.g., # of forms = too easy;)
+# 
+
 make_swadesh_list <- function(unis, languages, n_items = 100, iters = 1000, 
                               save_every = 50, prev_run = NULL) {
   
@@ -127,11 +139,11 @@ make_swadesh_list <- function(unis, languages, n_items = 100, iters = 1000,
     new_swad_inds = c(cur_swad_inds[-drop_i], new_i)
     
     xx_g2 <- run_swadesh_comparisons(xldf, d_prodl, languages, unis[new_swad_inds,]$uni_lemma) 
-    l1r = mean(xx_g$`Swadesh r`) 
-    l2r = mean(xx_g2$`Swadesh r`)
+    l1r = objective(xx_g) # mean(xx_g$`Swadesh r`) 
+    l2r = objective(xx_g2) # mean(xx_g2$`Swadesh r`)
     
     # if l2 has better r than l1, use it -- otherwise chance of going with l1
-    if(runif(1) < (l2r/l1r)) {
+    if(runif(1) < (l2r / l1r)) {
       accepted_count = accepted_count + 1
       cur_swad_inds = new_swad_inds
       xx_g = xx_g2
@@ -162,7 +174,10 @@ make_swadesh_list <- function(unis, languages, n_items = 100, iters = 1000,
 
 
 ```{r}
-r1 <- make_swadesh_list(unis, train_langs, n_items = 100, iters = 1000)
+r1 <- make_swadesh_list(unis, train_langs, n_items = 100, iters = 3000)
+r2 <- make_swadesh_list(unis, train_langs, n_items = 100, iters = 3000)
+
+intersect(r1$swad_inds[])
 ```
 
 
