@@ -1,0 +1,169 @@
+---
+title: "swadesh_mc"
+author: "Alvin Tan"
+date: '`r Sys.Date()`'
+output: pdf_document
+---
+
+```{r, include=F}
+require(here)
+require(glue)
+require(tidyverse)
+require(Hmisc)
+options(dplyr.summarise.inform = FALSE)
+theme_set(theme_classic())
+set.seed(42)
+```
+
+Set up data variables
+```{r}
+languages <- list.files("data/all_forms") |> str_sub(end = -10)
+gen_langs <- c("Finnish",
+               "Kigiriama",
+               "American Sign Language",
+               "Greek (Cypriot)",
+               "Spanish (Peruvian)",
+               "British Sign Language",
+               "Persian",
+               "Kiswahili",
+               "English (Irish)",
+               "Irish",
+               "Spanish (Chilean)")
+train_langs <- setdiff(languages, gen_langs)
+
+xldf <- readRDS("data/xldf_prod_allforms.rds")
+d_prodl <- readRDS("data/allforms_prod_per_lang.rds")
+category_proportions <- read_csv("data/category_proportions.csv")
+```
+
+```{r}
+ul_cats <- xldf |> 
+  group_by(uni_lemma, category) |> 
+  summarise(n = n()) |> 
+  arrange(desc(n)) |> 
+  slice(1) |> 
+  select(-n)
+
+unis <- xldf |> 
+  filter(uni_lemma != "NA") |> 
+  group_by(uni_lemma) |>
+  summarise(d_m = mean(d), a1_m = mean(a1), 
+            d_sd = sd(d), a1_sd = sd(a1), 
+            n=n()) |> 
+  left_join(ul_cats, by = "uni_lemma")
+```
+
+Function to get correlations with total sumscore
+```{r}
+run_swadesh_comparisons <- function(xldf, d_prodl, languages, swad_list) {
+  xx <- list()
+  for(lang in languages) {
+    swad_l <- xldf |> 
+      filter(language == lang, is.element(uni_lemma, swad_list))
+    swad_cor <- cor(rowSums(d_prodl[[lang]], na.rm=T), 
+                    rowSums(d_prodl[[lang]][,swad_l$uid], na.rm=T))
+    
+    xx <- c(xx, list(tibble(language = lang, sublist = "Swadesh", 
+                            run = NA, cor = swad_cor, N = nrow(swad_l))))
+  }
+  
+  xx_sum <- xx |> 
+    bind_rows() |> 
+    group_by(language, sublist, N) |> 
+    summarise(r = mean(cor)) |> 
+    pivot_wider(names_from = sublist, values_from = r) |> 
+    rename(`Swadesh r` = Swadesh)
+  return(xx_sum)
+}
+```
+
+MC function
+```{r}
+make_swadesh_list <- function(unis, languages, n_items = 100, iters = 1000, 
+                              save_every = 50, prev_run = NULL) {
+  
+  category_table <- category_proportions |> 
+    mutate(n_per_cat_est = mean_prop * n_items,
+           n_per_cat = floor(n_per_cat_est),
+           remainder = n_per_cat_est %% 1) |> 
+    arrange(desc(remainder)) |> 
+    mutate(correction = c(rep(1, n_items - sum(n_per_cat)), 
+                          rep(0, nrow(category_proportions) + sum(n_per_cat) - n_items)),
+           n_per_cat = n_per_cat + correction) |> 
+    select(category, n_per_cat)
+  
+  cors <- rep(NA, iters %/% save_every)
+  accepted_rate <- rep(NA, iters %/% save_every)
+  swad_inds <- matrix(0, nrow = iters %/% save_every, ncol = n_items)
+  
+  if(is.null(prev_run)) {
+    cur_swad_inds = c()
+    for(ci in 1:nrow(category_proportions)) {
+      this_cat_uni <- unis |> 
+        filter(category == category_proportions[ci,]$category)
+      new_unis <- sample(this_cat_uni$uni_lemma, 
+                        category_table[ci,]$n_per_cat, replace = F)
+      cur_swad_inds <- c(cur_swad_inds, which(unis$uni_lemma %in% new_unis))
+    }
+  } else {
+    cur_swad_inds = prev_run$swad_inds[nrow(prev_run$swad_inds),] # start with last saved inds
+    if(ncol(prev_run$swad_inds) != n_items) return("Error: mismatch in n_items of passed previous result")
+  }
+  
+  xx_g <- run_swadesh_comparisons(xldf, d_prodl, languages, unis[cur_swad_inds,]$uni_lemma)
+  accepted_count = 0 # track number of accepted swaps
+  
+  pb <- txtProgressBar(min = 0, max = iters,
+                       style = 3, char = "=")
+  
+  for (i in 1:iters) {
+    # pick item to drop, find its category
+    drop_i = sample(1:n_items, 1) 
+    drop_cat = unis[cur_swad_inds[drop_i],]$category
+    drop_unilemma = unis[cur_swad_inds[drop_i],]$uni_lemma
+    # get item from same category
+    new_unilemma = sample(subset(unis, category==drop_cat & uni_lemma!=drop_unilemma)$uni_lemma, 1)
+    new_i = which(unis$uni_lemma==new_unilemma) 
+    new_swad_inds = c(cur_swad_inds[-drop_i], new_i)
+    
+    xx_g2 <- run_swadesh_comparisons(xldf, d_prodl, languages, unis[new_swad_inds,]$uni_lemma) 
+    l1r = mean(xx_g$`Swadesh r`) 
+    l2r = mean(xx_g2$`Swadesh r`)
+    
+    # if l2 has better r than l1, use it -- otherwise chance of going with l1
+    if(runif(1) < (l2r/l1r)) {
+      accepted_count = accepted_count + 1
+      cur_swad_inds = new_swad_inds
+      xx_g = xx_g2
+    }
+    if(i%%save_every == 0) {
+      cors[i/save_every] = max(l1r, l2r)
+      swad_inds[(i/save_every),] = cur_swad_inds
+      accepted_rate[i/save_every] = accepted_count / save_every
+      accepted_count = 0
+    }
+    setTxtProgressBar(pb, i)
+    # cat(glue(" | r1: {l1r}; r2: {l2r}"))
+  }
+  
+  close(pb)
+  
+  if(is.null(prev_run)) {
+    return(list(swad_inds = swad_inds, 
+              cors = cors,
+              acceptance_rate = accepted_rate))
+  } else {
+    return(list(swad_inds = rbind(prev_run$swad_inds, swad_inds),
+                cors = c(prev_run$cors, cors),
+                acceptance_rate = c(prev_run$acceptance_rate, accepted_rate)))
+  }
+}
+```
+
+
+```{r}
+r1 <- make_swadesh_list(unis, train_langs, n_items = 100, iters = 1000)
+```
+
+
+
