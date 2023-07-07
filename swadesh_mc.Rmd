@@ -37,59 +37,63 @@ category_proportions <- read_csv("data/category_proportions.csv")
 ```
 
 ```{r}
-ul_cats <- xldf |> 
+xldf_train <- xldf |> 
+  filter(language %in% train_langs)
+
+ul_cats <- xldf_train |> 
   group_by(uni_lemma, category) |> 
   summarise(n = n()) |> 
   arrange(desc(n)) |> 
   slice(1) |> 
   select(-n)
 
-unis <- xldf |> 
+unis <- xldf_train |> 
   filter(uni_lemma != "NA") |> 
   group_by(uni_lemma) |>
   summarise(d_m = mean(d), a1_m = mean(a1), 
             d_sd = sd(d), a1_sd = sd(a1), 
-            n=n()) |> 
+            n = language |> unique() |> length()) |> 
   left_join(ul_cats, by = "uni_lemma")
 ```
 
 Function to get correlations with total sumscore
 ```{r}
-run_swadesh_comparisons <- function(xldf, d_prodl, languages, swad_list) {
+get_sumscore_cor <- function(xldf, d_prodl, languages, swad_unis) {
   xx <- list()
   for(lang in languages) {
     swad_l <- xldf |> 
-      filter(language == lang, is.element(uni_lemma, swad_list))
+      filter(language == lang, uni_lemma %in% swad_unis)
     swad_cor <- cor(rowSums(d_prodl[[lang]], na.rm=T), 
                     rowSums(d_prodl[[lang]][,swad_l$uid], na.rm=T))
     
-    xx <- c(xx, list(tibble(language = lang, sublist = "Swadesh", 
-                            run = NA, cor = swad_cor, N = nrow(swad_l))))
+    xx <- c(xx, list(tibble(language = lang, cor = swad_cor, N = nrow(swad_l))))
   }
-  
-  xx_sum <- xx |> 
-    bind_rows() |> 
-    group_by(language, sublist, N) |> 
-    summarise(r = mean(cor)) |> 
-    pivot_wider(names_from = sublist, values_from = r) |> 
-    rename(`Swadesh r` = Swadesh)
-  return(xx_sum)
+  return(xx |> bind_rows())
 }
 ```
 
 MC function
 ```{r}
-
-# ideas: maximize correlation OR minimize sd(sorted difficulty differences),
-# minimize variance of xling difficulty (as long as we get >>2 items)
-# (OR maximize number of forms -- but then we get easy items)
-objective <- function(xx_g) {
-  spacing <- sd(sort(diff(xx_g$difficulty)))
-  var(unis)
-  # var(diff) and spacing 
+evaluate_swad_list <- function(xldf, d_prodl, languages, swad_list, weights = c(1.0, 1.0, 1.0, 1.0)) {
+  # maximise correlation
+  swad_cors <- get_sumscore_cor(xldf, d_prodl, languages, swad_list$uni_lemma)
+  swad_cor <- mean(swad_cors$cor)
+  
+  # minimise unevenness of difficulty spacing
+  sorted_swad_list <- arrange(swad_list, d_m)
+  spacing <- sorted_swad_list[2:nrow(sorted_swad_list),]$d_m - 
+    sorted_swad_list[1:nrow(sorted_swad_list)-1,]$d_m
+  spacing_sd = (3.0 / nrow(swad_list)) - sd(spacing)
+  
+  # minimise variance of xling difficulty
+  diff_sd = - (mean(swad_list$d_sd, na.rm = TRUE) / 1.5)
+  
+  # maximise number of forms
+  n_forms = mean(swad_list$n) / length(languages)
+  
+  eval = weights * c(swad_cor, spacing_sd, diff_sd, n_forms)
+  sum(eval)
 }
-# does convergence happen for each of these alone? (each of these will bias it somehow -- e.g., # of forms = too easy;)
-# 
 
 make_swadesh_list <- function(unis, languages, n_items = 100, iters = 1000, 
                               save_every = 50, prev_run = NULL) {
@@ -104,7 +108,7 @@ make_swadesh_list <- function(unis, languages, n_items = 100, iters = 1000,
            n_per_cat = n_per_cat + correction) |> 
     select(category, n_per_cat)
   
-  cors <- rep(NA, iters %/% save_every)
+  evals <- rep(NA, iters %/% save_every)
   accepted_rate <- rep(NA, iters %/% save_every)
   swad_inds <- matrix(0, nrow = iters %/% save_every, ncol = n_items)
   
@@ -122,7 +126,7 @@ make_swadesh_list <- function(unis, languages, n_items = 100, iters = 1000,
     if(ncol(prev_run$swad_inds) != n_items) return("Error: mismatch in n_items of passed previous result")
   }
   
-  xx_g <- run_swadesh_comparisons(xldf, d_prodl, languages, unis[cur_swad_inds,]$uni_lemma)
+  eval_1 <- evaluate_swad_list(xldf, d_prodl, languages, unis[cur_swad_inds,])
   accepted_count = 0 # track number of accepted swaps
   
   pb <- txtProgressBar(min = 0, max = iters,
@@ -138,18 +142,16 @@ make_swadesh_list <- function(unis, languages, n_items = 100, iters = 1000,
     new_i = which(unis$uni_lemma==new_unilemma) 
     new_swad_inds = c(cur_swad_inds[-drop_i], new_i)
     
-    xx_g2 <- run_swadesh_comparisons(xldf, d_prodl, languages, unis[new_swad_inds,]$uni_lemma) 
-    l1r = objective(xx_g) # mean(xx_g$`Swadesh r`) 
-    l2r = objective(xx_g2) # mean(xx_g2$`Swadesh r`)
+    eval_2 <- evaluate_swad_list(xldf, d_prodl, languages, unis[new_swad_inds,])
     
     # if l2 has better r than l1, use it -- otherwise chance of going with l1
-    if(runif(1) < (l2r / l1r)) {
+    if(runif(1) < (eval_2 / eval_1)) {
       accepted_count = accepted_count + 1
       cur_swad_inds = new_swad_inds
-      xx_g = xx_g2
+      eval_1 = eval_2
     }
     if(i%%save_every == 0) {
-      cors[i/save_every] = max(l1r, l2r)
+      evals[i/save_every] = max(eval_1, eval_2)
       swad_inds[(i/save_every),] = cur_swad_inds
       accepted_rate[i/save_every] = accepted_count / save_every
       accepted_count = 0
@@ -162,11 +164,11 @@ make_swadesh_list <- function(unis, languages, n_items = 100, iters = 1000,
   
   if(is.null(prev_run)) {
     return(list(swad_inds = swad_inds, 
-              cors = cors,
+              evals = evals,
               acceptance_rate = accepted_rate))
   } else {
     return(list(swad_inds = rbind(prev_run$swad_inds, swad_inds),
-                cors = c(prev_run$cors, cors),
+                evals = c(prev_run$evals, evals),
                 acceptance_rate = c(prev_run$acceptance_rate, accepted_rate)))
   }
 }
@@ -174,10 +176,8 @@ make_swadesh_list <- function(unis, languages, n_items = 100, iters = 1000,
 
 
 ```{r}
-r1 <- make_swadesh_list(unis, train_langs, n_items = 100, iters = 3000)
-r2 <- make_swadesh_list(unis, train_langs, n_items = 100, iters = 3000)
-
-intersect(r1$swad_inds[])
+r1 <- make_swadesh_list(unis, train_langs, n_items = 100, iters = 1000)
+r2 <- make_swadesh_list(unis, train_langs, n_items = 100, iters = 1000)
 ```
 
 
