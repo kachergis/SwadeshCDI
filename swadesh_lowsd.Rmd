@@ -76,8 +76,8 @@ get_sumscore_cor <- function(xldf, d_prodl, languages, swad_unis) {
   for(lang in languages) {
     swad_l <- xldf |> 
       filter(language == lang, uni_lemma %in% swad_unis)
-    swad_cor <- cor(rowSums(d_prodl[[lang]], na.rm=T), 
-                    rowSums(d_prodl[[lang]][,swad_l$uid], na.rm=T))
+    swad_cor <- cor(rowMeans(d_prodl[[lang]], na.rm=T), 
+                    rowMeans(d_prodl[[lang]][,swad_l$uid], na.rm=T))
     
     xx <- c(xx, list(tibble(language = lang, cor = swad_cor, num_overlap = nrow(swad_l))))
   }
