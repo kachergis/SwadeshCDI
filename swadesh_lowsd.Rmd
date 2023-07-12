@@ -1,0 +1,207 @@
+---
+title: "swadesh_lowsd"
+author: "Alvin Tan"
+date: "`r Sys.Date()`"
+output: pdf_document
+---
+
+```{r, include=F}
+require(here)
+require(glue)
+require(tidyverse)
+require(Hmisc)
+options(dplyr.summarise.inform = FALSE)
+theme_set(theme_classic())
+set.seed(42)
+```
+
+Set up data variables
+```{r}
+languages <- list.files("data/all_forms") |> str_sub(end = -10)
+gen_langs <- c("Finnish",
+               "Kigiriama",
+               "American Sign Language",
+               "Greek (Cypriot)",
+               "Spanish (Peruvian)",
+               "British Sign Language",
+               "Persian",
+               "Kiswahili",
+               "English (Irish)",
+               "Irish",
+               "Spanish (Chilean)")
+train_langs <- setdiff(languages, gen_langs)
+
+xldf <- readRDS("data/xldf_prod_allforms.rds")
+d_prodl <- readRDS("data/allforms_prod_per_lang.rds")
+category_proportions <- read_csv("data/category_proportions.csv")
+```
+
+```{r}
+xldf_clean <- xldf |> 
+  filter(!is.na(uni_lemma), !is.na(d)) |> 
+  mutate(category = case_when(
+    category == "descriptive_words (adjectives)" ~ "descriptive_words",
+    category == "outside_places" ~ "outside",
+    .default = category))
+
+prod_pars <- xldf_clean |> 
+  arrange(language, uni_lemma, desc(a1)) |> # get most discriminating uni_lemma per lang
+  select(uni_lemma, language, uid, category, language, d) |>
+  group_by(uni_lemma, language) |>
+  slice(1)
+
+xldf_train <- xldf_clean |> 
+  filter(language %in% train_langs)
+
+# ul_cats <- xldf_train |> 
+#   group_by(uni_lemma, category) |> 
+#   summarise(n = n()) |> 
+#   arrange(desc(n)) |> 
+#   slice(1) |> 
+#   select(-n)
+# 
+# unis <- xldf_train |> 
+#   filter(uni_lemma != "NA") |> 
+#   group_by(uni_lemma) |>
+#   summarise(d_m = mean(d), a1_m = mean(a1), 
+#             d_sd = sd(d), a1_sd = sd(a1), 
+#             n = language |> unique() |> length()) |> 
+#   left_join(ul_cats, by = "uni_lemma")
+```
+
+Function to get correlations with total sumscore
+```{r}
+get_sumscore_cor <- function(xldf, d_prodl, languages, swad_unis) {
+  xx <- list()
+  for(lang in languages) {
+    swad_l <- xldf |> 
+      filter(language == lang, uni_lemma %in% swad_unis)
+    swad_cor <- cor(rowSums(d_prodl[[lang]], na.rm=T), 
+                    rowSums(d_prodl[[lang]][,swad_l$uid], na.rm=T))
+    
+    xx <- c(xx, list(tibble(language = lang, cor = swad_cor, num_overlap = nrow(swad_l))))
+  }
+  return(xx |> bind_rows())
+}
+```
+
+```{r}
+list_size <- 100
+rand_comparisons <- 100
+gen_res <- list()
+
+prod_sum <- prod_pars |> 
+    filter(language %in% train_langs) |> 
+    group_by(uni_lemma) |> 
+    summarise(num_langs = n(),
+              mean_d = mean(d, na.rm=T),
+              sd_d = sd(d, na.rm=T))
+prod_cors <- lapply(2:(length(train_langs)), \(k) {
+    prod_subset <- prod_sum |> 
+      filter(num_langs >= k) |> 
+      arrange(sd_d) |> 
+      slice(1:list_size)
+    swad_sumscore_cor <- get_sumscore_cor(xldf_clean, d_prodl, gen_langs, prod_subset$uni_lemma) |> 
+      mutate(run = NA, sublist = "Swadesh")
+    
+    rand_subk <- prod_sum |> 
+      filter(num_langs >= k)
+    rand_sumscore_cors <- lapply(1:rand_comparisons, \(comp) {
+      rand_idx <- sample(1:nrow(rand_subk), min(list_size, nrow(rand_subk)))
+      rand_subset <- rand_subk |> 
+        slice(rand_idx)
+      rand_sumscore_cor <- get_sumscore_cor(xldf_clean, d_prodl, gen_langs, rand_subset$uni_lemma) |> 
+        mutate(run = comp, sublist = "Random")
+    }) |> bind_rows()
+    
+    bind_rows(swad_sumscore_cor, rand_sumscore_cors) |> 
+      mutate(k = k)
+}) |> bind_rows()
+
+
+for(test_lang in gen_langs) {
+  prod_test <- prod_pars |> 
+    filter(language == test_lang)
+  prod_cors <- sapply(2:(length(train_langs)), \(k) {
+    prod_subset <- prod_sum |> 
+      filter(num_langs >= k) |> 
+      arrange(sd_d) |> 
+      slice(1:list_size)
+    prod_res <- prod_subset |> 
+      left_join(prod_test, by = "uni_lemma")
+    c((!is.na(prod_res$d)) |> sum(),
+      tryCatch(cor(prod_res$mean_d, prod_res$d, use = "complete.obs"),
+               error = \(err) NA))
+  }) |> t() |> 
+    `colnames<-`(c("num_overlap", "cor")) |> 
+    as_tibble() |> 
+    mutate(run = NA,
+           k = 2:(length(train_langs)),
+           language = test_lang,
+           sublist = "Swadesh")
+  
+  rand_cors <- lapply(2:(length(train_langs)), \(k) {
+    rand_subk <- prod_sum |> 
+      filter(num_langs >= k)
+    rand_cors <- sapply(1:rand_comparisons, \(comp) {
+      rand_idx <- sample(1:nrow(rand_subk), min(list_size, nrow(rand_subk)))
+      rand_res <- rand_subk |> 
+        slice(rand_idx) |> 
+        left_join(prod_test, by = "uni_lemma")
+      c((!is.na(rand_res$d)) |> sum(),
+        tryCatch(cor(rand_res$mean_d, rand_res$d, use = "complete.obs"),
+                 error = \(err) NA))
+    }) |> t() |> 
+      `colnames<-`(c("num_overlap", "cor")) |> 
+      as_tibble() |> 
+      mutate(run = 1:rand_comparisons,
+             k = k)
+  }) |> 
+    bind_rows() |> 
+    mutate(language = test_lang,
+           sublist = "Random")
+  
+  gen_res <- c(gen_res, list(bind_rows(prod_cors, rand_cors)))
+}
+gen_res <- bind_rows(gen_res)
+```
+
+```{r}
+gen_cor_sum <- prod_cors |> 
+  group_by(k, language, sublist) |> 
+  summarise(num_overlap = mean(num_overlap),
+            cor = mean(cor)) |> 
+  mutate(cor_f = atanh(cor))
+
+gen_res_sum <- gen_res |> 
+  group_by(k, language, sublist) |> 
+  summarise(num_overlap = mean(num_overlap),
+            cor = mean(cor)) |> 
+  mutate(cor_f = atanh(cor))
+```
+
+```{r}
+ggplot(gen_res_sum,
+       aes(x = k, y = cor, col = sublist)) +
+  geom_jitter(aes(col = sublist),
+              alpha = .1) +
+  geom_boxplot(aes(group = interaction(k, sublist))) +
+  labs(x = "k",
+       y = "Correlation",
+       col = "Sublist") +
+  theme(legend.position = "bottom")
+```
+
+```{r}
+ggplot(gen_cor_sum,
+       aes(x = k, y = cor, col = sublist)) +
+  geom_jitter(aes(col = sublist),
+              alpha = .1) +
+  geom_boxplot(aes(group = interaction(k, sublist))) +
+  labs(x = "k",
+       y = "Correlation",
+       col = "Sublist") +
+  theme(legend.position = "bottom")
+```
+
+
