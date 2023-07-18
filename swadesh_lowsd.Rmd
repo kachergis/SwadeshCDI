@@ -76,8 +76,15 @@ get_sumscore_cor <- function(xldf, d_prodl, languages, swad_unis) {
   for(lang in languages) {
     swad_l <- xldf |> 
       filter(language == lang, uni_lemma %in% swad_unis)
-    swad_cor <- cor(rowMeans(d_prodl[[lang]], na.rm=T), 
-                    rowMeans(d_prodl[[lang]][,swad_l$uid], na.rm=T))
+    if (nrow(swad_l) == 0) {
+      xx <- c(xx, list(tibble(language = lang, cor = NA, num_overlap = nrow(swad_l))))
+      next
+    } else if (nrow(swad_l) == 1) {
+      d_prodl_sub <- d_prodl[[lang]][,swad_l$uid]
+    } else {
+      d_prodl_sub <- rowMeans(d_prodl[[lang]][,swad_l$uid], na.rm=T)
+    }
+    swad_cor <- cor(rowMeans(d_prodl[[lang]], na.rm=T),  d_prodl_sub, use="na.or.complete")
     
     xx <- c(xx, list(tibble(language = lang, cor = swad_cor, num_overlap = nrow(swad_l))))
   }
@@ -194,6 +201,73 @@ ggplot(gen_res_sum,
 
 ```{r}
 ggplot(gen_cor_sum,
+       aes(x = k, y = cor, col = sublist)) +
+  geom_jitter(aes(col = sublist),
+              alpha = .1) +
+  geom_boxplot(aes(group = interaction(k, sublist))) +
+  labs(x = "k",
+       y = "Correlation",
+       col = "Sublist") +
+  theme(legend.position = "bottom")
+```
+
+Using category proportions to sample
+```{r}
+category_proportions <- read_csv("data/category_proportions.csv")
+category_table <- category_proportions |> 
+  mutate(n_per_cat_est = mean_prop * list_size,
+         n_per_cat = floor(n_per_cat_est),
+         remainder = n_per_cat_est %% 1) |> 
+  arrange(desc(remainder)) |> 
+  mutate(correction = c(rep(1, list_size - sum(n_per_cat)), 
+                        rep(0, nrow(category_proportions) + sum(n_per_cat) - list_size)),
+         n_per_cat = n_per_cat + correction) |> 
+  select(category, n_per_cat)
+
+cat_modal <- xldf_train |> 
+  select(uni_lemma, category) |> 
+  table() |> 
+  as.data.frame() |> 
+  arrange(desc(Freq)) |> 
+  group_by(uni_lemma) |> 
+  slice(1)
+
+prod_cors_cat <- lapply(2:(length(train_langs)), \(k) {
+  prod_subset <- prod_sum |> 
+    filter(num_langs >= k) |> 
+    arrange(sd_d) |> 
+    left_join(cat_modal |> select(uni_lemma, category), by = "uni_lemma") |> 
+    nest(unis = -category) |> 
+    left_join(category_table, by = "category") |> 
+    filter(category %in% category_table$category) |> 
+    mutate(unis = map2(unis, n_per_cat, \(u, n) {u |> slice(1:n)})) |> 
+    unnest(cols = "unis")
+  swad_sumscore_cor <- get_sumscore_cor(xldf_clean, d_prodl, gen_langs, prod_subset$uni_lemma) |> 
+    mutate(run = NA, sublist = "Swadesh")
+  
+  rand_subk <- prod_sum |> 
+    filter(num_langs >= k)
+  rand_sumscore_cors <- lapply(1:rand_comparisons, \(comp) {
+    rand_idx <- sample(1:nrow(rand_subk), min(list_size, nrow(rand_subk)))
+    rand_subset <- rand_subk |> 
+      slice(rand_idx)
+    rand_sumscore_cor <- get_sumscore_cor(xldf_clean, d_prodl, gen_langs, rand_subset$uni_lemma) |> 
+      mutate(run = comp, sublist = "Random")
+  }) |> bind_rows()
+  
+  bind_rows(swad_sumscore_cor, rand_sumscore_cors) |> 
+    mutate(k = k)
+}) |> bind_rows()
+```
+
+```{r}
+gen_cor_cat <- prod_cors_cat |> 
+  group_by(k, language, sublist) |> 
+  summarise(num_overlap = mean(num_overlap),
+            cor = mean(cor)) |> 
+  mutate(cor_f = atanh(cor))
+
+ggplot(gen_cor_cat,
        aes(x = k, y = cor, col = sublist)) +
   geom_jitter(aes(col = sublist),
               alpha = .1) +
