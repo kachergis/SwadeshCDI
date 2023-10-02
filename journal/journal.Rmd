@@ -136,6 +136,16 @@ While other standard IRT models exist (e.g., the 3PL model adds a "guessing" par
 
 
 ```{r, load-ws-data, echo=F, results="asis"}
+languages <- list.files(here("data/all_forms")) |> str_sub(end = -10)
+
+models <- list()
+coefs <- list()
+for(lang in languages) {
+  tmp <- readRDS(here(paste0("data/prod_models/",lang,"_2PL_allforms_prod_fits.rds")))
+  models[[lang]] = tmp$model
+  coefs[[lang]] = tmp$coefs
+}
+
 # WS production fits
 load(here("data/multiling_2pl_WS_prod_fits.Rdata")) # ToDo: update - need model(s) / coefs?
 xldf <- readRDS(here("data/xldf_prod_allforms.rds"))
@@ -145,15 +155,15 @@ xldf <- xldf %>% mutate(uni_lemma = ifelse(uni_lemma=="NA", NA, uni_lemma)) %>%
   mutate(d = -d) %>% # easiness -> difficulty
   filter(!is.na(d)) # removes 1 Slovak word with NA parameters (because all responses were 0)
 
-ws_tab <- get_item_n_subject_counts(models)
+all_tab <- get_item_n_subject_counts(models)
 
 # WG langs that don't have WS: British Sign Language, Spanish (Chilean), American Sign Language, English (British)
 
-it_tab <- ws_tab %>% #rename(`WS items`=items, `WS N`=N) %>%
+it_tab <- all_tab %>% #rename(`WS items`=items, `WS N`=N) %>%
   #left_join(wg_tab %>% rename(`WG items`=items, `WG N`=N)) %>%
   arrange(desc(`N`))
 
-languages = subset(ws_tab, N>=200)$Language
+languages = subset(all_tab, N>=200)$Language
 low_data_langs <- it_tab %>% filter(`N`<200)
 
 bold <- function(x) {paste('{\\textbf{',x,'}}', sep ='')}
@@ -166,8 +176,9 @@ print(tab1, type="latex", comment = F,
       include.rownames=FALSE, size="\\fontsize{9pt}{10pt}\\selectfont")
 ```
 
+ToDo: explain stitching of WG and WS
 
-We report IRT analyses for twenty-six languages from Wordbank [@frank2017], comprising production data from CDI:WS vocabulary checklists that have at least 200 administrations.[^2]
+We report IRT analyses for twenty-seven languages from Wordbank [@frank2017], comprising production data from CDI:WS vocabulary checklists that have at least 200 administrations.[^2]
 Data from the first twenty-six rows of Table 1 (Norwegian through Dutch) were used to select a pool of words with approximately equal cross-linguistic difficulty.
 CDI:WS production data from an additional eight languages (bottom of Table 1: Greek through Persian) had too few participants to be analyzed with IRT.
 Datasets for these languages were used to test how well the selected pool can be expected to generalize to new languages.
@@ -187,16 +198,16 @@ All uni-lemmas are accessible from Wordbank; details about the recent update can
 ```{r participant-data, eval=F, echo=F}
 demo <- tibble()
 for(lang in languages) {
-  load(here(paste("data/WS/",lang,"_WS_data.Rdata", sep='')))
-  demo <- bind_rows(demo, d_demo %>% 
-                      select(data_id, age, production, language))
+  tmp <- readRDS(here(paste0("data/all_forms/",lang,"_data.rds")))
+  demo <- bind_rows(demo, tmp$all_demo %>% 
+                      select(data_id, age, production, language, form))
 }
 
-save(demo, file=here("data/WS_combined_demo.Rdata"))
+save(demo, file=here("data/combined_demographic_data.Rdata"))
 ```
 
 ```{r combined-demo-data, echo=F}
-load(here("data/WS_combined_demo.Rdata"))
+load(here("data/combined_demographic_data.Rdata"))
 # cor.test(demo$age, demo$production, na.rm=T) # r=.70
 
 # 45402 in the 26 high-data languages
@@ -209,7 +220,7 @@ demo_age <- demo %>% group_by(language) %>%
 ```
 
 
-The Wordbank datasets consisted of the CDI:WS production data for `r sum(ws_tab$N)` children aged 16--30 months on `r sum(ws_tab$items)` items across `r nrow(ws_tab)` forms.
+The Wordbank datasets consisted of the CDI:WS production data for `r sum(all_tab$N)` children aged 16--30 months on `r sum(all_tab$items)` items across `r nrow(all_tab)` forms.
 Note that the distributions of demographic variables (age, sex, etc.) of these datasets are not matched, so comparing overall language ability estimates across languages would be ill-advised. 
 (See @frank2021 for a discussion of effects of demographic variables on vocabulary development.) 
 Thus, we focused only on the estimated item parameters, and in particular the variability of item difficulty ($b_i$).
