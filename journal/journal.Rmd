@@ -219,6 +219,7 @@ demo_age <- demo %>% group_by(language) %>%
 #    geom_histogram(position="identity", alpha=0.2)
 ```
 
+ToDo: update to report total CD:WS and CDI:WG Ns?
 
 The Wordbank datasets consisted of the CDI:WS production data for `r sum(all_tab$N)` children aged 16--30 months on `r sum(all_tab$items)` items across `r nrow(all_tab)` forms.
 Note that the distributions of demographic variables (age, sex, etc.) of these datasets are not matched, so comparing overall language ability estimates across languages would be ill-advised. 
