@@ -72,7 +72,9 @@ Thus, over development, the language system is "tightly woven" [@bates1994; @fra
 On the CDIs, vocabulary size is assessed via a checklist format, which enables caregivers to scan and recognize words their child produces or understands, rather than relying on recall alone. 
 For example, the American English CDI Words & Sentences (CDI:WS) form, targeting children 16-30 months of age, is comprised of 680 words from 22 semantic categories, including nouns (e.g., Body Parts, Toys, and Clothing), action words, descriptive words, and closed-class words such as pronouns. 
 Items on this original CDI:WS were chosen to reflect a range of difficulty levels (i.e., easy, moderate, and more difficult), as well as capture the linguistic and societal contexts of (most) children living in the US.
+The CDI Words & Gestures form (CDI:WG) targets children 8-18 months of age, typically consisting of a subset of approximately 500 of the easier items from the CDI:WS of the same language, and asks caregivers to report comprehension as well as production. 
 Short versions of the CDI:WS forms are also available [e.g., @Fenson2000], consisting of a set of $\sim100$ items that generate scores that more strongly correlate with scores on the long forms, while retaining representation across a broad set of semantic categories.
+<!-- ToDo: describe WG form as well! -->
 
 <!-- gap! -->
 Creating a new CDI requires a lot of effort and resources, presenting a daunting barrier to increasing the diversity of languages studied.
@@ -107,7 +109,8 @@ If such a list were generalizable to other languages, it could serve as a helpfu
 We can ask: Which semantic categories, e.g., animals, household objects, food and drink, or another category, are most consistently learned across languages? Which are more variable? 
 These types of cross-linguistic comparisons may give new insight into theoretical questions surrounding the similarity and differences between language experience and development in different cultural and linguistic contexts.--> <!--AT: this para seems to not be the desired outcome of the S-CDI so I removed it.-->
 
-In particular, our contributions are 1) to revise and extend a set of translation-equivalent concepts in Wordbank, 2) to fit IRT models to 26 CDI:WS datasets, 3) to evaluate 25 candidate lists of Swadesh CDI items from a cross-linguistic comparison of concept difficulty and inclusion, 4) to identify and characterize the most informative Swadesh CDI list of 229 concepts, and 5) to test its generalization to a set of eight additional low-data languages. 
+
+In particular, our contributions are 1) to revise and extend a set of translation-equivalent concepts in Wordbank, 2) to fit IRT models to 27 CDI:WS datasets, 3) to evaluate candidate lists of Swadesh CDI items from a cross-linguistic comparison of concept difficulty and inclusion, 4) to identify and characterize the most informative Swadesh CDI list of XX [FixMe] concepts, and 5) to test its generalization to a set of 11 additional low-data languages. 
 We then make a concrete proposal for how this Swadesh CDI list could be used to create future CDI adaptations, expanding the diversity of languages studied. 
 We end by discussing the strengths and weaknesses of our approach.
 <!-- Our full analysis, the Swadesh CDI list, and other information valuable for developing a new CDI are openly available on [OSF](https://osf.io/8swhb/?view_only=6f6ab9818f2a4bb288e05ca9e12f540c). -->
@@ -131,24 +134,12 @@ While other standard IRT models exist (e.g., the 3PL model adds a "guessing" par
 
 ## Datasets
 
-```{r, load-wg-data, eval=F, echo=F}
-# WG production fits
-load(here("data/multiling_2pl_WG_prod_fits.Rdata"))
-wg_coefs = coefs
-languages = names(coefs)
-wg_tab <- get_item_n_subject_counts(models)
-#sort(languages)
-
-#load(here("data/xling_WG_abilities.Rdata"))
-load(here("data/xling-WGprod-IRTparms.Rdata"))
-# 24 languages, 9611 parameters
-wg_parms <- xldf
-```
 
 ```{r, load-ws-data, echo=F, results="asis"}
 # WS production fits
-load(here("data/multiling_2pl_WS_prod_fits.Rdata"))
-load(here("data/xling-WSprod-IRTparms.Rdata")) # 23179, 
+load(here("data/multiling_2pl_WS_prod_fits.Rdata")) # ToDo: update - need model(s) / coefs?
+xldf <- readRDS(here("data/xldf_prod_allforms.rds"))
+# 38 languages, 26616 parameters
 
 xldf <- xldf %>% mutate(uni_lemma = ifelse(uni_lemma=="NA", NA, uni_lemma)) %>%
   mutate(d = -d) %>% # easiness -> difficulty
