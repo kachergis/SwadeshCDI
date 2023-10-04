@@ -72,8 +72,8 @@ Thus, over development, the language system is "tightly woven" [@bates1994; @fra
 On the CDIs, vocabulary size is assessed via a checklist format, which enables caregivers to scan and recognize words their child produces or understands, rather than relying on recall alone. 
 For example, the American English CDI Words & Sentences (CDI:WS) form, targeting children 16-30 months of age, is comprised of 680 words from 22 semantic categories, including nouns (e.g., Body Parts, Toys, and Clothing), action words, descriptive words, and closed-class words such as pronouns. 
 Items on this original CDI:WS were chosen to reflect a range of difficulty levels (i.e., easy, moderate, and more difficult), as well as capture the linguistic and societal contexts of (most) children living in the US.
-The CDI Words & Gestures form (CDI:WG) targets children 8-18 months of age, typically consisting of a subset of approximately 500 of the easier items from the CDI:WS of the same language, and asks caregivers to report comprehension as well as production. 
-Short versions of the CDI:WS forms are also available [e.g., @Fenson2000], consisting of a set of $\sim100$ items that generate scores that more strongly correlate with scores on the long forms, while retaining representation across a broad set of semantic categories.
+The CDI Words & Gestures form (CDI:WG) targets children 8-18 months of age, typically consisting of a subset of approximately 500 of the easier items from the CDI:WS of the same language, and which asks caregivers to report children's comprehension as well as production of each word. 
+Short versions of the CDI:WS forms are also available [e.g., @Fenson2000], consisting of a set of around 100 items that generate scores that more strongly correlate with scores on the long forms, while retaining representation across a broad set of semantic categories.
 <!-- ToDo: describe WG form as well! -->
 
 <!-- gap! -->
@@ -96,7 +96,7 @@ Recent work using IRT models has facilitated our understanding of the psychometr
 As such, they offer the potential to not only yield more accurate measures of children's language ability, but also to enable the construction of language-specific Computerized Adaptive Tests (CATs), which choose the next test item based on the responses to the previous items, and thus quickly hone in on the test taker's language ability. 
 CAT-based CDIs presenting 50 or fewer items have been found to strongly correlate with scores on the full CDI:WS [@chai2020;@mayor2019;@Makransky2016]. 
 A general method for creating CDI CATs that work well across a broader age range (12--36 months) has been proposed, and tested for American English and Mexican Spanish [@Kachergis2022]. 
-However, the IRT model driving each CAT needs to be trained on a large and normative dataset, which may not be available in a given language. <!-- define normative? i.e., representative of a target population -->
+However, the IRT model driving each CAT needs to be trained on a large and normative dataset (that is, a sample that is representative of a target population), which may not be available in a given language. 
 To date, the IRT models are fitted separately for each language, and the fitted parameters (e.g., word difficulty) are likely to vary across languages.
 
 The goal of the current study is to use IRT modeling in conjunction with data from Wordbank to examine whether there might be a core set of concepts that are frequently included on CDIs, and---importantly---whether enough of them are of roughly equal difficulty across many languages to allow them to be used as candidate items in new languages. 
@@ -110,10 +110,10 @@ We can ask: Which semantic categories, e.g., animals, household objects, food an
 These types of cross-linguistic comparisons may give new insight into theoretical questions surrounding the similarity and differences between language experience and development in different cultural and linguistic contexts.--> <!--AT: this para seems to not be the desired outcome of the S-CDI so I removed it.-->
 
 
-In particular, our contributions are 1) to revise and extend a set of translation-equivalent concepts in Wordbank, 2) to fit IRT models to 27 CDI:WS datasets, 3) to evaluate candidate lists of Swadesh CDI items from a cross-linguistic comparison of concept difficulty and inclusion, 4) to identify and characterize the most informative Swadesh CDI list of XX [FixMe] concepts, and 5) to test its generalization to a set of 11 additional low-data languages. 
-We then make a concrete proposal for how this Swadesh CDI list could be used to create future CDI adaptations, expanding the diversity of languages studied. 
+In particular, our contributions are 1) to revise and extend a set of translation-equivalent concepts in Wordbank, 2) to fit IRT models to CDI:WG and CDI:WS data from 27 languages, 3) to evaluate candidate lists of Swadesh CDI items from a cross-linguistic comparison of concept difficulty and inclusion, 4) to identify and characterize the most informative 100 items to compose a Swadesh CDI list, and 5) to evaluate its generalization to a set of 11 additional low-data languages. 
+We then make a concrete proposal for how this Swadesh CDI list could be used to create future CDI adaptations to greatly expand the diversity of languages studied. 
 We end by discussing the strengths and weaknesses of our approach.
-<!-- Our full analysis, the Swadesh CDI list, and other information valuable for developing a new CDI are openly available on [OSF](https://osf.io/8swhb/?view_only=6f6ab9818f2a4bb288e05ca9e12f540c). -->
+Our full analysis, the Swadesh CDI list, and other information valuable for developing a new CDI are openly available on [OSF](https://osf.io/8swhb/?view_only=6f6ab9818f2a4bb288e05ca9e12f540c). 
 
 # Methods
 
@@ -214,14 +214,26 @@ load(here("data/combined_demographic_data.Rdata"))
 demo_age <- demo %>% group_by(language) %>%
   summarise(n = n(), age = mean(age))
 
+# table(demo$form)
+# lots of non-WS/WG forms in here -- do we use all of those??
+
 #demo %>% 
 #  ggplot(aes(x=age, fill=language, color=language)) + 
 #    geom_histogram(position="identity", alpha=0.2)
+
+wg_ws_tab <- demo %>% 
+  filter(form=="WG" | form=="WS") %>%
+  group_by(language, form) %>%
+  summarise(n = n()) %>%
+  pivot_wider(id_cols = "language", names_from = "form", values_from = "n")
+
+wg_ws_tab %>%
+  kable()
 ```
 
-ToDo: update to report total CD:WS and CDI:WG Ns?
 
-The Wordbank datasets consisted of the CDI:WS production data for `r sum(all_tab$N)` children aged 16--30 months on `r sum(all_tab$items)` items across `r nrow(all_tab)` forms.
+The Wordbank datasets consisted of CDI:WS production data for `r nrow(demo %>% filter(form=="WS"))` children aged 16--30 months and CDI_WG production data from `r nrow(demo %>% filter(form=="WG"))` children aged 8--18 months
+on `r sum(all_tab$items)` items across `r nrow(all_tab)` forms.
 Note that the distributions of demographic variables (age, sex, etc.) of these datasets are not matched, so comparing overall language ability estimates across languages would be ill-advised. 
 (See @frank2021 for a discussion of effects of demographic variables on vocabulary development.) 
 Thus, we focused only on the estimated item parameters, and in particular the variability of item difficulty ($b_i$).
@@ -232,8 +244,8 @@ Thus, we focused only on the estimated item parameters, and in particular the va
 
 ### Instruments
 
-<!-- When a CDI:WG form was administered, caregivers were asked to indicate for each vocabulary item whether their child 1) understands that word ("comprehends") or 2) both understands and says ("produces") that word. 
-Leaving the item blank indicates that the child neither comprehends nor produces that word. -->
+When a CDI:WG form was administered, caregivers were asked to indicate for each vocabulary item whether their child 1) understands that word ("comprehends") or 2) both understands and says ("produces") that word. 
+Leaving the item blank indicates that the child neither comprehends nor produces that word.
 When a CDI:WS forms was administered, caregivers were asked to indicate for each vocabulary item on the instrument whether or not their child can recognizably produce (say) the given word in an appropriate context.
 
 "Produces" responses were coded as 1 and all other responses were coded as 0.
@@ -243,9 +255,9 @@ All models, data, and code for reproducing this paper are available on OSF[^3].
 # Results
 
 ```{r}
-xldf <- xldf %>% filter(!is.na(uni_lemma)) # 21824 out of 23020 have uni-lemmas defined 95%
-xldf_lowd <- xldf %>% filter(is.element(language, low_data_langs$Language)) # 5464
-xldf <- xldf %>% filter(!is.element(language, low_data_langs$Language)) # 17715
+xldf <- xldf %>% filter(!is.na(uni_lemma)) # 25639 out of 26616 have uni-lemmas defined 96%
+xldf_lowd <- xldf %>% filter(is.element(language, low_data_langs$Language)) # 5624
+xldf <- xldf %>% filter(!is.element(language, low_data_langs$Language)) # 20015
 
 # align some categories: Russian has descriptive adjectives and adverbs
 xldf[which(xldf$category=="descriptive_words (adjectives)"),]$category = "descriptive_words"
@@ -254,13 +266,13 @@ xldf[which(xldf$category=="outside_places"),]$category = "outside"
 
 
 ```{r, include=F}
-# 1839
+# 1954
 uni_ag <- xldf %>% filter(uni_lemma!="NA") %>%
   group_by(uni_lemma) %>% # category <- but many uni-lemmas are categorized differently across languages
   summarise(d_m=mean(d), a1_m=mean(a1), d_sd = sd(d), a1_sd = sd(a1), n=n())
 
 # The more times a uni-lemma appears, the easier it tends to be:
-cor.test(uni_ag$d_m, uni_ag$n)
+cor.test(uni_ag$d_m, uni_ag$n) # t(1952) = 16.72, r=.35, p<.001
 #plot(uni_ag$d_m, uni_ag$n)
 
 pval_str <- function(pval) {
@@ -284,20 +296,20 @@ report_ttest <- function(ttest) {
 
 # variability in difficulty also correlated number of forms uni-lemma is on
 
-# 990 singletons
+# 547 singletons
 uni1 <- uni_ag %>% filter(n==1) 
-mean(uni1$d_m) # 1.38
+mean(uni1$d_m) # -1.91
 
-uni_ag_gt1 <- uni_ag %>% filter(n>1) # 1311
+uni_ag_gt1 <- uni_ag %>% filter(n>1) # 1407
 
 # singletons are harder than unis appearing on multiple forms?
-report_ttest(t.test(uni1$d_m, uni_ag_gt1$d_m))
+report_ttest(t.test(uni1$d_m, uni_ag_gt1$d_m)) 
 
 # no cor bw difficulty and variability -- good
-report_cor(cor.test(uni_ag_gt1$d_m, uni_ag_gt1$d_sd))
+report_cor(cor.test(uni_ag_gt1$d_m, uni_ag_gt1$d_sd)) # r=.03
 ```
 
-Across the 26 IRT models for different CDI:WS forms, difficulty and discrimination parameters for a total of 23020 items were fitted.
+Across the 26 IRT models for different CDI:WS forms, difficulty and discrimination parameters for a total of 25639 items were fitted.
 Of those items, 95% had uni-lemmas defined, with a median of 693 per CDI:WS form (range: 553 in Czech to 804 in Cantonese). 
 A total of `r length(unique(xldf$uni_lemma))` uni-lemmas were defined across the 26 CDI:WS forms, but `r nrow(uni1)` of these were singletons, appearing on only one of the 26 forms.\footnote{These singletons were significantly more difficult than the `r nrow(uni_ag_gt1)` uni-lemmas appearing more than once ($M_1=$ `r round(mean(uni1$d_m),2)`; $M_{>1}=$ `r round(mean(uni_ag_gt1$d_m),2)`; `r report_ttest(t.test(uni1$d_m, uni_ag_gt1$d_m))`).} 
 There was a significant relation between how often a uni-lemma appears and its difficulty: the more often a uni-lemma appears, the _easier_ it tended to be (`r report_cor(cor.test(uni_ag$d_m, uni_ag$n))`).
