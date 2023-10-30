@@ -215,9 +215,9 @@ prod_sum <- prod_pars |>
             sd_d = sd(d, na.rm = TRUE))
 
 # Swadesh 
+swadesh_sublist <- make_swadesh_sublist(prod_sum, S_LEN, K)
 prod_cors <- sapply(gen_langs, \(lang) {
-  sublist <- make_swadesh_sublist(prod_sum, S_LEN, K)
-  get_sumscore_cor(sublist, xldf, all_prod, lang)
+  get_sumscore_cor(swadesh_sublist, xldf, all_prod, lang)
 }) |> t() |>
   `colnames<-`(c("num_overlap", "sumscore_cor")) |> 
   as_tibble(rownames = "language") |> 
@@ -263,3 +263,25 @@ ggplot(gen_res_sum,
   theme(legend.position = "bottom",
         axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1))
 ```
+
+T-tests:
+
+Swadesh is not significantly different than random
+```{r}
+t.test(gen_res_sum |> filter(sublist == "Swadesh") |> pull(sumscore_cor),
+       gen_res_sum |> filter(sublist == "Random") |> pull(sumscore_cor),
+       paired = TRUE)
+```
+
+```{r}
+t.test(gen_res_sum |> filter(sublist == "Swadesh") |> pull(num_overlap),
+       gen_res_sum |> filter(sublist == "Random") |> pull(num_overlap),
+       paired = TRUE)
+```
+
+Swadesh is significantly easier than all items
+```{r}
+t.test(swadesh_sublist$mean_d,
+       prod_sum$mean_d)
+```
+
