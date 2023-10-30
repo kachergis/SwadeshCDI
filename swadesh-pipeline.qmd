@@ -1,0 +1,248 @@
+---
+title: "Swadesh CDI pipeline"
+format: html
+---
+
+```{r}
+library(wordbankr)
+library(tidyverse)
+library(glue)
+library(mirt)
+walk(list.files("scripts", pattern = "*.R$", full.names = TRUE), source)
+```
+
+# Data fetching and stitching
+Get new form definitions with unified items
+```{r}
+languages <- list.files("data/new_items") |> str_sub(end = -5)
+pronouns <- read_csv("data/pronouns.csv") |> 
+  mutate(uid = glue("{form}_{itemID}"))
+
+rep_items <- list()
+
+# Validate to ensure no repeated items
+for (language in languages) {
+  ni <- get_new_items(language, pronouns)
+  forms <- ni$forms
+  new_items <- ni$new_items
+  rep_ids <- new_items |> 
+    select(category, definition) |> 
+    duplicated()
+  repeated <- new_items[rep_ids,]
+  
+  if (nrow(repeated) > 0) {
+    repeated <- repeated |> 
+      mutate(language = language)
+    rep_items <- c(rep_items, list(repeated))
+  }
+}
+```
+
+Stitch data together and save outputs
+```{r}
+for (language in languages) {
+  ni <- get_new_items(language, pronouns)
+  # Finnish WG/WGShort not yet imported
+  if (language == "Finnish") ni$forms <- c("WS", "WSShort")
+  df <- make_data(language, ni$forms, ni$new_items)
+  
+  output <- list(all_demo = df$all_demo,
+                 items = ni$new_items,
+                 all_long = df$all_long,
+                 all_prod = df$all_prod)
+  
+  saveRDS(output, glue("data/all_forms/{language}_data.rds"))
+}
+```
+
+# IRT modelling and parameter extraction
+Run 2PL models
+```{r}
+languages <- list.files("data/all_forms") |> str_sub(end = -10)
+```
+
+```{r eval=F}
+completed <- list.files("data/prod_models") |> str_sub(end = -28)
+
+mirtCluster()
+for (language in setdiff(languages, completed)) {
+  run_2PL_model(language)
+}
+```
+
+Collapse cross-linguistic item parameters
+```{r eval=F}
+xldf <- list()
+for (language in languages) {
+  lang_data <- readRDS(glue("data/all_forms/{language}_data.rds"))
+  fitted <- readRDS(glue("data/prod_models/{language}_2PL_allforms_prod_fits.rds"))
+  df <- fitted$coefs |> 
+    rename("uid" = "definition") |> 
+    left_join(lang_data$items |> 
+                select(uid, category, definition, gloss, uni_lemma),
+              by = "uid") |> 
+    mutate(language = language)
+  xldf <- c(xldf, list(df))
+}
+xldf <- bind_rows(xldf)
+saveRDS(xldf, "data/xldf_prod_allforms.rds")
+```
+
+```{r}
+xldf <- readRDS("data/xldf_prod_allforms.rds")
+```
+
+Clean xldf
+```{r}
+xldf_clean <- xldf |> 
+  filter(!is.na(uni_lemma), !is.na(d)) |> 
+  mutate(category = case_when(
+    category == "descriptive_words (adjectives)" ~ "descriptive_words",
+    category == "outside_places" ~ "outside",
+    .default = category))
+
+prod_pars <- xldf_clean |> 
+  arrange(language, uni_lemma, desc(a1)) |> # get most discriminating uni_lemma per lang
+  select(uni_lemma, language, uid, category, language, d) |>
+  group_by(uni_lemma, language) |>
+  slice(1) |> 
+  ungroup()
+
+gen_langs <- c("Finnish",
+               "Kigiriama",
+               "American Sign Language",
+               "Greek (Cypriot)",
+               "Spanish (Peruvian)",
+               "British Sign Language",
+               "Persian",
+               "Kiswahili",
+               "English (Irish)",
+               "Irish",
+               "Spanish (Chilean)")
+
+train_langs <- setdiff(languages, gen_langs)
+```
+
+# Cross-validation
+```{r}
+S_LEN = 100
+N_RAND = 100
+
+cv_res <- lapply(train_langs, \(lang) {
+  message(glue("Calculating for {lang}..."))
+  
+  prod_sum <- prod_pars |> 
+    filter(language %in% train_langs,
+           language != lang) |> 
+    group_by(uni_lemma) |> 
+    summarise(num_langs = n(),
+              mean_d = mean(d, na.rm = TRUE),
+              sd_d = sd(d, na.rm = TRUE))
+  prod_test <- prod_pars |> 
+    filter(language == lang)
+  
+  # Swadesh 
+  prod_cors <- sapply(2:(length(train_langs)-1), \(k) {
+    sublist <- make_swadesh_sublist(prod_sum, S_LEN, k)
+    get_difficulty_cors(sublist, prod_test)
+  }) |> t() |> 
+    `colnames<-`(c("num_overlap", "difficulty_cor")) |> 
+    as_tibble() |> 
+    mutate(run = NA,
+           k = 2:(length(train_langs)-1),
+           language = lang,
+           sublist = "Swadesh")
+  
+  # random
+  rand_cors <- lapply(2:(length(train_langs)-1), \(k) {
+    rand_cors <- sapply(1:N_RAND, \(comp) {
+      sublist <- make_random_sublist(prod_sum, S_LEN, k)
+      get_difficulty_cors(sublist, prod_test)
+    }) |> t() |> 
+      `colnames<-`(c("num_overlap", "difficulty_cor")) |> 
+      as_tibble() |> 
+      mutate(run = 1:N_RAND,
+             k = k)
+  }) |> 
+    bind_rows() |> 
+    mutate(language = lang,
+           sublist = "Random")
+  
+  bind_rows(prod_cors, rand_cors)
+}) |> bind_rows()
+
+cv_res_sum <- cv_res |> 
+  group_by(k, language, sublist) |> 
+  summarise(num_overlap = mean(num_overlap),
+            difficulty_cor = mean(difficulty_cor)) |> 
+  mutate(difficulty_cor_t = atanh(difficulty_cor)) # Fisher transform
+```
+
+```{r}
+ggplot(cv_res_sum,
+       aes(x = k, y = difficulty_cor, col = sublist)) +
+  geom_jitter(aes(col = sublist),
+              alpha = .1) +
+  geom_boxplot(aes(group = interaction(k, sublist))) +
+  labs(y = "Difficulty correlation") +
+  theme(legend.position = "bottom")
+```
+
+```{r}
+ggplot(cv_res_sum,
+       aes(x = k, y = num_overlap, col = sublist)) +
+  geom_jitter(aes(col = sublist),
+              alpha = .1) +
+  geom_boxplot(aes(group = interaction(k, sublist))) +
+  labs(y = "Overlap") +
+  theme(legend.position = "bottom")
+```
+CV results show that k=20 is the optimal value; we use this to construct the final list for generalization testing.
+
+# Generalization test
+```{r}
+all_prod <- readRDS("data/allforms_prod_per_lang.rds")
+```
+
+```{r}
+K = 20
+
+prod_sum <- prod_pars |> 
+  filter(language %in% train_langs) |> 
+  group_by(uni_lemma) |> 
+  summarise(num_langs = n(),
+            mean_d = mean(d, na.rm = TRUE),
+            sd_d = sd(d, na.rm = TRUE))
+
+# Swadesh 
+prod_cors <- sapply(gen_langs, \(lang) {
+  sublist <- make_swadesh_sublist(prod_sum, S_LEN, K)
+  get_sumscore_cor(sublist, xldf, all_prod, lang)
+}) |> t() |>
+  `colnames<-`(c("num_overlap", "sumscore_cor")) |> 
+  as_tibble(rownames = "language") |> 
+  mutate(sublist = "Swadesh")
+
+# random
+rand_cors <- lapply(gen_langs, \(lang) {
+  rand_cors <- sapply(1:N_RAND, \(comp) {
+    sublist <- make_random_sublist(prod_sum, S_LEN, K)
+    get_sumscore_cor(sublist, xldf, all_prod, lang)
+  }) |> t() |> 
+    `colnames<-`(c("num_overlap", "sumscore_cor")) |> 
+    as_tibble() |> 
+    mutate(run = 1:N_RAND,
+           language = lang)
+}) |> 
+  bind_rows() |> 
+  mutate(sublist = "Random")
+
+gen_res <- bind_rows(prod_cors, rand_cors)
+
+gen_res_sum <- gen_res |> 
+  group_by(language, sublist) |> 
+  summarise(num_overlap = mean(num_overlap),
+            sumscore_cor = mean(sumscore_cor)) |> 
+  mutate(sumscore_cor_t = atanh(sumscore_cor)) # Fisher transform
+```
+
