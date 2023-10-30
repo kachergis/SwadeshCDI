@@ -39,7 +39,7 @@ for (language in languages) {
 ```
 
 Stitch data together and save outputs
-```{r}
+```{r, eval=F}
 for (language in languages) {
   ni <- get_new_items(language, pronouns)
   # Finnish WG/WGShort not yet imported
