@@ -246,3 +246,20 @@ gen_res_sum <- gen_res |>
   mutate(sumscore_cor_t = atanh(sumscore_cor)) # Fisher transform
 ```
 
+```{r}
+ggplot(gen_res_sum,
+       aes(x = language, y = sumscore_cor, fill = sublist)) +
+  geom_col(position = "dodge") +
+  labs(y = "Sumscore correlation") +
+  theme(legend.position = "bottom",
+        axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1))
+```
+
+```{r}
+ggplot(gen_res_sum,
+       aes(x = language, y = num_overlap, fill = sublist)) +
+  geom_col(position = "dodge") +
+  labs(y = "Overlap size") +
+  theme(legend.position = "bottom",
+        axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1))
+```
