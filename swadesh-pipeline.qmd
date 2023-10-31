@@ -73,9 +73,14 @@ for (language in setdiff(languages, completed)) {
 Collapse cross-linguistic item parameters
 ```{r eval=F}
 xldf <- list()
+full_fscores <- list()
 for (language in languages) {
   lang_data <- readRDS(glue("data/all_forms/{language}_data.rds"))
   fitted <- readRDS(glue("data/prod_models/{language}_2PL_allforms_prod_fits.rds"))
+  lang_fscores <- data.frame(fscores(fitted$model, full.scores = F)) # default method is EAP; prefer MAP or ML?
+  full_fscores[[language]] <- tibble(full_theta = lang_fscores$G,
+                                     full_sumscore = rowSums(lang_fscores |> select(-G, -SE_G), na.rm=T))
+  # could also pull age from lang_data$all_demo
   df <- fitted$coefs |> 
     rename("uid" = "definition") |> 
     left_join(lang_data$items |> 
@@ -86,6 +91,9 @@ for (language in languages) {
 }
 xldf <- bind_rows(xldf)
 saveRDS(xldf, "data/xldf_prod_allforms.rds")
+saveRDS(full_fscores, "data/full_fscores_allforms.rds")
+# xx <- bind_rows(full_fscores)
+# plot(xx$full_theta, xx$full_sumscore) # cor = .71
 ```
 
 ```{r}
@@ -144,7 +152,7 @@ cv_res <- lapply(train_langs, \(lang) {
   # Swadesh 
   prod_cors <- sapply(2:(length(train_langs)-1), \(k) {
     sublist <- make_swadesh_sublist(prod_sum, S_LEN, k)
-    get_difficulty_cors(sublist, prod_test)
+    get_difficulty_cor(sublist, prod_test)
   }) |> t() |> 
     `colnames<-`(c("num_overlap", "difficulty_cor")) |> 
     as_tibble() |> 
@@ -157,7 +165,7 @@ cv_res <- lapply(train_langs, \(lang) {
   rand_cors <- lapply(2:(length(train_langs)-1), \(k) {
     rand_cors <- sapply(1:N_RAND, \(comp) {
       sublist <- make_random_sublist(prod_sum, S_LEN, k)
-      get_difficulty_cors(sublist, prod_test)
+      get_difficulty_cor(sublist, prod_test)
     }) |> t() |> 
       `colnames<-`(c("num_overlap", "difficulty_cor")) |> 
       as_tibble() |> 
@@ -185,7 +193,7 @@ ggplot(cv_res_sum,
               alpha = .1) +
   geom_boxplot(aes(group = interaction(k, sublist))) +
   labs(y = "Difficulty correlation") +
-  theme(legend.position = "bottom")
+  theme(legend.position = "bottom") + theme_classic()
 ```
 
 ```{r}
@@ -195,7 +203,8 @@ ggplot(cv_res_sum,
               alpha = .1) +
   geom_boxplot(aes(group = interaction(k, sublist))) +
   labs(y = "Overlap") +
-  theme(legend.position = "bottom")
+  theme_classic() + 
+  theme(legend.position = "bottom") 
 ```
 CV results show that k=20 is the optimal value; we use this to construct the final list for generalization testing.
 
@@ -251,8 +260,9 @@ ggplot(gen_res_sum,
        aes(x = language, y = sumscore_cor, fill = sublist)) +
   geom_col(position = "dodge") +
   labs(y = "Sumscore correlation") +
+  theme_classic() +
   theme(legend.position = "bottom",
-        axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1))
+        axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) 
 ```
 
 ```{r}
@@ -260,9 +270,26 @@ ggplot(gen_res_sum,
        aes(x = language, y = num_overlap, fill = sublist)) +
   geom_col(position = "dodge") +
   labs(y = "Overlap size") +
+  theme_classic() +
   theme(legend.position = "bottom",
         axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1))
 ```
+
+
+### Compare Swadesh thetas to full CDI thetas/sumscores (and to random sumscores)
+```{r, eval=F}
+full_fscores <- readRDS("data/full_fscores_allforms.rds")
+
+full_vs_swad_theta <- c()
+for (language in languages) {
+  lang_data <- readRDS(glue("data/all_forms/{language}_data.rds"))
+  fitted <- readRDS(glue("data/prod_models/{language}_2PL_allforms_prod_fits.rds"))
+  swad_fscores <- fscores(fitted$model, response.pattern=lang_data$all_prod[,SWAD_ITEM_INDICES])[,1] 
+  # default method is EAP; prefer MAP or ML?
+  full_vs_swad_theta <- c(full_vs_swad_theta, cor(swad_full_fscores[[language]]$full_theta, swad_fscores))
+}
+```
+
 
 T-tests:
 
