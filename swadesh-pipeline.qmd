@@ -280,13 +280,29 @@ ggplot(gen_res_sum,
 ```{r, eval=F}
 full_fscores <- readRDS("data/full_fscores_allforms.rds")
 
+# either do this in cross-validation (show that thetas from swadesh lists are better for training languages)
+# ..may not make sense for gen languages because those models are trained on little data (may not be stable parms)
+
+# sublist vs sumscore may be similar, but backtracked thetas should be more sensitive
+
+# swadesh_sublist$uni_lemma -> xldf$uid
+
 full_vs_swad_theta <- c()
-for (language in languages) {
+full_sum_vs_swad_theta <- c()
+for (lang in languages) {
   lang_data <- readRDS(glue("data/all_forms/{language}_data.rds"))
   fitted <- readRDS(glue("data/prod_models/{language}_2PL_allforms_prod_fits.rds"))
-  swad_fscores <- fscores(fitted$model, response.pattern=lang_data$all_prod[,SWAD_ITEM_INDICES])[,1] 
+  # get UIDs of non-Swadesh items
+  non_swad_item_ids <- xldf %>% filter(language==lang, !is.element(uni_lemma, swadesh_sublist$uni_lemma)) %>% 
+    pull(uid)
+  # mask (NA) the responses to non-Swadesh items
+  masked_resps <- lang_data$all_prod
+  masked_resps[,non_swad_item_ids] = NA
+  swad_fscores <- fscores(fitted$model, response.pattern=masked_resps)[,1] # maybe remove the rows with non-NA WG item responses?
+  # Turkish: 3537 thetas; full_fscores[[lang]]$full_theta only has 3073 thetas...only for WS, maybe?
   # default method is EAP; prefer MAP or ML?
-  full_vs_swad_theta <- c(full_vs_swad_theta, cor(swad_full_fscores[[language]]$full_theta, swad_fscores))
+  full_vs_swad_theta <- c(full_vs_swad_theta, cor(full_fscores[[lang]]$full_theta, swad_fscores))
+  full_sum_vs_swad_theta <- c(full_sum_vs_swad_theta, cor(full_fscores[[lang]]$full_sumscore, swad_fscores))
 }
 ```
 
