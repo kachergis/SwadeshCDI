@@ -290,21 +290,44 @@ full_fscores <- readRDS("data/full_fscores_allforms.rds")
 full_vs_swad_theta <- c()
 full_sum_vs_swad_theta <- c()
 for (lang in languages) {
-  lang_data <- readRDS(glue("data/all_forms/{language}_data.rds"))
-  fitted <- readRDS(glue("data/prod_models/{language}_2PL_allforms_prod_fits.rds"))
+  lang_data <- readRDS(glue("data/all_forms/{lang}_data.rds"))
+  fitted <- readRDS(glue("data/prod_models/{lang}_2PL_allforms_prod_fits.rds"))
   # get UIDs of non-Swadesh items
   non_swad_item_ids <- xldf %>% filter(language==lang, !is.element(uni_lemma, swadesh_sublist$uni_lemma)) %>% 
     pull(uid)
+  #non_swad_item_ids <- setdiff(colnames(fitted$model@Data$data), swad_item_ids)
   # mask (NA) the responses to non-Swadesh items
-  masked_resps <- lang_data$all_prod
+  masked_resps <- fitted$model@Data$data
   masked_resps[,non_swad_item_ids] = NA
-  swad_fscores <- fscores(fitted$model, response.pattern=masked_resps)[,1] # maybe remove the rows with non-NA WG item responses?
-  # Turkish: 3537 thetas; full_fscores[[lang]]$full_theta only has 3073 thetas...only for WS, maybe?
+  full_sumscores <- rowSums(fitted$model@Data$data, na.rm=T)
+  # lang_data$all_prod # these data still have 0-producing children -- should we infer thetas for them?
+  
+  full_fscores_lang <- fscores(fitted$model, response.pattern=fitted$model@Data$data)[,1] 
+  swad_fscores <- fscores(fitted$model, response.pattern=masked_resps)[,1] 
+  # Turkish: 3537 thetas; full_fscores[[lang]]$full_theta only has 3073 thetas -- all 0-producing children removed
   # default method is EAP; prefer MAP or ML?
-  full_vs_swad_theta <- c(full_vs_swad_theta, cor(full_fscores[[lang]]$full_theta, swad_fscores))
-  full_sum_vs_swad_theta <- c(full_sum_vs_swad_theta, cor(full_fscores[[lang]]$full_sumscore, swad_fscores))
+  #full_vs_swad_theta <- c(full_vs_swad_theta, cor(full_fscores[[lang]]$full_theta, swad_fscores))
+  #full_sum_vs_swad_theta <- c(full_sum_vs_swad_theta, cor(full_fscores[[lang]]$full_sumscore, swad_fscores))
+  full_vs_swad_theta <- c(full_vs_swad_theta, cor(full_fscores_lang, swad_fscores))
+  full_sum_vs_swad_theta <- c(full_sum_vs_swad_theta, cor(full_sumscores, swad_fscores))
+  # add thetas/sumscores for random Swadesh-length lists?
 }
+
+theta_comparison <- tibble(language = languages, 
+                           full_vs_swad_theta = full_vs_swad_theta,
+                           full_sum_vs_swad_theta = full_sum_vs_swad_theta)
+
+saveRDS(theta_comparison, "data/full_vs_swadesh_fscores_allforms.rds")
 ```
+
+(A few languages have fscore estimates fail to converge, resulting in mismatched vector lengths..need to label data rows with participant IDs and match up..)
+
+```{r}
+theta_comparison <- readRDS("data/full_vs_swadesh_fscores_allforms.rds")
+
+theta_comparison %>% kableExtra::kable(digits=3)
+```
+
 
 
 T-tests:
