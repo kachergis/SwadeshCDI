@@ -133,8 +133,8 @@ train_langs <- setdiff(languages, gen_langs)
 
 # Cross-validation
 ```{r}
-S_LEN = 100
-N_RAND = 100
+S_LEN = 100 # Swadesh list length
+N_RAND = 100 # number of random sublists to compare to
 
 cv_res <- lapply(train_langs, \(lang) {
   message(glue("Calculating for {lang}..."))
@@ -287,8 +287,7 @@ full_fscores <- readRDS("data/full_fscores_allforms.rds")
 
 # swadesh_sublist$uni_lemma -> xldf$uid
 
-full_vs_swad_theta <- c()
-full_sum_vs_swad_theta <- c()
+theta_comps <- tibble()
 for (lang in languages) {
   lang_data <- readRDS(glue("data/all_forms/{lang}_data.rds"))
   fitted <- readRDS(glue("data/prod_models/{lang}_2PL_allforms_prod_fits.rds"))
@@ -302,20 +301,57 @@ for (lang in languages) {
   full_sumscores <- rowSums(fitted$model@Data$data, na.rm=T)
   # lang_data$all_prod # these data still have 0-producing children -- should we infer thetas for them?
   
-  full_fscores_lang <- fscores(fitted$model, response.pattern=fitted$model@Data$data)[,1] 
-  swad_fscores <- fscores(fitted$model, response.pattern=masked_resps)[,1] 
-  # Turkish: 3537 thetas; full_fscores[[lang]]$full_theta only has 3073 thetas -- all 0-producing children removed
+  full_fscores_lang <- fscores(fitted$model, response.pattern=fitted$model@Data$data, method="MAP")[,1] 
+  swad_fscores <- fscores(fitted$model, response.pattern=masked_resps, method="MAP")[,1] 
   # default method is EAP; prefer MAP or ML?
-  #full_vs_swad_theta <- c(full_vs_swad_theta, cor(full_fscores[[lang]]$full_theta, swad_fscores))
-  #full_sum_vs_swad_theta <- c(full_sum_vs_swad_theta, cor(full_fscores[[lang]]$full_sumscore, swad_fscores))
-  full_vs_swad_theta <- c(full_vs_swad_theta, cor(full_fscores_lang, swad_fscores))
-  full_sum_vs_swad_theta <- c(full_sum_vs_swad_theta, cor(full_sumscores, swad_fscores))
-  # add thetas/sumscores for random Swadesh-length lists?
+  
+  tmp <- na.omit(data.frame(cbind(full_fscores_lang, swad_fscores, full_sumscores)))
+  full_theta_vs_swad_theta = cor(tmp$full_fscores_lang, tmp$swad_fscores)
+  full_sum_vs_swad_theta = cor(tmp$full_sumscores, tmp$swad_fscores)
+  full_sum_vs_full_theta = cor(tmp$full_sumscores, tmp$full_fscores_lang)
+  
+  # random theta cors
+  rand_theta_cors <- sapply(1:N_RAND, \(comp) {
+      sublist <- make_random_sublist(prod_sum, S_LEN, K) # use optimal K (20)
+      rand_ids <- xldf %>% filter(language==lang, is.element(uni_lemma, sublist$uni_lemma)) %>% 
+        pull(uid)
+      
+      # sumscores for random sublist:
+      rand_sumscores <- rowSums(fitted$model@Data$data[,rand_ids], na.rm=T)
+      
+      # fscores for random sublist:
+      unselected_item_ids <- xldf %>% filter(language==lang, !is.element(uni_lemma, sublist$uni_lemma)) %>% 
+        pull(uid)
+      # mask (NA) the responses to non-Swadesh items
+      masked_resps <- fitted$model@Data$data
+      masked_resps[,unselected_item_ids] = NA
+      rand_fscores <- fscores(fitted$model, response.pattern=masked_resps)[,1] 
+      tmp <- na.omit(data.frame(cbind(full_fscores_lang, swad_fscores, full_sumscores, 
+                                      rand_fscores, rand_sumscores)))
+      list(full_theta_vs_rand_sum = cor(tmp$rand_sumscores, tmp$full_fscores_lang),
+           full_theta_vs_rand_theta = cor(tmp$rand_fscores, tmp$full_fscores_lang))
+  }) 
+  
+  
+  full_theta_vs_rand_sum = mean(unlist(rand_theta_cors["full_theta_vs_rand_sum",]))
+  full_theta_vs_rand_theta = mean(unlist(rand_theta_cors["full_theta_vs_rand_theta",])) 
+  # ToDo: save variance?
+  
+  theta_comps <- bind_rows(theta_comps, tibble(
+    full_theta_vs_swad_theta=full_theta_vs_swad_theta,
+    full_sum_vs_swad_theta=full_sum_vs_swad_theta,
+    full_sum_vs_full_theta=full_sum_vs_full_theta,
+    full_theta_vs_rand_sum=full_theta_vs_rand_sum,
+    full_theta_vs_rand_theta=full_theta_vs_rand_theta 
+  )) # full_sum_vs_rand_theta ?
+  
+  theta_comps
 }
 
 theta_comparison <- tibble(language = languages, 
-                           full_vs_swad_theta = full_vs_swad_theta,
-                           full_sum_vs_swad_theta = full_sum_vs_swad_theta)
+                           full_theta_vs_swad_theta = full_theta_vs_swad_theta,
+                           full_sum_vs_swad_theta = full_sum_vs_swad_theta,
+                           full_sum_vs_full_theta = full_sum_vs_full_theta)
 
 saveRDS(theta_comparison, "data/full_vs_swadesh_fscores_allforms.rds")
 ```
@@ -325,7 +361,7 @@ saveRDS(theta_comparison, "data/full_vs_swadesh_fscores_allforms.rds")
 ```{r}
 theta_comparison <- readRDS("data/full_vs_swadesh_fscores_allforms.rds")
 
-theta_comparison %>% kableExtra::kable(digits=3)
+theta_comparison |> arrange(desc(full_sum_vs_swad_theta)) |> kableExtra::kable(digits=3) 
 ```
 
 
