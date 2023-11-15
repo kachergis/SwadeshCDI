@@ -325,7 +325,7 @@ for (lang in languages) {
       # mask (NA) the responses to non-Swadesh items
       masked_resps <- fitted$model@Data$data
       masked_resps[,unselected_item_ids] = NA
-      rand_fscores <- fscores(fitted$model, response.pattern=masked_resps)[,1] 
+      rand_fscores <- fscores(fitted$model, response.pattern=masked_resps)[,1] # ToDo: rerun with method="MAP" (slower than EAP?)
       tmp <- na.omit(data.frame(cbind(full_fscores_lang, swad_fscores, full_sumscores, 
                                       rand_fscores, rand_sumscores)))
       list(full_theta_vs_rand_sum = cor(tmp$rand_sumscores, tmp$full_fscores_lang),
@@ -348,20 +348,16 @@ for (lang in languages) {
   theta_comps
 }
 
-theta_comparison <- tibble(language = languages, 
-                           full_theta_vs_swad_theta = full_theta_vs_swad_theta,
-                           full_sum_vs_swad_theta = full_sum_vs_swad_theta,
-                           full_sum_vs_full_theta = full_sum_vs_full_theta)
 
-saveRDS(theta_comparison, "data/full_vs_swadesh_fscores_allforms.rds")
+saveRDS(theta_comps, "data/full_vs_swadesh_fscores_allforms.rds")
 ```
 
 (A few languages have fscore estimates fail to converge, resulting in mismatched vector lengths..need to label data rows with participant IDs and match up..)
 
 ```{r}
-theta_comparison <- readRDS("data/full_vs_swadesh_fscores_allforms.rds")
+theta_comps <- readRDS("data/full_vs_swadesh_fscores_allforms.rds")
 
-theta_comparison |> arrange(desc(full_sum_vs_swad_theta)) |> kableExtra::kable(digits=3) 
+theta_comps |> arrange(desc(full_sum_vs_swad_theta)) |> kableExtra::kable(digits=3) 
 ```
 
 
