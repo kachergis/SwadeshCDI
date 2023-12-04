@@ -8,6 +8,8 @@ library(wordbankr)
 library(tidyverse)
 library(glue)
 library(mirt)
+library(RColorBrewer)
+require(gplots)
 walk(list.files("scripts", pattern = "*.R$", full.names = TRUE), source)
 ```
 
@@ -360,6 +362,15 @@ theta_comps <- readRDS("data/full_vs_swadesh_fscores_allforms.rds")
 theta_comps |> arrange(desc(full_sum_vs_swad_theta)) |> kableExtra::kable(digits=3) 
 ```
 
+Fscore T-tests:
+
+```{r}
+t.test(atanh(theta_comps$full_theta_vs_swad_theta), atanh(theta_comps$full_theta_vs_rand_theta))
+
+t.test(atanh(theta_comps$full_sum_vs_swad_theta), atanh(theta_comps$full_sum_vs_full_theta))
+```
+
+Not significantly different (hooray / awww).
 
 
 T-tests:
@@ -383,3 +394,38 @@ t.test(swadesh_sublist$mean_d,
        prod_sum$mean_d)
 ```
 
+
+## Cross-linguistic similarities 
+
+We look at the Spearman correlation between the item difficulty of each language compared to each other language. First, we look at similarities across all IRT parameters, and then we focus in on the Swadesh candidates.
+
+```{r, echo=F, fig.width=8, fig.height=8}
+get_xling_difficulty_similarity <- function() {
+  dif_cors <- matrix(0, nrow=length(languages), ncol=length(languages))
+  dif_sims <- tibble()
+  colnames(dif_cors) = languages
+  rownames(dif_cors) = languages
+
+  for(l1 in languages) {
+    for(l2 in languages) {
+      tmp <- xldf %>% filter(language==l1 | language==l2, !is.na(d)) %>%
+        select(uid, uni_lemma, category, category, language, d) %>%
+        group_by(uni_lemma, language) %>%
+        slice(1) %>% 
+        pivot_wider(names_from = language, values_from = d) %>%
+        drop_na()
+      dif_cors[l1,l2] <- cor(tmp[,l1], tmp[,l2], method="spearman")
+      dif_sims <- bind_rows(dif_sims, tibble("Lang1" = l1, "Lang2" = l2, 
+                                             "r" = cor(tmp[,l1], tmp[,l2], method="spearman")[[1]], 
+                                             "N" = nrow(tmp)))
+    }
+  }
+  return(dif_cors)
+}
+
+Colors = brewer.pal(11,"Spectral")
+diag(dif_cors) = NA
+#bad_lang = c("Mandarin (Taiwanese)")
+heatmap.2(dif_cors, col=Colors)
+
+```
