@@ -208,7 +208,7 @@ ggplot(cv_res_sum,
   theme_classic() + 
   theme(legend.position = "bottom") 
 ```
-CV results show that k=20 is the optimal value; we use this to construct the final list for generalization testing.
+CV results show that $k=20$ is the optimal value; we use this to construct the final list for generalization testing.
 
 # Generalization test
 ```{r}
@@ -289,6 +289,11 @@ full_fscores <- readRDS("data/full_fscores_allforms.rds")
 
 # swadesh_sublist$uni_lemma -> xldf$uid
 
+# we actually want the average difficulty for Swadesh items, and we will use this to define a model to get predicted fscores from 
+#swadesh_sublist$mean_d
+
+#  https://groups.google.com/g/mirt-package/c/TLv1JFq2tCg
+  
 theta_comps <- tibble()
 for (lang in languages) {
   lang_data <- readRDS(glue("data/all_forms/{lang}_data.rds"))
@@ -304,8 +309,21 @@ for (lang in languages) {
   # lang_data$all_prod # these data still have 0-producing children -- should we infer thetas for them?
   
   full_fscores_lang <- fscores(fitted$model, response.pattern=fitted$model@Data$data, method="MAP")[,1] 
-  swad_fscores <- fscores(fitted$model, response.pattern=masked_resps, method="MAP")[,1] 
+  
+  # this uses the trained model for this lang -- but we want to use average Swadesh item difficulties (from training langs)
+  #swad_fscores <- fscores(fitted$model, response.pattern=masked_resps, method="MAP")[,1] 
   # default method is EAP; prefer MAP or ML?
+  
+  lang_swad_items <- xldf_clean |> filter(language==lang, is.element(uni_lemma, swadesh_sublist$uni_lemma))
+  modpars <- mod2values(fitted$model) %>% filter(is.element(item, lang_swad_items$uid))
+    #mutate(value = ifelse(name=='a1', 1, value)) 
+  
+  new_vals <- modpars %>% select(item, name, value) %>%
+    pivot_wider(names_from=name, values_from = value) %>%
+    mutate(a1 = 1) %>% select(-d) 
+  
+  swad_mod <- mirt(masked_resps[,-non_swad_item_ids], 1, pars=new_vals)
+  
   
   tmp <- na.omit(data.frame(cbind(full_fscores_lang, swad_fscores, full_sumscores)))
   full_theta_vs_swad_theta = cor(tmp$full_fscores_lang, tmp$swad_fscores)
@@ -400,7 +418,7 @@ t.test(swadesh_sublist$mean_d,
 We look at the Spearman correlation between the item difficulty of each language compared to each other language. First, we look at similarities across all IRT parameters, and then we focus in on the Swadesh candidates.
 
 ```{r, echo=F, fig.width=8, fig.height=8}
-get_xling_difficulty_similarity <- function() {
+get_xling_difficulty_similarity <- function(xldf) {
   dif_cors <- matrix(0, nrow=length(languages), ncol=length(languages))
   dif_sims <- tibble()
   colnames(dif_cors) = languages
@@ -409,7 +427,7 @@ get_xling_difficulty_similarity <- function() {
   for(l1 in languages) {
     for(l2 in languages) {
       tmp <- xldf %>% filter(language==l1 | language==l2, !is.na(d)) %>%
-        select(uid, uni_lemma, category, category, language, d) %>%
+        select(uni_lemma, category, category, language, d) %>% # uid, 
         group_by(uni_lemma, language) %>%
         slice(1) %>% 
         pivot_wider(names_from = language, values_from = d) %>%
@@ -423,9 +441,20 @@ get_xling_difficulty_similarity <- function() {
   return(dif_cors)
 }
 
+dif_cors <- get_xling_difficulty_similarity(xldf_clean)
+
 Colors = brewer.pal(11,"Spectral")
 diag(dif_cors) = NA
 #bad_lang = c("Mandarin (Taiwanese)")
 heatmap.2(dif_cors, col=Colors)
-
 ```
+
+### Similarity in Swadesh item parameters
+
+```{r, echo=F, fig.width=8, fig.height=8}
+swad_dif_cors <- get_xling_difficulty_similarity(xldf_clean %>% 
+                                              filter(is.element(uni_lemma, swadesh_sublist$uni_lemma)))
+
+heatmap.2(swad_dif_cors, col=Colors)
+```
+
