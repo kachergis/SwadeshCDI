@@ -314,16 +314,40 @@ for (lang in languages) {
   #swad_fscores <- fscores(fitted$model, response.pattern=masked_resps, method="MAP")[,1] 
   # default method is EAP; prefer MAP or ML?
   
+  # this lang Swadesh uid and uni_lemmas
   lang_swad_items <- xldf_clean |> filter(language==lang, is.element(uni_lemma, swadesh_sublist$uni_lemma))
+  
+  # original tis lang IRT parms
   modpars <- mod2values(fitted$model) %>% filter(is.element(item, lang_swad_items$uid))
     #mutate(value = ifelse(name=='a1', 1, value)) 
   
   new_vals <- modpars %>% select(item, name, value) %>%
     pivot_wider(names_from=name, values_from = value) %>%
-    mutate(a1 = 1) %>% select(-d) 
+    mutate(a1 = 1) %>% select(-d) %>% 
+    left_join(lang_swad_items %>% select(uid, uni_lemma), by=c("item"="uid")) %>% # get uni_lemma
+    left_join(swadesh_sublist %>% select(uni_lemma, mean_d)) %>% # get mean Swadesh difficulty
+    rename(d = mean_d) %>%
+    pivot_longer(cols = c(a1,d,g,u)) %>% 
+    select(-uni_lemma)
   
-  swad_mod <- mirt(masked_resps[,-non_swad_item_ids], 1, pars=new_vals)
+  new_modpars <- modpars %>% select(-value) %>% left_join(new_vals) %>% 
+    relocate(value, .after=parnum) %>%
+    mutate(est = FALSE)
   
+  # this works, but we need to 1) remove (or NA?) non-Swadesh columns, and 2) remove (or NA?) non-Swadesh parameters
+  swad_mod <- mirt(fitted$model@Data$data, 1, pars=mod2values(fitted$model))
+  
+  # Error: Rows in supplied and starting value data.frame objects do not match. Were the
+  #           data or itemtype input arguments modified?
+  
+  swad_mod <- mirt(masked_resps[,unique(new_vals$item)], 1, pars=mod2values(fitted$model))
+  # Error: Rows in supplied and starting value data.frame objects do not match. Were the
+  #           data or itemtype input arguments modified?
+  # parnum has a parameter index that is related to the number of participants (rows) in the data...
+  # and maybe based on alphabetical order of participant and item names??
+  # modpars$parnum # 1-116; 125-128... skips around!
+  # can we just renumber parnum ??
+  #new_modpars2 <- new_modpars %>% mutate(parnum = 1:nrow(new_modpars)) # did not work
   
   tmp <- na.omit(data.frame(cbind(full_fscores_lang, swad_fscores, full_sumscores)))
   full_theta_vs_swad_theta = cor(tmp$full_fscores_lang, tmp$swad_fscores)
