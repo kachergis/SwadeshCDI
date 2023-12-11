@@ -70,9 +70,9 @@ For example, cross-linguistic analyses indicate that measures of vocabulary size
 Thus, over development, the language system is "tightly woven" [@bates1994; @frank2021] and early vocabulary size serves as a good proxy measure of children's overall language skill.
 
 On the CDIs, vocabulary size is assessed via a checklist format, which enables caregivers to scan and recognize words their child produces or understands, rather than relying on recall alone. 
-For example, the American English CDI Words & Sentences (CDI:WS) form, targeting children 16-30 months of age, is comprised of 680 words from 22 semantic categories, including nouns (e.g., Body Parts, Toys, and Clothing), action words, descriptive words, and closed-class words such as pronouns. 
+For example, the American English CDI Words & Sentences (CDI:WS) form, targeting children 16--30 months of age, is comprised of 680 words from 22 semantic categories, including nouns (e.g., Body Parts, Toys, and Clothing), action words, descriptive words, and closed-class words such as pronouns. 
 Items on this original CDI:WS were chosen to reflect a range of difficulty levels (i.e., easy, moderate, and more difficult), as well as capture the linguistic and societal contexts of (most) children living in the US.
-The CDI Words & Gestures form (CDI:WG) targets children 8-18 months of age, typically consisting of a subset of approximately 500 of the easier items from the CDI:WS of the same language, and which asks caregivers to report children's comprehension as well as production of each word. 
+The CDI Words & Gestures form (CDI:WG) targets children 8--18 months of age, typically consisting of a subset of approximately 500 of the easier items from the CDI:WS of the same language, and which asks caregivers to report children's comprehension as well as production of each word. 
 Short versions of the CDI:WS forms are also available [e.g., @Fenson2000], consisting of a set of around 100 items that generate scores that more strongly correlate with scores on the long forms, while retaining representation across a broad set of semantic categories.
 <!-- ToDo: describe WG form as well! -->
 
@@ -80,7 +80,7 @@ Short versions of the CDI:WS forms are also available [e.g., @Fenson2000], consi
 Creating a new CDI requires a lot of effort and resources, presenting a daunting barrier to increasing the diversity of languages studied.
 Following the guidelines[^1] from the MacArthur-Bates CDI Advisory Board, the process of adapting a CDI for a language other than American English goes well beyond simply translating items on these forms to that new language. 
 While the process can begin with identifying translation equivalents (i.e., items that capture the same general concept in both languages, e.g., "dog" in English, and "perro" in Spanish), the final item set must then be filtered so that all items appropriately reflect the linguistic and sociocultural context of the children learning that language. 
-This process usually requires considerable time and effort by researchers who are both native speakers of the language and who have experience with children, to first select and identify translation equivalents and to then iteratively add, refine, and pilot the new CDI in the target language. 
+This process usually requires considerable time and effort by researchers who are both native speakers of the language and who have experience with children, to first select and identify translation equivalents and to then iteratively add, refine, and pilot the new CDI in the target language (see [@jaruskova2023]). 
 Because the goal is to obtain the set of items that best capture general trends and individual differences in that language, the items across CDIs in different languages do not necessarily overlap to a great extent. 
 For example, the American English CDI:WS and Mexican Spanish CDI:WS forms each have 680 words, but only have 463 overlapping concepts (68%).
 
@@ -104,13 +104,14 @@ This work takes its inspiration from the fields of lexicostatistics and glottoch
 For example, the original Swadesh list contains 100 words, comprised of categories including common pronouns (_I_, _you_, _we_), animals (_man_, _fish_, _bird_, _dog_), objects (_tree_, _leaf_, _sun_, _mountain_), and verbs (_die_, _see_, _sleep_, _kill_). 
 Extending this work to the development of a universal CDI, or “Swadesh CDI,” would include many of the concepts that researchers have chosen to include on several CDI:WS adaptations, and which have relatively similar difficulty across many languages. 
 If such a list were generalizable to other languages, it could serve as a helpful starting point for the development of new CDI adaptations, since the constituent words would already have good cross-linguistic difficulty estimates.
+It would also provide a method of approximating children's language abilities even in the absence of a large normative study.
 
 <!--More broadly, this work examines which types of words (and their corresponding concepts) are more or less similar in terms of the ease with which they are learned across languages, revealing commonalities as well as idiosyncrasies in children’s early experiences. 
 We can ask: Which semantic categories, e.g., animals, household objects, food and drink, or another category, are most consistently learned across languages? Which are more variable? 
 These types of cross-linguistic comparisons may give new insight into theoretical questions surrounding the similarity and differences between language experience and development in different cultural and linguistic contexts.--> <!--AT: this para seems to not be the desired outcome of the S-CDI so I removed it.-->
 
 
-In particular, our contributions are 1) to revise and extend a set of translation-equivalent concepts in Wordbank, 2) to fit IRT models to CDI:WG and CDI:WS data from 27 languages, 3) to evaluate candidate lists of Swadesh CDI items from a cross-linguistic comparison of concept difficulty and inclusion, 4) to identify and characterize the most informative 100 items to compose a Swadesh CDI list, and 5) to evaluate its generalization to a set of 11 additional low-data languages. 
+In particular, our contributions are 1) to revise and extend a set of translation-equivalent concepts in Wordbank, 2) to fit IRT models to CDI:WG and CDI:WS data from 27 languages, 3) to evaluate candidate lists of Swadesh CDI items from a cross-linguistic comparison of concept difficulty and inclusion, 4) to identify and characterize the most consistent 100 items to compose a Swadesh CDI list, and 5) to evaluate its generalization to a set of 11 additional low-data languages. 
 We then make a concrete proposal for how this Swadesh CDI list could be used to create future CDI adaptations to greatly expand the diversity of languages studied. 
 We end by discussing the strengths and weaknesses of our approach.
 Our full analysis, the Swadesh CDI list, and other information valuable for developing a new CDI are openly available on [OSF](https://osf.io/8swhb/?view_only=6f6ab9818f2a4bb288e05ca9e12f540c). 
@@ -176,12 +177,11 @@ print(tab1, type="latex", comment = F,
       include.rownames=FALSE, size="\\fontsize{9pt}{10pt}\\selectfont")
 ```
 
-ToDo: explain stitching of WG and WS
-
-We report IRT analyses for twenty-seven languages from Wordbank [@frank2017], comprising production data from CDI:WS vocabulary checklists that have at least 200 administrations.[^2]
-Data from the first twenty-six rows of Table 1 (Norwegian through Dutch) were used to select a pool of words with approximately equal cross-linguistic difficulty.
-CDI:WS production data from an additional eight languages (bottom of Table 1: Greek through Persian) had too few participants to be analyzed with IRT.
-Datasets for these languages were used to test how well the selected pool can be expected to generalize to new languages.
+We pulled data for thirty-eight languages from Wordbank [@frank2017].
+For each language, we extracted production data for all forms present on Wordbank (including WG and WS, as well as other language-specific forms).
+We then stitched the data across all forms within a language by matching items by their item definition (i.e., what was actually presented on the form for that item) and category; we used fuzzy matching with manual correction to allow for instances where essentially one item had slight variation in item definitions across forms (e.g., spelling differences, different ordering for multiple options).
+We used data from languages with more than 300 participants as our training languages from which we constructed our candidate word list, as it was possible to fit reliable IRT models from these data.
+The remaining languages had too few participants to be analyzed with IRT, and we used them as our generalization languages to test how well the word list could generalize to novel languages.
 
 ### Uni-lemmas
 
@@ -343,25 +343,11 @@ lang_d_m %>% ggplot(aes(x=reorder(language, -mean), y=mean)) + coord_flip() +
 
 ## Identifying Swadesh CDI Candidates
 
-The goal was to choose uni-lemmas with low variability in their cross-linguistic difficulty---that is, uni-lemmas that are similarly difficult to learn across languages.
-There were two thresholds that had to be defined to select Swadesh CDI (S-CDI) candidates: 1) $k$, the number of current CDI:WS forms a uni-lemma must appear on, and 2) $v_{min}$, the threshold for variability in cross-linguistic difficulty. 
-For $v_{min}$, we simply considered the uni-lemmas with a variation in cross-linguistic difficulty that was half a standard deviation less than average, among the set of uni-lemmas that were on at least $k$ forms. 
-Assuming variability was normally-distributed, this criterion preserved the least-variable 19% of the uni-lemmas. <!-- 19.1% of a normal distro is <(mean-.5SD)  -->
+To construct the Swadesh CDI, we aimed to choose uni-lemmas with low variability in their cross-linguistic difficulty—that is, uni-lemmas that are similarly difficult to learn across languages. We arbitrarily selected a list size of 100 items, noting that the same procedure could be followed to generate lists of larger or smaller sizes. We thus wanted to select the 100 items with the least variability in item difficulty, operationalized as the items with the lowest standard deviation. However, this method tended to prefer items that appear on fewer forms, since it was more likely for two items to coincidentally have very similar difficulties than for 20 items to have similar difficulties, even though this measure of variability was likely to be an underestimate of true cross-linguistic variability in the former case. As such, we also used a threshold k, reflecting the minimum number of current languages which must contain the uni-lemma (i.e., for k = 5, we included only uni-lemmas that appeared on the forms for at least 5 languages). 
 
-It was less clear how to choose $k$, the minimum number of forms a uni-lemma must appear on to be considered eligible.
-As reported above, the more forms a uni-lemma appeared on, the easier that concept tended to be, and the greater its cross-linguistic variability in difficulty ($SD(d)$) tended to be.
-Thus, the higher the threshold $k$, the more bias there would be toward the Swadesh candidates being easier than typical, as well as more variable in difficulty.
-Having a Swadesh CDI list that was much easier than the CDI:WS is undesirable, as it may show ceiling effects for older children, while selecting words that are more variable in difficulty may result in a test that generalizes less well to other languages.
-Of course, the higher $k$, the fewer uni-lemmas there were available to choose from: 1303 uni-lemmas appeared on 2 or more CDIs, but only 30 appeared on all 26 CDIs.
+In order to choose the optimum value of k, we conducted leave-one-out cross-validation over our training languages. Specifically, we held out one training language and conducted the selection procedure using the data from all other training languages for all values of k \in [2, 26]. With these candidate lists, we compared the item difficulties in the held-out language with the mean item difficulties in the remaining training languages, and selected the value of k for which the correlation was the highest, k = 20.
 
-Because choosing $k$ is difficult _a priori_, we opted to do a grid search across all possible values. 
-For each $k$, we found the set of $N$ uni-lemmas appearing $k$ times on each form, calculated the mean and standard deviation of the difficulties of those items, and then identified the subset of those $N$ items with $SD(d) < v_{min}$: these comprised the $k^{\textrm{th}}$ Swadesh list, as shown in Figure 1 (top).
-For each candidate Swadesh list, we evaluated the total test information yielded by that Swadesh list for each of the 26 CDI:WS forms. 
-Total test information was calculated as the integral across a range of test-taker abilities (here, $\theta \in \{-4,4\}$) of the information yielded on a test, calculated using the IRT difficulty and discrimination parameters for those test items.
-Finding the $k$ that yielded the highest total test information was the main objective (see online Appendix for details).
-
-As shown in Figure 1 (bottom), test information was maximized with $k=9$, and from these 1309 uni-lemmas appearing on at least 9 forms, 229 Swadesh-CDI items were selected for having cross-linguistic variability below the threshold.
-The mean difficulty of the S-CDI items was also quite close to the difficulty of the other uni-lemmas that appeared on at least 9 forms ($M(d_{Swad})=0.33$; $M(d_{other})=0.37$), suggesting that the S-CDI items were fairly representative.
+Finally, we re-ran the selection procedure using k = 20 across all training languages (without holding out any language) to arrive at the final Swadesh CDI list, shown in Table 2.
 
 
 
