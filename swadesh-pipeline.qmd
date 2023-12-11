@@ -318,24 +318,29 @@ for (lang in languages) {
   lang_swad_items <- xldf_clean |> filter(language==lang, is.element(uni_lemma, swadesh_sublist$uni_lemma))
   
   # original tis lang IRT parms
-  modpars <- mod2values(fitted$model) %>% filter(is.element(item, lang_swad_items$uid))
-    #mutate(value = ifelse(name=='a1', 1, value)) 
+  modpars <- mod2values(fitted$model) %>%
+    mutate(est = FALSE)
   
-  new_vals <- modpars %>% select(item, name, value) %>%
+  new_vals <- modpars %>% filter(is.element(item, lang_swad_items$uid)) %>%
+    select(item, name, value) %>%
     pivot_wider(names_from=name, values_from = value) %>%
-    mutate(a1 = 1) %>% select(-d) %>% 
+    mutate(a1 = 1) %>% #select(-d) %>% 
     left_join(lang_swad_items %>% select(uid, uni_lemma), by=c("item"="uid")) %>% # get uni_lemma
     left_join(swadesh_sublist %>% select(uni_lemma, mean_d)) %>% # get mean Swadesh difficulty
     rename(d = mean_d) %>%
     pivot_longer(cols = c(a1,d,g,u)) %>% 
     select(-uni_lemma)
   
+  # https://groups.google.com/g/mirt-package/c/TLv1JFq2tCg
+  
   new_modpars <- modpars %>% select(-value) %>% left_join(new_vals) %>% 
-    relocate(value, .after=parnum) %>%
-    mutate(est = FALSE)
+    relocate(value, .after=parnum)
   
   # this works, but we need to 1) remove (or NA?) non-Swadesh columns, and 2) remove (or NA?) non-Swadesh parameters
   swad_mod <- mirt(fitted$model@Data$data, 1, pars=mod2values(fitted$model))
+  
+  # need to only modify the parameters when making the new model -- then can use fscores on the masked response patterns
+  swad_mod <- mirt(fitted$model@Data$data, 1, pars=new_modpars)
   
   # Error: Rows in supplied and starting value data.frame objects do not match. Were the
   #           data or itemtype input arguments modified?
