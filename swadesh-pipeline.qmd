@@ -163,7 +163,7 @@ cv_res <- lapply(train_langs, \(lang) {
     c(get_difficulty_cor(sublist, prod_test), 
       get_fscore_cor(sublist, xldf_clean, lang, full_fscores))
   }) |> t() |> 
-    `colnames<-`(c("num_overlap", "difficulty_cor", "fscore_core")) |> 
+    `colnames<-`(c("num_overlap", "difficulty_cor", "fscore_cor")) |> 
     as_tibble() |> 
     mutate(run = NA,
            k = 2:(length(train_langs)-1),
@@ -177,7 +177,7 @@ cv_res <- lapply(train_langs, \(lang) {
       c(get_difficulty_cor(sublist, prod_test), 
         get_fscore_cor(sublist, xldf_clean, lang, full_fscores))
     }) |> t() |> 
-      `colnames<-`(c("num_overlap", "difficulty_cor", "fscore_core")) |> 
+      `colnames<-`(c("num_overlap", "difficulty_cor", "fscore_cor")) |> 
       as_tibble() |> 
       mutate(run = 1:N_RAND,
              k = k)

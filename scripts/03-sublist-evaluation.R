@@ -1,3 +1,5 @@
+COR_TYPE = "spearman" # "pearson"
+
 make_swadesh_sublist <- function(prod_sum, list_size, k) {
   prod_sum |> 
     filter(num_langs >= k) |> 
@@ -17,7 +19,8 @@ get_difficulty_cor <- function(sublist, test_items) {
     left_join(test_items, by = "uni_lemma",
               multiple = "first")
   c((!is.na(prod_res$d)) |> sum(),
-    cor(prod_res$mean_d, prod_res$d, use = "complete.obs"))
+    cor(prod_res$mean_d, prod_res$d, 
+        use = "complete.obs", method = COR_TYPE))
 }
 
 get_sumscore_cor <- function(sublist, xldf, all_prod, lang) {
@@ -35,7 +38,7 @@ get_sumscore_cor <- function(sublist, xldf, all_prod, lang) {
   }
   c(nrow(xldf_sub),
     cor(rowMeans(all_prod[[lang]], na.rm = TRUE), prod_sub,
-      use = "na.or.complete"))
+      use = "na.or.complete", method = COR_TYPE))
 }
 
 get_fscore_cor <- function(sublist, xldf, lang, full_fscores) {
@@ -75,6 +78,7 @@ get_fscore_cor <- function(sublist, xldf, lang, full_fscores) {
                           response.pattern = masked_resps, 
                           method = "MAP")[,1] 
   
-  cor(full_fscores, swad_fscores, use = "complete.obs")
+  cor(full_fscores, swad_fscores, 
+      use = "complete.obs", method = COR_TYPE)
 }
 
