@@ -151,12 +151,19 @@ cv_res <- lapply(train_langs, \(lang) {
   prod_test <- prod_pars |> 
     filter(language == lang)
   
+  # calculate full fscores once (rather than once per comparison)
+  full_model <- readRDS(glue("data/prod_models/{lang}_2PL_allforms_prod_fits.rds"))
+  full_fscores <- fscores(full_model$model, 
+                          response.pattern = full_model$model@Data$data, 
+                          method = "MAP")[,1] 
+  
   # Swadesh 
   prod_cors <- sapply(2:(length(train_langs)-1), \(k) {
     sublist <- make_swadesh_sublist(prod_sum, S_LEN, k)
-    get_difficulty_cor(sublist, prod_test)
+    c(get_difficulty_cor(sublist, prod_test), 
+      get_fscore_cor(sublist, xldf_clean, lang, full_fscores))
   }) |> t() |> 
-    `colnames<-`(c("num_overlap", "difficulty_cor")) |> 
+    `colnames<-`(c("num_overlap", "difficulty_cor", "fscore_core")) |> 
     as_tibble() |> 
     mutate(run = NA,
            k = 2:(length(train_langs)-1),
@@ -167,9 +174,10 @@ cv_res <- lapply(train_langs, \(lang) {
   rand_cors <- lapply(2:(length(train_langs)-1), \(k) {
     rand_cors <- sapply(1:N_RAND, \(comp) {
       sublist <- make_random_sublist(prod_sum, S_LEN, k)
-      get_difficulty_cor(sublist, prod_test)
+      c(get_difficulty_cor(sublist, prod_test), 
+        get_fscore_cor(sublist, xldf_clean, lang, full_fscores))
     }) |> t() |> 
-      `colnames<-`(c("num_overlap", "difficulty_cor")) |> 
+      `colnames<-`(c("num_overlap", "difficulty_cor", "fscore_core")) |> 
       as_tibble() |> 
       mutate(run = 1:N_RAND,
              k = k)
@@ -184,8 +192,10 @@ cv_res <- lapply(train_langs, \(lang) {
 cv_res_sum <- cv_res |> 
   group_by(k, language, sublist) |> 
   summarise(num_overlap = mean(num_overlap),
-            difficulty_cor = mean(difficulty_cor)) |> 
-  mutate(difficulty_cor_t = atanh(difficulty_cor)) # Fisher transform
+            difficulty_cor = mean(difficulty_cor),
+            fscore_cor = mean(fscore_cor)) |> 
+  mutate(difficulty_cor_t = atanh(difficulty_cor), # Fisher transform
+         fscore_cor_t = atanh(fscore_cor)) 
 ```
 
 ```{r}
