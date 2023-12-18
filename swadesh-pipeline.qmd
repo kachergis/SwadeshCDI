@@ -299,12 +299,13 @@ for (lang in languages) {
   lang_data <- readRDS(glue("data/all_forms/{lang}_data.rds"))
   fitted <- readRDS(glue("data/prod_models/{lang}_2PL_allforms_prod_fits.rds"))
   # get UIDs of non-Swadesh items
-  non_swad_item_ids <- xldf %>% filter(language==lang, !is.element(uni_lemma, swadesh_sublist$uni_lemma)) %>% 
+  swad_item_ids <- xldf %>% filter(language==lang, is.element(uni_lemma, swadesh_sublist$uni_lemma)) %>% 
     pull(uid)
   #non_swad_item_ids <- setdiff(colnames(fitted$model@Data$data), swad_item_ids)
   # mask (NA) the responses to non-Swadesh items
   masked_resps <- fitted$model@Data$data
   masked_resps[,non_swad_item_ids] = NA
+  swad_resp <- masked_resps[,swad_item_ids]
   full_sumscores <- rowSums(fitted$model@Data$data, na.rm=T)
   # lang_data$all_prod # these data still have 0-producing children -- should we infer thetas for them?
   
@@ -318,8 +319,10 @@ for (lang in languages) {
   lang_swad_items <- xldf_clean |> filter(language==lang, is.element(uni_lemma, swadesh_sublist$uni_lemma))
   
   # original tis lang IRT parms
-  modpars <- mod2values(fitted$model) %>%
-    mutate(est = FALSE)
+
+  modpars_orig <- mod2values(fitted$model)
+  modpars <- modpars_orig %>% filter(is.element(item, lang_swad_items$uid))
+    #mutate(value = ifelse(name=='a1', 1, value)) 
   
   new_vals <- modpars %>% filter(is.element(item, lang_swad_items$uid)) %>%
     select(item, name, value) %>%
@@ -332,9 +335,23 @@ for (lang in languages) {
     select(-uni_lemma)
   
   # https://groups.google.com/g/mirt-package/c/TLv1JFq2tCg
+
+  new_modpars <- modpars_orig %>% 
+    left_join(new_vals, by = c("item", "name")) %>% 
+    mutate(value = coalesce(value.y, value.x)) |> 
+    relocate(value, .after=parnum) %>%
+    mutate(est = FALSE) |> 
+    select(-value.x, -value.y)
   
-  new_modpars <- modpars %>% select(-value) %>% left_join(new_vals) %>% 
-    relocate(value, .after=parnum)
+  class(new_modpars$item) <- "character"
+  
+  swad_mod <- mirt(fitted$model@Data$data, 1, pars=new_modpars)
+  
+  swad_fscores <- fscores(swad_mod, response.pattern=masked_resps, method="MAP")[,1] 
+  
+  
+  
+
   
   # this works, but we need to 1) remove (or NA?) non-Swadesh columns, and 2) remove (or NA?) non-Swadesh parameters
   swad_mod <- mirt(fitted$model@Data$data, 1, pars=mod2values(fitted$model))
