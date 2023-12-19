@@ -357,15 +357,20 @@ In order to choose the optimum value of $k$, we conducted leave-one-out cross-va
 Specifically, we held out one training language and conducted the selection procedure using the data from all other training languages for all values of $k \in [2, 26]$. 
 With these candidate lists, we compared the item difficulties in the held-out language with the mean item difficulties in the remaining training languages, and selected the value of k for which the correlation was the highest, $k = 20$.
 
-Finally, we re-ran the selection procedure using k = 20 across all training languages (without holding out any language) to arrive at the final Swadesh CDI list, shown in Table 2.
+Finally, we re-ran the selection procedure using $k = 20$ across all training languages (without holding out any language) to arrive at the final Swadesh CDI list, shown in Table 2.
 
 ## Choosing a Random Baseline
 
 To determine whether a candidate Swadesh list functions well, it is necessary to have a baseline list of random items (of similar length) to compare to.
-However, there are many ways to select a random set of uni-lemmas to compare to, and each method could be argued to unfairly advantage or disadvantage the Swadesh list or the random baseline.
-For example, if we simply selected 100 uni-lemmas uniformly at random, many of these uni-lemmas would not appear on some of the languages' CDI forms, and thus the actual 
+However, there are many ways to select a random set of uni-lemmas to compare to, and each method could be argued to unfairly advantage either the Swadesh list or the random baseline.
+For example, if we simply selected 100 uni-lemmas uniformly at random from the uni-lemmas for all languages, many of the selected uni-lemmas would not appear on any given language's CDI forms (on average: ToDo: give number), and thus random would perform poorly.
+At the other extreme, if we sample 100 random uni-lemmas from each language's full CDI forms, the Swadesh list is unfairly disadvantaged, as some of the 100 Swadesh items may be missing from any given language's forms.
+To somewhat level the playing field, we selected the random comparison items uniformly at random from the list of uni-lemmas that appear in at least $k = 20$ languages -- the same constraint we placed on choosing Swadesh candidates. 
+This ensured that, in expectation, the same number of items per language would appear on the random baseline lists and the Swadesh candidate lists.
 
-It is also worth noting that beating a random subset of
+However, note that selecting $N$ items uniformly at random from a full CDI list sets quite a high bar: if your other method of selecting items introduces any bias (e.g., selecting easier or more difficult items, on average), then the randomly-selected baseline will have the stronger correlation with the full set. 
+Thus, the goal for the Swadesh list is to generate scores as strongly correlated with the full CDI scores as the random baseline's correlation -- while also selecting items that better generalize to out-of-distribution languages by having less variation in cross-linguistic difficulty.
+
 
 ```{r, echo=F, include=F}
 # problem: some languages have multiple items matching a single uni_lemma
