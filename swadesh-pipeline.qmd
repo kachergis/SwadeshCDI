@@ -540,3 +540,16 @@ swad_dif_cors <- get_xling_difficulty_similarity(xldf_clean %>%
 heatmap.2(swad_dif_cors, col=Colors)
 ```
 
+## Baseline language similarity data
+
+From [Bella, Batsuren, and Giunchiglia (2021)](http://ukc.disi.unitn.it/index.php/lexsim/).
+
+```{r}
+# citation:
+# Gábor Bella, Khuyagbaatar Batsuren, and Fausto Giunchiglia. (2021). A Database and Visualization of the Similarity of Contemporary Lexicons. 24th International Conference on Text, Speech, and Dialogue. Olomouc, Czech Republic. Retrieved from http://ukc.disi.unitn.it/index.php/lexsim/ January 18, 2024.
+lang_sims <- read.csv(file="data/similarities_1.0.tsv", sep='\t')
+# compare dendrograms: https://cran.r-project.org/web/packages/dendextend/vignettes/dendextend.html
+require(dendextend)
+```
+
+
