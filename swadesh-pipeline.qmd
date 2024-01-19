@@ -239,7 +239,7 @@ t.test(subset(cv_res_sum, sublist=="Swadesh" & k==20)$fscore_cor -
 cv_res_sum %>% filter(k==20) %>%
   ggplot(aes(x = language, y = fscore_cor, group = sublist, col = sublist)) +
   geom_point() +
-  labs(y = "Difficulty correlation") +
+  labs(y = "Fscore correlation") +
   theme(legend.position = "bottom") + theme_classic()
 ```
 
@@ -547,7 +547,51 @@ From [Bella, Batsuren, and Giunchiglia (2021)](http://ukc.disi.unitn.it/index.ph
 ```{r}
 # citation:
 # Gábor Bella, Khuyagbaatar Batsuren, and Fausto Giunchiglia. (2021). A Database and Visualization of the Similarity of Contemporary Lexicons. 24th International Conference on Text, Speech, and Dialogue. Olomouc, Czech Republic. Retrieved from http://ukc.disi.unitn.it/index.php/lexsim/ January 18, 2024.
-lang_sims <- read.csv(file="data/similarities_1.0.tsv", sep='\t')
+lang_sims <- read.csv(file="data/similarities_1.0.tsv", sep='\t') 
+# Similarity is a value between 0 and 100, confidence (Robustness) can be Low, Medium, or High. 
+# The confidence of a result depends on the sizes of the lexicons over which the similarity value was computed: the smaller the lexicon sizes, the lower the confidence.
+
+sort(unique(lang_sims$LangName_1))
+
+matches = intersect(unique(lang_sims$LangName_1), languages) # 16
+names(matches) = matches
+setdiff(languages, unique(lang_sims$LangName_1))
+
+# xldf has: Mandarin (Beijing), Mandarin (Taiwanese) -> lang_sims has "Chinese"
+# xldf: Cantonese -> "Yue Chinese"
+# xldf: Norwegian -> "Norwegian Bokmål"
+# xldf: "Latvian" they have "Latgalian" (historical Latvian??)
+# xldf: "French (French)", "French (Quebecois)" -> "French"
+# xldf: "English (American)", "English (Australian)", "English (British)", "English (Irish)", they have "English"
+# xldf: "Portuguese (European)" -> "Portuguese" 
+# xldf: "Spanish (Argentinian)","Spanish (Chilean)","Spanish (European)","Spanish (Mexican)","Spanish (Peruvian)" -> "Spanish"
+
+# they don't have: "American Sign Language","British Sign Language","Kiswahili" (or Swahili), "Kigiriama", Greek (Cypriot/not),
+language_mapping <- c(matches, c(
+  "Mandarin (Beijing)" = "Chinese", "Mandarin (Taiwanese)" = "Chinese",
+  "Cantonese" = "Yue Chinese",
+  "Norwegian" = "Norwegian Bokmål",
+  "Latvian" = "Latgalian", # assuming historical Latvian is close enough..
+  "French (French)" = "French", "French (Quebecois)" = "French",
+  "English (American)" = "English", "English (Australian)" = "English",
+  "English (British)" = "English", "English (Irish)" = "English",
+  "Portuguese (European)" = "Portuguese",
+  "Spanish (Argentinian)" = "Spanish", "Spanish (Chilean)" = "Spanish",
+  "Spanish (European)" = "Spanish", "Spanish (Mexican)" = "Spanish",
+  "Spanish (Peruvian)" = "Spanish"
+))
+xldf <- xldf %>%
+  mutate(lang_mapped = language_mapping[language])
+
+# Replace NA values if the language doesn't have a mapping
+#xldf$lang_mapped[is.na(xldf$lang_mapped)] <- xldf$language[is.na(xldf$lang_mapped)]
+
+lang_sims <- lang_sims %>%
+  filter(is.element(LangName_1, language_mapping) & 
+         is.element(LangName_2, language_mapping))
+
+# table(lang_sims$Robustness) # mostly high confidence, a few medium
+
 # compare dendrograms: https://cran.r-project.org/web/packages/dendextend/vignettes/dendextend.html
 require(dendextend)
 ```
