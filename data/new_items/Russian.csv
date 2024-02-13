@@ -251,7 +251,7 @@ item_249,item_211,household,деньги,money,money
 item_250,item_212,household,картинка,picture,picture
 item_251,item_213,household,кастрюля,saucepan,pot
 item_252,item_214,household,ключи,keys,key
-item_253,item_103,household,коляска,pram,stroller
+item_253,,household,коляска,pram,stroller
 item_254,,household,компьютер,computer,computer
 item_255,,household,корзина,basket,basket
 item_256,item_215,household,коробка,box,box

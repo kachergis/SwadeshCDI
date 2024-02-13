@@ -79,7 +79,7 @@ item_77,,,,food_drink,chips,chips,french fries
 item_78,,,,food_drink,coffee,coffee,coffee
 item_79,,,,food_drink,drink,drink,drink (beverage)
 item_80,,,,food_drink,egg,egg,egg
-item_81,,item_85,,food_drink,fish,fish,fish (food)
+item_81,,,,food_drink,fish,fish,fish (food)
 item_82,,,,food_drink,food,food,food
 item_83,,,,food_drink,ice cream,ice cream,ice cream
 item_84,,,,food_drink,jam,jam,jam
@@ -321,7 +321,7 @@ item_319,,,,action_words,smile,smile,smile
 item_320,item_320,,,action_words,splash,splash,splash
 item_321,,,,action_words,stop,stop,stop
 item_322,item_322,,,action_words,swim,swim,swim
-item_323,,item_106,,action_words,swing,swing,swing (action)
+item_323,,,,action_words,swing,swing,swing (action)
 item_324,,,,action_words,take,take,take
 item_325,,,,action_words,tell,tell,tell
 item_326,,,,action_words,throw,throw,throw

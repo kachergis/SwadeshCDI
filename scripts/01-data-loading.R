@@ -1,8 +1,8 @@
 get_new_items <- function(language, pronouns) {
   lang <- language
-  items <- read_csv(glue("data/new_items/{language}.csv"))
+  items <- read_csv(glue("data/new_items/{language}.csv"), show_col_types = FALSE)
   forms <- setdiff(colnames(items), 
-                   c("category", "definition", "gloss", "uni_lemma", "sho"))
+                   c("category", "definition", "gloss", "uni_lemma", "sho", "WGComp"))
   prons <- pronouns |> 
     filter(language == lang) |> 
     select(uid, new_uni_lemma)
@@ -59,33 +59,9 @@ make_data <- function(language, forms, new_items) {
     d_long <- d_long |> 
       mutate(produces = as.numeric(produces),
              understands = as.numeric(understands)) |> 
-      left_join(new_items |> select(uid, all_of(form)), by = c("item_id" = form))
-    
-    if (language == "French (French)") {
-      d_demo <- d_demo |> filter(dataset_name != "Kern")
-      d_long <- d_long |> filter(data_id %in% d_demo$data_id)
-      
-      f <- form
-      new_d_demo <- readRDS("data/frfr_new_demo.rds") |> 
-        filter(form == f) |> 
-        mutate(dataset_name = "Tsuji_CAT",
-               dataset_source_name = "Tsuji",
-               language = "French (French)") |> 
-        select(-source_name)
-      new_d_wide <- readRDS("data/frfr_new_wide.rds") |> 
-        filter(data_id %in% new_d_demo$data_id)
-      new_d_long <- new_d_wide |> 
-        pivot_longer(cols = -data_id,
-                     names_to = "sho",
-                     values_to = "produces") |> 
-        left_join(new_items |> select(-"WS", -"WG"), by = "sho") |> 
-        select(-"sho", "item_definition" = "definition", "english_gloss" = "gloss") |> 
-        mutate(language = "French (French)",
-               form = f)
-      
-      d_demo <- bind_rows(d_demo, new_d_demo)
-      d_long <- bind_rows(d_long, new_d_long)
-    }
+      left_join(new_items |> select(uid, all_of(form)), 
+                by = c("item_id" = form),
+                relationship = "many-to-one")
     
     print(paste("Retrieved data for", length(unique(d_long$data_id)), 
                 language, form, "participants"))

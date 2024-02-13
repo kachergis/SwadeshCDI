@@ -44,8 +44,6 @@ Stitch data together and save outputs
 ```{r, eval=F}
 for (language in languages) {
   ni <- get_new_items(language, pronouns)
-  # Finnish WG/WGShort not yet imported
-  if (language == "Finnish") ni$forms <- c("WS", "WSShort")
   df <- make_data(language, ni$forms, ni$new_items)
   
   output <- list(all_demo = df$all_demo,

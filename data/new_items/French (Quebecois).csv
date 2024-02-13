@@ -1,4 +1,4 @@
-WS,WG,category,definition,gloss,uni_lemma
+﻿WS,WG,category,definition,gloss,uni_lemma
 item_1,item_102,sounds,aïe,Ouch,ouch
 item_2,,sounds,bêêê bêêê,baaaah baaaah,baa baa
 item_3,item_109,sounds,cocorico,cockledoodledoo,cockadoodledoo
@@ -237,7 +237,7 @@ item_235,item_175,household,peigne,comb,comb (object)
 item_236,item_176,household,photo,Photo,photo
 item_237,item_177,household,plante,plant,plant
 item_238,item_178,household,plat,dish,dish
-item_239,item_146,household,pot,pot,pot
+item_239,,household,pot,pot,pot
 item_240,,household,poubelle,trash can,trash
 item_241,item_179,household,radio,radio,radio
 item_242,,household,ruban,ribbon,ribbon
@@ -542,7 +542,7 @@ item_540,,descriptive_words,mignon/cute,cute / cute,cute
 item_541,,descriptive_words,mouillé,wet,wet (description)
 item_542,,descriptive_words,noir,black,black
 item_543,,descriptive_words,nouveau,new,new
-item_544,item_32,descriptive_words,orange,orange,orange (description)
+item_544,,descriptive_words,orange,orange,orange (description)
 item_545,item_375,descriptive_words,parti,left,all gone
 item_546,,descriptive_words,pauvre,poor,poor
 item_547,item_376,descriptive_words,petit,small,little (description)

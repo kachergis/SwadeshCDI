@@ -1,4 +1,4 @@
-WS,WG,category,definition,gloss,uni_lemma
+﻿WS,WG,category,definition,gloss,uni_lemma
 item_1,,sounds,אוי/ איה,ouch,ouch
 item_2,,sounds,אי-אה,hee-haw,hee haw
 item_3,,sounds,בזז...,bzz..,buzz
@@ -613,7 +613,6 @@ item_639,item_57,animals,חזיר,Pig,pig
 ,item_92,vehicles,מטוס,Plane,airplane
 ,item_109,toys,רעשן,Rattle,rattle (object)
 ,item_116,food_drink,ארטיק,Artic,ice cream
-,item_141,food_drink,דג,Fish,fish (food)
 ,item_145,food_drink,מרגרינה,Margarine,butter
 ,item_147,food_drink,ספגטי,Spaghetti,spaghetti
 ,item_149,food_drink,עוגה,Cake,cake

@@ -43,7 +43,7 @@ item_41,,,people,米老鼠,mickey mouse,NA
 item_42,,,people,孙悟空,sun wukong,NA
 item_43,,,people,猪八戒,zhu bajie,NA
 item_44,,,people,朋友,friend,friend
-item_45,item_589,item_173,games_routines,要,want,wanna
+item_45,,,games_routines,要,want,wanna
 item_46,item_177,item_187,games_routines,不要,don't,don't
 item_47,,,games_routines,再见/Byebye,bye,bye
 item_48,item_200,item_184,games_routines,谢谢,thank you,thank you
@@ -119,7 +119,7 @@ item_117,,,action_words,掉,drop,drop
 item_118,item_583,item_165,action_words,笑,smile,smile
 item_119,item_540,item_144,action_words,哭,cry,cry
 item_120,,,action_words,拍,clap,clap
-item_121,item_323,,action_words,会,can,can (auxiliary)
+item_121,,,action_words,会,can,can (auxiliary)
 item_122,item_584,item_171,action_words,写,write,write
 item_123,,,action_words,躺,lie,lie down
 item_124,,,action_words,趴,lie,lie down
@@ -284,7 +284,7 @@ item_282,item_3,item_19,food_drink,包子,bun,bun
 item_283,item_45,item_13,food_drink,馒头,bun,bun
 item_284,item_30,,food_drink,馄饨,dumpling,dumpling
 item_285,item_61,item_6,food_drink,肉,meat,meat
-item_286,item_166,item_10,food_drink,鱼,fish (food),fish (food)
+item_286,,item_10,food_drink,鱼,fish (food),fish (food)
 item_287,,,food_drink,蛋,egg,egg
 item_288,,,food_drink,虾,shrimp,shrimp
 item_289,item_32,,food_drink,鸡肉,chicken (food),chicken (food)
@@ -446,7 +446,7 @@ item_444,,,descriptive_words,困了,sleepy,sleepy
 item_445,item_273,,descriptive_words,病,sick,sick
 item_446,item_262,item_92,descriptive_words,高,high,high
 item_447,,,descriptive_words,漂亮/美,pretty,pretty
-item_448,item_580,,descriptive_words,喜欢,like,like
+item_448,,,descriptive_words,喜欢,like,like
 item_449,item_244,,descriptive_words,新,new,new
 item_450,item_296,,descriptive_words,老,old,old
 item_451,,,descriptive_words,高兴/乐/开心,happy,happy
@@ -611,9 +611,9 @@ item_609,item_435,item_67,outside,花,flower,flower
 item_610,item_447,item_65,outside,树,tree,tree
 item_611,,,outside,叶子/树叶,leaf,leaf
 item_612,,,outside,树枝,branch,branch
-item_613,item_427,item_6,outside,草,grass,grass
+item_613,item_427,,outside,草,grass,grass
 item_614,,,outside,土,earth,soil
-item_615,item_64,item_8,outside,水,water (not beverage),water (not beverage)
+item_615,,,outside,水,water (not beverage),water (not beverage)
 item_616,item_458,,outside,雨,rain,rain
 item_617,item_455,,outside,雪,snow,snow
 item_618,item_433,item_71,outside,风,wind,wind
@@ -739,7 +739,7 @@ item_737,,,classifiers,步,,NA
 item_738,,,classifiers,层,,NA
 item_739,,,classifiers,堆,,NA
 item_740,,,classifiers,粒,,NA
-item_741,item_230,item_112,classifiers,头,,NA
+item_741,,,classifiers,头,,NA
 item_742,,,classifiers,匹,,NA
 item_743,,,classifiers,位,,NA
 item_744,,,classifiers,眼,,NA
@@ -781,8 +781,8 @@ item_779,,,helping_verbs,爱（听）,love,love
 item_780,item_320,,helping_verbs,能,can (auxiliary),can (auxiliary)
 item_781,item_323,,helping_verbs,会,can (auxiliary),can (auxiliary)
 item_782,,,helping_verbs,可以（做）,ok,ok
-item_783,item_410,item_126,helping_verbs,肯,,NA
-item_784,item_582,,helping_verbs,想,think,think
+item_783,,,helping_verbs,肯,,NA
+item_784,,,helping_verbs,想,think,think
 item_785,item_297,,helping_verbs,不许,cannot,cannot
 item_786,,,helping_verbs,愿意,,NA
 item_787,,,helping_verbs,该（走啦！）/应该,should,should

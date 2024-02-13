@@ -576,7 +576,7 @@ item_574,item_339,quantifiers,mucho(a)/muchos(as),a lot/many,many
 item_575,,quantifiers,nada,any,any
 item_576,,quantifiers,no hay,there is not,NA
 item_577,,quantifiers,otra vez,again,again
-item_578,item_312,quantifiers,otro,other,other
+item_578,,quantifiers,otro,other,other
 item_579,item_340,quantifiers,poco/poquito,very little,little (amount)
 item_580,,quantifiers,también,also,also
 item_581,,quantifiers,tampoco,either,either
