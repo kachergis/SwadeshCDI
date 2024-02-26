@@ -74,10 +74,20 @@ Collapse cross-linguistic item parameters
 ```{r eval=F}
 xldf <- list()
 full_fscores <- list()
+n_subj <- c()
+n_item <- c()
+n_iter <- c()
+
 for (language in languages) {
   lang_data <- readRDS(glue("data/all_forms/{language}_data.rds"))
   fitted <- readRDS(glue("data/prod_models/{language}_2PL_allforms_prod_fits.rds"))
-  lang_fscores <- data.frame(fscores(fitted$model, full.scores = F)) # default method is EAP; prefer MAP or ML?
+  n_subj <- c(n_subj, nrow(fitted$model@Data$data))
+  n_item <- c(n_item, ncol(fitted$model@Data$data))
+  n_iter <- c(n_iter, fitted$model@OptimInfo$iter)
+    
+  lang_fscores <- data.frame(fscores(fitted$model, 
+                                     method = "MAP",
+                                     full.scores = F)) 
   full_fscores[[language]] <- tibble(full_theta = lang_fscores$G,
                                      full_sumscore = rowSums(lang_fscores |> select(-G, -SE_G), na.rm=T))
   # could also pull age from lang_data$all_demo
@@ -94,6 +104,12 @@ saveRDS(xldf, "data/xldf_prod_allforms.rds")
 saveRDS(full_fscores, "data/full_fscores_allforms.rds")
 # xx <- bind_rows(full_fscores)
 # plot(xx$full_theta, xx$full_sumscore) # cor = .71
+
+fit_stats <- tibble(language = languages,
+                    participants = n_subj,
+                    items = n_item,
+                    iterations = n_iter)
+saveRDS(fit_stats, "data/fit_stats.rds")
 ```
 
 ```{r}
