@@ -105,11 +105,11 @@ saveRDS(full_fscores, "data/full_fscores_allforms.rds")
 # xx <- bind_rows(full_fscores)
 # plot(xx$full_theta, xx$full_sumscore) # cor = .71
 
-fit_stats <- tibble(language = languages,
-                    participants = n_subj,
-                    items = n_item,
-                    iterations = n_iter)
-saveRDS(fit_stats, "data/fit_stats.rds")
+model_stats <- tibble(language = languages,
+                      participants = n_subj,
+                      items = n_item,
+                      iterations = n_iter)
+saveRDS(model_stats, "data/model_stats.rds")
 ```
 
 ```{r}
@@ -132,17 +132,7 @@ prod_pars <- xldf_clean |>
   slice(1) |> 
   ungroup()
 
-gen_langs <- c("Finnish",
-               "Kigiriama",
-               "American Sign Language",
-               "Greek (Cypriot)",
-               "Spanish (Peruvian)",
-               "British Sign Language",
-               "Persian",
-               "Kiswahili",
-               "English (Irish)",
-               "Irish",
-               "Spanish (Chilean)")
+gen_langs <- model_stats |> filter(participants < 300) |> pull(language)
 
 train_langs <- setdiff(languages, gen_langs)
 ```
