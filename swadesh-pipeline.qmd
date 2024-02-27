@@ -94,7 +94,8 @@ for (language in languages) {
   df <- fitted$coefs |> 
     rename("uid" = "definition") |> 
     left_join(lang_data$items |> 
-                select(uid, category, definition, gloss, uni_lemma),
+                select(uid, category, definition, gloss, uni_lemma) |> 
+                mutate(uid = str_replace(uid, " ", ".")),
               by = "uid") |> 
     mutate(language = language)
   xldf <- c(xldf, list(df))
@@ -164,7 +165,7 @@ cv_res <- lapply(train_langs, \(lang) {
   # Swadesh 
   prod_cors <- sapply(2:(length(train_langs)-1), \(k) {
     sublist <- make_swadesh_sublist(prod_sum, S_LEN, k)
-    if (k == 20) {
+    if (k == 0) {
       fscore_cor <- get_fscore_cor(sublist, xldf_clean, lang, full_fscores)
     } else {
       fscore_cor <- NA
@@ -182,7 +183,7 @@ cv_res <- lapply(train_langs, \(lang) {
   rand_cors <- lapply(2:(length(train_langs)-1), \(k) {
     rand_cors <- sapply(1:N_RAND, \(comp) {
       sublist <- make_random_sublist(prod_sum, S_LEN, k)
-      if (k == 20) {
+      if (k == 0) {
         fscore_cor <- get_fscore_cor(sublist, xldf_clean, lang, full_fscores)
       } else {
         fscore_cor <- NA

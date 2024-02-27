@@ -18,6 +18,10 @@ get_difficulty_cor <- function(sublist, test_items) {
   prod_res <- sublist |>
     left_join(test_items, by = "uni_lemma",
               multiple = "first")
+  if (nrow(prod_res) == 0 || 
+      complete.cases(prod_res$mean_d, prod_res$d) |> sum() == 0) {
+    return(c(0, NA))
+  }
   c((!is.na(prod_res$d)) |> sum(),
     cor(prod_res$mean_d, prod_res$d, 
         use = "complete.obs", method = COR_TYPE))
