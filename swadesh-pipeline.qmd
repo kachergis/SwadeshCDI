@@ -11,6 +11,9 @@ library(mirt)
 library(RColorBrewer)
 require(gplots)
 walk(list.files("scripts", pattern = "*.R$", full.names = TRUE), source)
+
+S_LEN = 100 # Swadesh list length
+N_RAND = 100 # number of random sublists to compare to
 ```
 
 # Data fetching and stitching
@@ -140,10 +143,7 @@ train_langs <- setdiff(languages, gen_langs)
 ```
 
 # Cross-validation
-```{r}
-S_LEN = 100 # Swadesh list length
-N_RAND = 100 # number of random sublists to compare to
-
+```{r, eval=F}
 cv_res <- lapply(train_langs, \(lang) {
   message(glue("Calculating for {lang}..."))
   
@@ -244,16 +244,17 @@ ggplot(cv_res_sum,
   theme(legend.position = "bottom") 
 ```
 
-```{r}
+```{r, fig.width=7, fig.height=4}
 
 t.test(subset(cv_res_sum, sublist=="Swadesh" & k==23)$fscore_cor - 
-       subset(cv_res_sum, sublist=="Random" & k==23)$fscore_cor) # .003, n.s.
+       subset(cv_res_sum, sublist=="Random" & k==23)$fscore_cor) # n.s.
 
-cv_res_sum %>% filter(k==20) %>%
+cv_res_sum %>% filter(k==23) %>%
   ggplot(aes(x = language, y = fscore_cor, group = sublist, col = sublist)) +
-  geom_point() +
+  geom_point(alpha=.7) +
   labs(y = "Fscore correlation") +
-  theme(legend.position = "bottom") + theme_classic()
+  theme(legend.position = "bottom") + theme_classic() + 
+  theme(axis.text.x = element_text(angle = 45, hjust=0.95, vjust=0.9)) 
 ```
 
 
@@ -306,7 +307,7 @@ gen_res_sum <- gen_res |>
   mutate(sumscore_cor_t = atanh(sumscore_cor)) # Fisher transform
 ```
 
-```{r}
+```{r, fig.width=6, fig.height=4}
 ggplot(gen_res_sum,
        aes(x = language, y = sumscore_cor, fill = sublist)) +
   geom_col(position = "dodge") +
@@ -316,7 +317,7 @@ ggplot(gen_res_sum,
         axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) 
 ```
 
-```{r}
+```{r, fig.width=6, fig.height=4}
 ggplot(gen_res_sum,
        aes(x = language, y = num_overlap, fill = sublist)) +
   geom_col(position = "dodge") +
