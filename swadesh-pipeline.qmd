@@ -115,6 +115,7 @@ saveRDS(model_stats, "data/model_stats.rds")
 
 ```{r}
 xldf <- readRDS("data/xldf_prod_allforms.rds")
+model_stats <- readRDS("data/model_stats.rds")
 ```
 
 Clean xldf
@@ -165,7 +166,7 @@ cv_res <- lapply(train_langs, \(lang) {
   # Swadesh 
   prod_cors <- sapply(2:(length(train_langs)-1), \(k) {
     sublist <- make_swadesh_sublist(prod_sum, S_LEN, k)
-    if (k == 0) {
+    if (k == 23) {
       fscore_cor <- get_fscore_cor(sublist, xldf_clean, lang, full_fscores)
     } else {
       fscore_cor <- NA
@@ -183,7 +184,7 @@ cv_res <- lapply(train_langs, \(lang) {
   rand_cors <- lapply(2:(length(train_langs)-1), \(k) {
     rand_cors <- sapply(1:N_RAND, \(comp) {
       sublist <- make_random_sublist(prod_sum, S_LEN, k)
-      if (k == 0) {
+      if (k == 23) {
         fscore_cor <- get_fscore_cor(sublist, xldf_clean, lang, full_fscores)
       } else {
         fscore_cor <- NA
@@ -216,6 +217,13 @@ saveRDS(cv_res_sum, "data/full_vs_swadesh_cv_fscores_allforms.rds")
 ```{r}
 cv_res_sum <- readRDS("data/full_vs_swadesh_cv_fscores_allforms.rds")
 
+cv_output <- cv_res_sum |> 
+  group_by(k, sublist) |> 
+  summarise(num_overlap = mean(num_overlap, na.rm = TRUE),
+            difficulty_cor = mean(difficulty_cor, na.rm = TRUE))
+```
+
+```{r}
 ggplot(cv_res_sum,
        aes(x = k, y = difficulty_cor, col = sublist)) +
   geom_jitter(aes(col = sublist),
@@ -249,7 +257,7 @@ cv_res_sum %>% filter(k==20) %>%
 ```
 
 
-CV results show that $k=20$ is the optimal value; we use this to construct the final list for generalization testing.
+CV results show that $k=23$ is the optimal value; we use this to construct the final list for generalization testing.
 
 # Generalization test
 ```{r}
