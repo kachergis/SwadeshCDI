@@ -246,8 +246,8 @@ ggplot(cv_res_sum,
 
 ```{r}
 
-t.test(subset(cv_res_sum, sublist=="Swadesh" & k==20)$fscore_cor - 
-       subset(cv_res_sum, sublist=="Random" & k==20)$fscore_cor) # .003, n.s.
+t.test(subset(cv_res_sum, sublist=="Swadesh" & k==23)$fscore_cor - 
+       subset(cv_res_sum, sublist=="Random" & k==23)$fscore_cor) # .003, n.s.
 
 cv_res_sum %>% filter(k==20) %>%
   ggplot(aes(x = language, y = fscore_cor, group = sublist, col = sublist)) +
@@ -265,7 +265,7 @@ all_prod <- readRDS("data/allforms_prod_per_lang.rds")
 ```
 
 ```{r}
-K = 20
+K = 23
 
 prod_sum <- prod_pars |> 
   filter(language %in% train_langs) |> 
