@@ -507,6 +507,44 @@ Swadesh is significantly easier than all items
 t.test(swadesh_sublist$mean_d,
        prod_sum$mean_d)
 ```
+## Examining the list
+
+```{r}
+swadesh_sublist <- swadesh_sublist %>% left_join(xldf_clean %>% filter(language=="English (American)") %>% select(uni_lemma, category))
+swad_cats <- swadesh_sublist %>% group_by(category) %>% summarise(n = n()) %>% arrange(desc(n)) %>%
+  mutate(freq = n / sum(n))
+swad_cats
+```
+so many animals! also other nouns (body parts, clothing, food/drink), action words, descriptives - what about relative to distribution of frequency on other forms?
+average frequency per category on a CDI:WS
+
+```{r, fig.width=5, fig.height=12}
+
+# look into NAs...kind of a lot of 'em
+
+cat_freq <- xldf %>% # @Alvin filter to canonical categories?
+  filter(#!is.na(category), 
+         category!="locations_quantities_adverbs",
+         category!="hold",
+         category!="sounds2",
+         category!="unknown") %>%
+  group_by(category, language) %>%
+  summarise(n = n()) %>%
+  group_by(language) %>%
+  mutate(freq = n / sum(n))
+
+cat_freq %>% ggplot(aes(x=freq, y=category, group=language)) +
+  geom_point(alpha=.4) +
+  geom_point(data=swad_cats, aes(y=reorder(category, freq), color="red")) +
+  theme_classic() + theme(legend.position="none")
+```
+
+
+is sd(d) predicted by variance in distributed semantic models across languages?
+(animals -- and other concrete nouns -- but body partologies differ a lot cross-linguistically; and pronouns and prepositions even more)
+- back uni-lemmas (or just use CDI definitions) and pick favorite multilingual LLM..(but prob can't get all languages)
+
+- sd(d) vs. concreteness? (we know it's correlated with d..)
 
 
 ## Cross-linguistic similarities 
