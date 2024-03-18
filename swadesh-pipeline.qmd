@@ -553,6 +553,7 @@ We look at the Spearman correlation between the item difficulty of each language
 
 ```{r, echo=F, fig.width=8, fig.height=8}
 get_xling_difficulty_similarity <- function(xldf) {
+  languages <- unique(xldf$language)
   dif_cors <- matrix(0, nrow=length(languages), ncol=length(languages))
   dif_sims <- tibble()
   colnames(dif_cors) = languages
@@ -605,38 +606,39 @@ lang_sims <- read.csv(file="data/similarities_1.0.tsv", sep='\t')
 
 sort(unique(lang_sims$LangName_1))
 
-matches = intersect(unique(lang_sims$LangName_1), languages) # 16
-names(matches) = matches
-setdiff(languages, unique(lang_sims$LangName_1))
+# not existing: ASL, Estonian, BSL, Kiswahili, Kigiriama, 
 
-# xldf has: Mandarin (Beijing), Mandarin (Taiwanese) -> lang_sims has "Chinese"
-# xldf: Cantonese -> "Yue Chinese"
-# xldf: Norwegian -> "Norwegian Bokmål"
-# xldf: "Latvian" they have "Latgalian" (historical Latvian??)
-# xldf: "French (French)", "French (Quebecois)" -> "French"
-# xldf: "English (American)", "English (Australian)", "English (British)", "English (Irish)", they have "English"
-# xldf: "Portuguese (European)" -> "Portuguese" 
-# xldf: "Spanish (Argentinian)","Spanish (Chilean)","Spanish (European)","Spanish (Mexican)","Spanish (Peruvian)" -> "Spanish"
+str_split(language, " (")
+
+matches = intersect(unique(lang_sims$LangName_1), languages) # 18
+names(matches) = matches
+setdiff(unique(xldf$lang_mapped), unique(lang_sims$LangName_1))
+
 
 # they don't have: "American Sign Language","British Sign Language","Kiswahili" (or Swahili), "Kigiriama", Greek (Cypriot/not),
 language_mapping <- c(matches, c(
-  "Mandarin (Beijing)" = "Chinese", "Mandarin (Taiwanese)" = "Chinese",
+  "Mandarin (Beijing)" = "Mandarin Chinese", "Mandarin (Taiwanese)" = "Mandarin Chinese",
   "Cantonese" = "Yue Chinese",
   "Norwegian" = "Norwegian Bokmål",
-  "Latvian" = "Latgalian", # assuming historical Latvian is close enough..
+  #"Latvian" = "Latgalian", # is historical Latvian is close enough.. (still spoken in East Latvia..)
   "French (French)" = "French", "French (Quebecois)" = "French",
   "English (American)" = "English", "English (Australian)" = "English",
   "English (British)" = "English", "English (Irish)" = "English",
   "Portuguese (European)" = "Portuguese",
   "Spanish (Argentinian)" = "Spanish", "Spanish (Chilean)" = "Spanish",
   "Spanish (European)" = "Spanish", "Spanish (Mexican)" = "Spanish",
-  "Spanish (Peruvian)" = "Spanish"
+  "Spanish (Peruvian)" = "Spanish",
+  "Greek (Cypriot)" = "Modern Greek",
+  "Arabic (Saudi)" = "Standard Arabic" # or Egyptian / Moroccan ?
 ))
 xldf <- xldf %>%
-  mutate(lang_mapped = language_mapping[language])
+  mutate(lang_mapped = coalesce(language_mapping[language], language))
+
+matches = intersect(unique(lang_sims$LangName_1), unique(xldf$lang_mapped)) # 26
+langs_to_remove <- setdiff(unique(xldf$lang_mapped), unique(lang_sims$LangName_1))
 
 # Replace NA values if the language doesn't have a mapping
-#xldf$lang_mapped[is.na(xldf$lang_mapped)] <- xldf$language[is.na(xldf$lang_mapped)]
+xldf$lang_mapped[is.na(xldf$lang_mapped)] <- xldf$language[is.na(xldf$lang_mapped)]
 
 lang_sims <- lang_sims %>%
   filter(is.element(LangName_1, language_mapping) & 
@@ -644,8 +646,75 @@ lang_sims <- lang_sims %>%
 
 # table(lang_sims$Robustness) # mostly high confidence, a few medium
 
-# compare dendrograms: https://cran.r-project.org/web/packages/dendextend/vignettes/dendextend.html
-require(dendextend)
 ```
 
+# Compare dendrogams of 
+
+```{r}
+# compare dendrograms: https://cran.r-project.org/web/packages/dendextend/vignettes/dendextend.html
+require(dendextend)
+
+lang_sims_long <- lang_sims %>% 
+  bind_rows(lang_sims %>% mutate(orig_lang2 = LangName_2, 
+                                 LangName_2 = LangName_1,
+                                 LangName_1 = orig_lang2) %>% select(-orig_lang2)) %>%
+  select(-ISO_1, -ISO_2, -Robustness)
+
+lang_sims_mat <- lang_sims_long %>% 
+  pivot_wider(values_from=Similarity, names_from = LangName_1) %>% as.data.frame()
+
+rownames(lang_sims_mat) = lang_sims_mat$LangName_2
+lang_sims_mat$LangName_2 = NULL
+
+lang_sim_d <- dist(lang_sims_mat)
+lang_sim_cl <- hclust(lang_sim_d, method = "average")
+lang_sim_dend <- as.dendrogram(lang_sim_cl)
+
+#pdf("lang_sim_dendrogram.pdf", height=100, width=10)
+dendextend::plot_horiz.dendrogram(lang_sim_dend)
+#dev.off()
+
+# ToDo: do we need to use xldf_clean ?
+swad_lang_sims_long <- xldf %>% 
+  filter(!is.element(language, langs_to_remove)) %>%
+  select(-language) %>% rename(language = lang_mapped) %>%
+  filter(is.element(uni_lemma, swadesh_sublist$uni_lemma))
+setdiff(unique(swad_lang_sims_long$language), names(lang_sims_mat)) # "Yue Chinese" ??
+swad_dif_mat <- get_xling_difficulty_similarity(swad_lang_sims_long)
+
+swad_d <- dist(swad_dif_mat)
+swad_cl <- hclust(swad_d, method = "average")
+swad_dend <- as.dendrogram(swad_cl)
+
+dendextend::plot_horiz.dendrogram(swad_dend)
+
+
+dend_diff(swad_dend, lang_sim_dend)
+# more ways to distinguish differences: help(highlight_distinct_edges)
+```
+## Tanglegram!
+
+- "unique" nodes are highlighted with dashed lines (i.e.: nodes which contains a combination of labels/items, which are not present in the other tree)
+- connecting lines are colored to highlight two sub-trees which are present in both dendrograms (no overlap in our case..)
+
+
+```{r}
+dends <- dendlist(swad_dend, lang_sim_dend)
+
+tanglegram(dends)
+```
+
+## Untangle
+
+
+```{r}
+dends %>% untangle(method = "step1side") %>% 
+   tanglegram(common_subtrees_color_branches = TRUE)
+
+# ToDo: some of the languages appear only in one column:
+# setdiff(unique(lang_sims$LangName_2), unique(lang_sims$LangName_1))
+#  "Yue Chinese"
+# setdiff(unique(lang_sims$LangName_1), unique(lang_sims$LangName_2))
+#  "Standard Arabic"
+```
 

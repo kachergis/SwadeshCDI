@@ -368,6 +368,8 @@ At the other extreme, if we sample 100 random uni-lemmas from each language's fu
 To somewhat level the playing field, we selected the random comparison items uniformly at random from the list of uni-lemmas that appear in at least $k = 20$ languages -- the same constraint we placed on choosing Swadesh candidates. 
 This ensured that, in expectation, the same number of items per language would appear on the random baseline lists and the Swadesh candidate lists.
 
+<!-- ToDO: add characterization of cross-linguistic composition of CDIs: category representation per language (and lexical class); items on k forms vs. item difficulty... -->
+
 However, note that selecting $N$ items uniformly at random from a full CDI list sets quite a high bar: if your other method of selecting items introduces any bias (e.g., selecting easier or more difficult items, on average), then the randomly-selected baseline will have the stronger correlation with the full set.[^1]
 Thus, the goal for the Swadesh list is to generate scores as strongly correlated with the full CDI scores as the random baseline's correlation -- while also selecting items that better generalize to out-of-distribution languages by having less variation in cross-linguistic difficulty.
 
@@ -857,7 +859,7 @@ Indeed, the inclusion of 10 such items drawn from the original Swadesh (1971) li
 Another potential limitation of this work is that most existing CDIs (and most datsets available in Wordbank) target languages in the Indo-European language family. <!-- add sentence about cultural bias -->
 It is not clear to what extent this bias in the existing data might interfere with generalizing to non-Indo-European languages.
 Nonetheless, our original 26 datasets include 7 non-Indo-European languages (3 Sino-Tibetan, 1 Afro-Asiatic, 1 Uralic, 1 Koreanic, 1 Turkic), and the generalization datasets include 1 Uralic and 2 Niger-Congo languages (a language family not represented in the original datasets); the broad consistency across language families thus suggests that the effectiveness of the S-CDI may be sufficiently robust.
-<!--Such a robustness also corroborates with results from @floccia2018, who demonstrated that a bilingual vocabulary model based on a set of 30 uni-lemmas had good predictive validity on non-target languages, even those from other language families.-->
+Such a robustness also corroborates with results from @floccia2018, who demonstrated that a bilingual vocabulary model based on a set of 30 uni-lemmas had good predictive validity on non-target languages, even those from other language families.
 
 Developing a list of appropriate vocabulary words is not the only challenge researchers face when seeking to develop and use parent-report measures in a new language and culture. 
 The pragmatics of language between children and adults can differ greatly across cultures, and has been found to interfere with administration of parent-report measures of early vocabulary, for example in Kiswahili [@alcock2017production] and Wolof [@weber2018]. <!-- TODO: FOR EXAMPLE... -->
