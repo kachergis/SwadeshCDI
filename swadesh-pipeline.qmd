@@ -97,7 +97,7 @@ for (language in languages) {
   df <- fitted$coefs |> 
     rename("uid" = "definition") |> 
     left_join(lang_data$items |> 
-                select(uid, category, definition, gloss, uni_lemma) |> 
+                select(uid, category, definition, gloss, uni_lemma) |> # ToDo: want lexical_category, but it's not here...
                 mutate(uid = str_replace(uid, " ", ".")),
               by = "uid") |> 
     mutate(language = language)
