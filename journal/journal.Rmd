@@ -82,6 +82,8 @@ model_stats <- readRDS(here("data/model_stats.rds"))
 # some odd, small categories: 'hold', 'unknown', 'mental', 'states', 'others',
 # 'sounds2' (maybe -> 'sounds'?), 'locations_quantities_adverbs', 'other'
 
+
+# 28529 out of 29874 have uni-lemmas defined 95.5%
 xldf_clean <- xldf |> 
   mutate(d = -d) |> # easiness -> difficulty
   filter(!is.na(uni_lemma), !is.na(d)) |> 
@@ -100,6 +102,9 @@ prod_pars <- xldf_clean |>
 gen_langs <- model_stats |> filter(participants < 300) |> pull(language)
 
 train_langs <- setdiff(languages, gen_langs)
+
+xldf_lowd <- xldf_clean %>% filter(is.element(language, gen_langs)) # 5624
+#xldf <- xldf_clean %>% filter(!is.element(language, gen_langs)) # 20015
 
 all_tab <- get_item_n_subject_counts(models)
 ```
@@ -294,13 +299,6 @@ Our datasets consisted of a dichotomous-valued response matrix for each language
 All models, data, and code for reproducing this paper are available on OSF[^3].
 
 # Results
-
-```{r}
-xldf_clean <- xldf_clean %>% filter(!is.na(uni_lemma)) # 28529 out of 29874 have uni-lemmas defined 95.5%
-xldf_lowd <- xldf_clean %>% filter(is.element(language, gen_langs)) # 5624
-xldf <- xldf_clean %>% filter(!is.element(language, gen_langs)) # 20015
-
-```
 
 
 ```{r, include=F}
@@ -513,7 +511,7 @@ good_prod = swad_lists[[9]]
 
 en_good_prod <- good_prod %>% left_join(xldf %>% filter(language=="English (American)"))
 # how many Swadesh items not on English?
-not_en_good <- subset(en_good_prod, is.na(item_id)) # 28 
+not_en_good <- subset(en_good_prod, is.na(uid)) # 28 
 #not_en_good$uni_lemma
 
 ```
