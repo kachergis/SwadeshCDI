@@ -30,8 +30,8 @@ abstract: >
 keywords: >
     early language learning; CDI; psychometrics; cross-linguistic comparison; Swadesh vocabulary
     
-output: cogsci2016::cogsci_paper
-#final-submission: \cogscifinalcopy
+output:
+  pdf_document: default
 ---
 
 ```{r global_options, include=FALSE}
@@ -50,6 +50,7 @@ require(tidyverse)
 require(ggpubr)
 require(tidyboot)
 require(here)
+require(kableExtra)
 library(patchwork)
 
 source(here("cross-ling-comparison-helpers.R"))
@@ -108,10 +109,10 @@ It would also provide a method of approximating children's language abilities ev
 
 <!--More broadly, this work examines which types of words (and their corresponding concepts) are more or less similar in terms of the ease with which they are learned across languages, revealing commonalities as well as idiosyncrasies in children’s early experiences. 
 We can ask: Which semantic categories, e.g., animals, household objects, food and drink, or another category, are most consistently learned across languages? Which are more variable? 
-These types of cross-linguistic comparisons may give new insight into theoretical questions surrounding the similarity and differences between language experience and development in different cultural and linguistic contexts.--> <!--AT: this para seems to not be the desired outcome of the S-CDI so I removed it.-->
+These types of cross-linguistic comparisons may give new insight into theoretical questions surrounding the similarity and differences between language experience and development in different cultural and linguistic contexts.--> <!-- ToDo: consider adding an analysis of this sort -- both for our Swadesh list (discuss which categories are over-/under-represented), and perhaps for all uni-lemmas?  -->
 
 
-In particular, our contributions are 1) to revise and extend a set of translation-equivalent concepts in Wordbank, 2) to fit IRT models to CDI:WG and CDI:WS data from 27 languages, 3) to evaluate candidate lists of Swadesh CDI items from a cross-linguistic comparison of concept difficulty and inclusion, 4) to identify and characterize the most consistent 100 items to compose a Swadesh CDI list, and 5) to evaluate its generalization to a set of 11 additional low-data languages. 
+In particular, our contributions are 1) to revise and extend a set of translation-equivalent concepts in Wordbank, 2) to fit IRT models to CDI:WG and CDI:WS data from 32 languages, 3) to evaluate candidate lists of Swadesh CDI items from a cross-linguistic comparison of concept difficulty and inclusion, 4) to identify and characterize the most consistent 100 items to compose a Swadesh CDI list, and 5) to evaluate its generalization to a set of 10 additional low-data languages. 
 We then make a concrete proposal for how this Swadesh CDI list could be used to create future CDI adaptations to greatly expand the diversity of languages studied. 
 We end by discussing the strengths and weaknesses of our approach.
 Our full analysis, the Swadesh CDI list, and other information valuable for developing a new CDI are openly available on [OSF](https://osf.io/8swhb/?view_only=6f6ab9818f2a4bb288e05ca9e12f540c). 
@@ -148,7 +149,7 @@ for(lang in languages) {
 }
 
 # WS production fits
-load(here("data/multiling_2pl_WS_prod_fits.Rdata")) # ToDo: update - need model(s) / coefs?
+#load(here("data/multiling_2pl_WS_prod_fits.Rdata")) # ToDo: confirm these are no longer needed?
 xldf <- readRDS(here("data/xldf_prod_allforms.rds"))
 # 38 languages, 26616 parameters
 
@@ -177,7 +178,7 @@ print(tab1, type="latex", comment = F,
       include.rownames=FALSE, size="\\fontsize{9pt}{10pt}\\selectfont")
 ```
 
-We pulled data for thirty-eight languages from Wordbank [@frank2017].
+We pulled data for 42 languages from Wordbank [@frank2017].
 For each language, we extracted production data for all forms present on Wordbank (including WG and WS, as well as other language-specific forms).
 We then stitched the data across all forms within a language by matching items by their item definition (i.e., what was actually presented on the form for that item) and category; we used fuzzy matching with manual correction to allow for instances where essentially one item had slight variation in item definitions across forms (e.g., spelling differences, different ordering for multiple options).
 We used data from languages with more than 300 participants as our training languages from which we constructed our candidate word list, as it was possible to fit reliable IRT models from these data.
@@ -196,18 +197,35 @@ All uni-lemmas are accessible from Wordbank; details about the recent update can
 
 
 ```{r participant-data, eval=F, echo=F}
-demo <- tibble()
-for(lang in languages) {
-  tmp <- readRDS(here(paste0("data/all_forms/",lang,"_data.rds")))
-  demo <- bind_rows(demo, tmp$all_demo %>% 
-                      select(data_id, age, production, language, form))
-}
+# demo <- tibble()
+# for(lang in languages) {
+#   tmp <- readRDS(here(paste0("data/all_forms/",lang,"_data.rds")))
+#   demo <- bind_rows(demo, tmp$all_demo %>% 
+#                       select(data_id, age, production, language, form))
+# }
+# save(demo, file=here("data/all_demographic_data.Rdata"))
 
-save(demo, file=here("data/combined_demographic_data.Rdata"))
+demo <- tibble()
+WG_files <- list.files(path="../data/WG", pattern = "*.Rdata", full.names = T)
+for(file in WG_files) {
+  load(file)
+  demo <- bind_rows(demo, d_demo %>% 
+                      select(data_id, age, production, language))
+}
+save(demo, file=here("data/WG_combined_demo.Rdata"))
 ```
 
 ```{r combined-demo-data, echo=F}
-load(here("data/combined_demographic_data.Rdata"))
+# where was this made?
+load(here("data/WS_combined_demo.Rdata"))
+demo_ws <- demo %>% mutate(form = "WS")
+
+# this doesn't exist yet
+
+load(here("data/WG_combined_demo.Rdata"))
+demo <- demo %>% mutate(form = "WG") %>%
+  bind_rows(demo_ws)
+
 # cor.test(demo$age, demo$production, na.rm=T) # r=.70
 
 # 45402 in the 26 high-data languages
