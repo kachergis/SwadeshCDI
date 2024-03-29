@@ -1,7 +1,6 @@
 ---
 title: "Measuring Children's Early Vocabulary in Low-Resource Languages Using a Swadesh-style Word List"
 bibliography: library.bib
-csl: apa6.csl
 document-params: "10pt, letterpaper"
 
 author-information: > 
@@ -278,7 +277,7 @@ wg_ws_tab %>%
 ```
 
 
-The Wordbank datasets consisted of CDI:WS production data for `r nrow(demo %>% filter(form=="WS"))` children aged 16--30 months and CDI_WG production data from `r nrow(demo %>% filter(form=="WG"))` children aged 8--18 months
+The Wordbank[^2] datasets consisted of CDI:WS production data for `r nrow(demo %>% filter(form=="WS"))` children aged 16--30 months and CDI_WG production data from `r nrow(demo %>% filter(form=="WG"))` children aged 8--18 months
 on `r sum(all_tab$items)` items across `r nrow(all_tab)` forms.
 Note that the distributions of demographic variables (age, sex, etc.) of these datasets are not matched, so comparing overall language ability estimates across languages would be ill-advised. 
 (See @frank2021 for a discussion of effects of demographic variables on vocabulary development.) 
@@ -382,12 +381,12 @@ lang_d_m %>% ggplot(aes(x=reorder(language, -mean), y=mean)) + coord_flip() +
 ## Identifying Swadesh CDI Candidates
 
 To construct the Swadesh CDI, we aimed to choose uni-lemmas with low variability in their cross-linguistic difficulty—that is, uni-lemmas that are similarly difficult to learn across languages. 
-We arbitrarily selected a list size of 100 items[^1], noting that the same procedure could be followed to generate lists of larger or smaller sizes. 
+We arbitrarily selected a list size of 100 items[^4], noting that the same procedure could be followed to generate lists of larger or smaller sizes. 
 We thus wanted to select the 100 items with the least variability in item difficulty, operationalized as the items with the lowest standard deviation. 
 However, this method tended to prefer items that appear on fewer forms, since it was more likely for two items to coincidentally have very similar difficulties than for 20 items to have similar difficulties, even though this measure of variability was likely to be an underestimate of true cross-linguistic variability in the former case. 
 As such, we also used a threshold $k$, reflecting the minimum number of current languages which must contain the uni-lemma (i.e., for $k = 5$, we included only uni-lemmas that appeared on the forms of at least 5 languages). 
 
-[^1]: Though we note that most CDI short-forms are of this length: 100 items yields, on balance, a reliable measure of children's early vocabulary without being too time-consuming for use in a variety of studies of early development.
+[^4]: Though we note that most CDI short-forms are of this length: 100 items yields, on balance, a reliable measure of children's early vocabulary without being too time-consuming for use in a variety of studies of early development.
 
 In order to choose the optimum value of $k$, we conducted leave-one-out cross-validation over our training languages. 
 Specifically, we held out one training language and conducted the selection procedure using the data from all other training languages for all values of $k \in [2, 31]$. 
@@ -406,10 +405,10 @@ This ensured that, in expectation, the same number of items per language would a
 
 <!-- ToDO: add characterization of cross-linguistic composition of CDIs: category representation per language (and lexical class); items on k forms vs. item difficulty... -->
 
-However, note that selecting $N$ items uniformly at random from a full CDI list sets quite a high bar: if your other method of selecting items introduces any bias (e.g., selecting easier or more difficult items, on average), then the randomly-selected baseline will have the stronger correlation with the full set.[^1]
+However, note that selecting $N$ items uniformly at random from a full CDI list sets quite a high bar: if your other method of selecting items introduces any bias (e.g., selecting easier or more difficult items, on average), then the randomly-selected baseline will have the stronger correlation with the full set.[^5]
 Thus, the goal for the Swadesh list is to generate scores as strongly correlated with the full CDI scores as the random baseline's correlation -- while also selecting items that better generalize to out-of-distribution languages by having less variation in cross-linguistic difficulty.
 
-[^1]: In fact, random subsets of items work so well--ending up with representative numbers of words per semantic and syntactic categories, and of varying difficulty--that researchers initially start CDI short forms using a random subset of items (e.g., ToDo CITE).
+[^5]: In fact, random subsets of items work so well--ending up with representative numbers of words per semantic and syntactic categories, and of varying difficulty--that researchers initially start CDI short forms using a random subset of items (e.g., ToDo CITE).
 
 ```{r, echo=F, include=F}
 # problem: some languages have multiple items matching a single uni_lemma
@@ -517,15 +516,16 @@ not_en_good <- subset(en_good_prod, is.na(uid)) # 28
 ```
 
 
-```{r, include=F}
+```{r, eval=F}
 # production sumscore vs. Swadesh prod sumscore
-all_unis <- bind_rows(xldf, xldf_lowd) 
+#all_fscores <- readRDS(here("data/full_fscores_allforms.rds"))
 
-get_sumscores_vs_swad <- function(all_unis, languages, swad_list, form="WS") {
+
+get_sumscores_vs_swad <- function(xldf, languages, swad_list, form="WS") {
   xx <- tibble()
   for(lang in languages) {
     load(here(paste("data/",form,"/",lang,"_",form,"_data.Rdata", sep='')))
-    swad_l <- subset(all_unis, language==lang & is.element(uni_lemma, swad_list)) 
+    swad_l <- subset(xldf, language==lang & is.element(uni_lemma, swad_list)) 
     swad_cor = cor(rowSums(d_prod, na.rm=T), rowSums(d_prod[,swad_l$item_id], na.rm=T))
     tmp <- tibble(WS_score=rowSums(d_prod, na.rm=T), 
                   swad_score=rowSums(d_prod[,swad_l$item_id], na.rm=T)) %>% 
@@ -540,7 +540,7 @@ get_sumscores_vs_swad <- function(all_unis, languages, swad_list, form="WS") {
   return(xx)
 }
 
-gen_df <- get_sumscores_vs_swad(all_unis, gen_langs, good_prod$uni_lemma, form="WS") %>%
+gen_df <- get_sumscores_vs_swad(xldf_clean, gen_langs, good_prod$uni_lemma, form="WS") %>%
   mutate(prop_swad = swad_score / Nswad,
          prop_ws = WS_score / Nws) 
 
@@ -599,7 +599,7 @@ ggarrange(plot_k_n, plot_k_testinfo, nrow=2, common.legend = TRUE, legend="botto
 
 ## Characterizing the Swadesh-CDI 
 
-```{r, out.width="\\linewidth", include=TRUE, fig.align="center", fig.cap=c("The 229 Swadesh CDI concepts by semantic category, and 10-item extension (in red). Italics denote the 28 items not included on the American English CDI:WS."), echo=FALSE}
+```{r, out.width="\\linewidth", eval=F, fig.align="center", fig.cap=c("The 229 Swadesh CDI concepts by semantic category, and 10-item extension (in red). Italics denote the 28 items not included on the American English CDI:WS."), echo=FALSE}
 knitr::include_graphics("figs/SwadeshCDI_list.pdf")
 ```
 
@@ -624,11 +624,11 @@ swad_cat <- xldf %>% filter(SwadeshCDI==1) %>% group_by(category, language) %>%
   summarise(n = mean(n)) %>% arrange(desc(n))
 # sum(swad_cat$n) # 216 words..
 
-swad_lex_cat <- xldf %>% filter(SwadeshCDI==1) %>% group_by(lexical_category, language) %>%
-  summarise(n=n()) %>%
-  group_by(lexical_category) %>%
-  summarise(n = mean(n)) %>% arrange(desc(n))
-# 93 nouns, 38 predicates, 28 other, 12 function words
+# ToDo fixme -- add lexical_category
+#swad_lex_cat <- xldf %>% filter(SwadeshCDI==1) %>% group_by(lexical_category, language) %>%
+#  summarise(n=n()) %>%
+#  group_by(lexical_category) %>%
+#  summarise(n = mean(n)) %>% arrange(desc(n))
 # sum(swad_lex_cat$n) # 171 words..
 
 # remove categories that only exist in 1 or 2 languages:
@@ -708,7 +708,7 @@ These uni-lemmas are included on a mean of 21 of the 26 forms, but are of greate
 
 
 ```{r, echo=F, results='asis', include=F}
-good_prod2 <- good_prod %>% left_join(xldf %>% distinct(uni_lemma, category, lexical_category))
+good_prod2 <- good_prod %>% left_join(xldf %>% distinct(uni_lemma, category)) # FixMe: , lexical_category
 #sort(table(good_prod2$category), decr=T)
 #sort(table(good_prod2$lexical_category), decr=T)
 # nouns, other, predicates, function words
@@ -784,18 +784,17 @@ xx <- run_swadesh_comparisons(xldf, train_langs, good_prod$uni_lemma)
 #summary(xx$`Swadesh r`)
 #summary(xx$`Rand r`)
 
-all_unis <- bind_rows(xldf, xldf_lowd)
-#gen_xx_eng <- run_comparisons(all_unis, gen_langs, good_prod$uni_lemma, 
+#gen_xx_eng <- run_comparisons(xldf_clean, gen_langs, good_prod$uni_lemma, 
 #                              rand_method="unilemmas_english", metrics=c("sumscore_cor"))
 
 # Swadesh
 #run_comparison_ttest(gen_xx_eng, metric="sumscore_cor")
 
 
-gen_xx_it <- run_comparisons(all_unis, gen_langs, good_prod$uni_lemma, 
+gen_xx_it <- run_comparisons(xldf_clean, gen_langs, good_prod$uni_lemma, 
                               rand_method="items", metrics=c("sumscore_cor"))
 
-gen_xx_it_ext <- run_comparisons(all_unis, gen_langs, c(swad10, good_prod$uni_lemma), 
+gen_xx_it_ext <- run_comparisons(xldf_clean, gen_langs, c(swad10, good_prod$uni_lemma), 
                               rand_method="items", metrics=c("sumscore_cor"))
 
 gen_sumscore_ttest <- run_comparison_ttest(gen_xx_it, "sumscore_cor") # run with paired=F to get means
@@ -894,7 +893,7 @@ Indeed, the inclusion of 10 such items drawn from the original Swadesh (1971) li
 Another potential limitation of this work is that most existing CDIs (and most datsets available in Wordbank) target languages in the Indo-European language family. <!-- add sentence about cultural bias -->
 It is not clear to what extent this bias in the existing data might interfere with generalizing to non-Indo-European languages.
 Nonetheless, our original `r length(train_langs)` datasets include 7 FixMe non-Indo-European languages (3 Sino-Tibetan, 1 Afro-Asiatic, 1 Uralic, 1 Koreanic, 1 Turkic), and the generalization datasets include 1 Uralic and 2 Niger-Congo languages (a language family not represented in the original datasets); the broad consistency across language families thus suggests that the effectiveness of the S-CDI may be sufficiently robust.
-Such a robustness also corroborates with results from @floccia2018, who demonstrated that a bilingual vocabulary model based on a set of 30 uni-lemmas had good predictive validity on non-target languages, even those from other language families.
+Such a robustness also corroborates with results from @floccia2018vocabulary, who demonstrated that a bilingual vocabulary model based on a set of 30 uni-lemmas had good predictive validity on non-target languages, even those from other language families.
 
 Developing a list of appropriate vocabulary words is not the only challenge researchers face when seeking to develop and use parent-report measures in a new language and culture. 
 The pragmatics of language between children and adults can differ greatly across cultures, and has been found to interfere with administration of parent-report measures of early vocabulary, for example in Kiswahili [@alcock2017production] and Wolof [@weber2018]. <!-- TODO: FOR EXAMPLE... -->
