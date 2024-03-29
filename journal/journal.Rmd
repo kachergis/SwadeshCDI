@@ -58,6 +58,44 @@ source(here("cross-ling-comparison-helpers.R"))
 set.seed(42)
 ```
 
+```{r, load-data}
+languages <- list.files(here("data/all_forms")) |> str_sub(end = -10)
+
+models <- list()
+coefs <- list()
+for(lang in languages) {
+  tmp <- readRDS(here(paste0("data/prod_models/",lang,"_2PL_allforms_prod_fits.rds")))
+  models[[lang]] = tmp$model
+  coefs[[lang]] = tmp$coefs
+}
+
+# WS production fits
+#load(here("data/multiling_2pl_WS_prod_fits.Rdata")) # ToDo: confirm these are no longer needed?
+xldf <- readRDS(here("data/xldf_prod_allforms.rds"))
+# 42 languages, 29874 parameters
+
+model_stats <- readRDS(here("data/model_stats.rds"))
+
+# which(is.na(xldf$d)) # no missing d
+# which(xldf$uni_lemma=="NA").# none
+# sort(table(xldf$category))
+# some odd, small categories: 'hold', 'unknown', 'mental', 'states', 'others',
+# 'sounds2' (maybe -> 'sounds'?), 'locations_quantities_adverbs', 'other'
+
+xldf <- xldf %>% 
+  mutate(d = -d)  # easiness -> difficulty
+
+xldf_clean <- xldf |> 
+  filter(!is.na(uni_lemma), !is.na(d)) |> 
+  mutate(category = case_when(
+    category == "descriptive_words (adjectives)" ~ "descriptive_words",
+    category == "outside_places" ~ "outside",
+    .default = category))
+
+all_tab <- get_item_n_subject_counts(models)
+```
+
+
 # Introduction
 
 Tools that enable valid assessments of children's early language abilities are invaluable for researchers, clinicians and parents, as early language skill is predictive of educational outcomes years later [e.g., @bleses2016]. 
@@ -137,36 +175,15 @@ While other standard IRT models exist (e.g., the 3PL model adds a "guessing" par
 ## Datasets
 
 
-```{r, load-ws-data, echo=F, results="asis"}
-languages <- list.files(here("data/all_forms")) |> str_sub(end = -10)
-
-models <- list()
-coefs <- list()
-for(lang in languages) {
-  tmp <- readRDS(here(paste0("data/prod_models/",lang,"_2PL_allforms_prod_fits.rds")))
-  models[[lang]] = tmp$model
-  coefs[[lang]] = tmp$coefs
-}
-
-# WS production fits
-#load(here("data/multiling_2pl_WS_prod_fits.Rdata")) # ToDo: confirm these are no longer needed?
-xldf <- readRDS(here("data/xldf_prod_allforms.rds"))
-# 38 languages, 26616 parameters
-
-xldf <- xldf %>% mutate(uni_lemma = ifelse(uni_lemma=="NA", NA, uni_lemma)) %>%
-  mutate(d = -d) %>% # easiness -> difficulty
-  filter(!is.na(d)) # removes 1 Slovak word with NA parameters (because all responses were 0)
-
-all_tab <- get_item_n_subject_counts(models)
-
+```{r, show-data, echo=F, results="asis"}
 # WG langs that don't have WS: British Sign Language, Spanish (Chilean), American Sign Language, English (British)
 
 it_tab <- all_tab %>% #rename(`WS items`=items, `WS N`=N) %>%
   #left_join(wg_tab %>% rename(`WG items`=items, `WG N`=N)) %>%
   arrange(desc(`N`))
 
-languages = subset(all_tab, N>=200)$Language
-low_data_langs <- it_tab %>% filter(`N`<200)
+languages = subset(all_tab, N>=300)$Language
+low_data_langs <- it_tab %>% filter(`N`<300)
 
 bold <- function(x) {paste('{\\textbf{',x,'}}', sep ='')}
 
@@ -273,13 +290,10 @@ All models, data, and code for reproducing this paper are available on OSF[^3].
 # Results
 
 ```{r}
-xldf <- xldf %>% filter(!is.na(uni_lemma)) # 25639 out of 26616 have uni-lemmas defined 96%
-xldf_lowd <- xldf %>% filter(is.element(language, low_data_langs$Language)) # 5624
-xldf <- xldf %>% filter(!is.element(language, low_data_langs$Language)) # 20015
+xldf_clean <- xldf_clean %>% filter(!is.na(uni_lemma)) # 28529 out of 29874 have uni-lemmas defined 95.5%
+xldf_lowd <- xldf_clean %>% filter(is.element(language, low_data_langs$Language)) # 5624
+xldf <- xldf_clean %>% filter(!is.element(language, low_data_langs$Language)) # 20015
 
-# align some categories: Russian has descriptive adjectives and adverbs
-xldf[which(xldf$category=="descriptive_words (adjectives)"),]$category = "descriptive_words"
-xldf[which(xldf$category=="outside_places"),]$category = "outside"
 ```
 
 
@@ -372,7 +386,7 @@ As such, we also used a threshold $k$, reflecting the minimum number of current 
 [^1]: Though we note that most CDI short-forms are of this length: 100 items yields, on balance, a reliable measure of children's early vocabulary without being too time-consuming for use in a variety of studies of early development.
 
 In order to choose the optimum value of $k$, we conducted leave-one-out cross-validation over our training languages. 
-Specifically, we held out one training language and conducted the selection procedure using the data from all other training languages for all values of $k \in [2, 26]$. 
+Specifically, we held out one training language and conducted the selection procedure using the data from all other training languages for all values of $k \in [2, 31]$. 
 With these candidate lists, we compared the item difficulties in the held-out language with the mean item difficulties in the remaining training languages, and selected the value of k for which the correlation was the highest, $k = 20$.
 
 Finally, we re-ran the selection procedure using $k = 20$ across all training languages (without holding out any language) to arrive at the final Swadesh CDI list, shown in Table 2.
@@ -383,7 +397,7 @@ To determine whether a candidate Swadesh list functions well, it is necessary to
 However, there are many ways to select a random set of uni-lemmas to compare to, and each method could be argued to unfairly advantage either the Swadesh list or the random baseline.
 For example, if we simply selected 100 uni-lemmas uniformly at random from the uni-lemmas for all languages, many of the selected uni-lemmas would not appear on any given language's CDI forms (on average: ToDo: give number), and thus random would perform poorly.
 At the other extreme, if we sample 100 random uni-lemmas from each language's full CDI forms, the Swadesh list is unfairly disadvantaged, as some of the 100 Swadesh items may be missing from any given language's forms.
-To somewhat level the playing field, we selected the random comparison items uniformly at random from the list of uni-lemmas that appear in at least $k = 20$ languages -- the same constraint we placed on choosing Swadesh candidates. 
+To somewhat level the playing field, we selected the random comparison items uniformly at random from the list of uni-lemmas that appear in at least $k = 23$ languages -- the same constraint we placed on choosing Swadesh candidates. 
 This ensured that, in expectation, the same number of items per language would appear on the random baseline lists and the Swadesh candidate lists.
 
 <!-- ToDO: add characterization of cross-linguistic composition of CDIs: category representation per language (and lexical class); items on k forms vs. item difficulty... -->
@@ -399,14 +413,14 @@ Thus, the goal for the Swadesh list is to generate scores as strongly correlated
 prod_pars <-
   xldf %>% arrange(desc(language), desc(uni_lemma), desc(a1)) %>% # get most discriminating uni_lemma per lang
   #filter(is.element(uni_lemma, names(short_list))) %>%
-  select(uni_lemma, category, lexical_category, language, d) %>%
+  select(uni_lemma, category, language, d) %>% # lexical_category, ToDo: add lexical_class to xldf
   group_by(uni_lemma, language) %>%
   slice(1) %>% 
   pivot_wider(names_from = language, values_from = d)
 
 # only want 1 
 uni_per_form <- xldf %>% arrange(desc(language), desc(uni_lemma), desc(a1)) %>% # get most discriminating uni_lemma per lang
-  select(uni_lemma, category, lexical_category, language, d) %>%
+  select(uni_lemma, category, language, d) %>% # lexical_category, ToDo: add lexical_class to xldf
   group_by(uni_lemma, language) %>%
   slice(1) %>%
   group_by(uni_lemma) %>%
@@ -426,7 +440,7 @@ swad_lists <- list()
 swad_agg <- tibble()
 
 # has to be at least 2 forms, as SD only defined for 2+
-for(k in 2:26) {
+for(k in 2:31) {
   uni_k <- uni_per_form %>%
     filter(n >= k)
   N = nrow(uni_k)
@@ -464,7 +478,7 @@ for(k in 2:26) {
 
 # which items crop up over and over? (have to decide which items to discuss in the paper!)
 all_swad <- c()
-for(k in 2:26) {
+for(k in 2:31) {
   all_swad = c(all_swad, swad_lists[[k]]$uni_lemma)
 }
 swad_freq = sort(table(all_swad), decr=T)
@@ -483,7 +497,7 @@ wordcloud2(data=data.frame(word = names(swad_freq[1:150]),
 ```
 
 ```{r load-swadesh-lists, echo=F}
-load(here("data/Swadesh_grid_search_final.Rdata"))
+load(here("data/Swadesh_grid_search_final.Rdata")) # ToDo: update / remove!
 
 
 # looking at appendix table, k=9 seems the best (highest test info, v close to same full correlation as rand)
