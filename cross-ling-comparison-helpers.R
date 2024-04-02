@@ -145,8 +145,8 @@ get_test_information <- function(xldf, languages, test_unilemmas, form="WS") {
 
 # Alvin's generalized method for comparing a given Swadesh list to different types of random lists 
 # via total test information, theta correlation, or sumscore correlation
-run_comparisons <- function(xldf, languages, swad_list, form = 'WS',
-                            rand_method = "items", rand_comparisons = 1000,
+run_comparisons <- function(xldf, languages, swad_list, 
+                            rand_method = "items", rand_comparisons = 100,
                             metrics = c("sumscore_cor", 
                                         "theta_cor",
                                         "test_info"),
@@ -154,7 +154,7 @@ run_comparisons <- function(xldf, languages, swad_list, form = 'WS',
   theta_range <- matrix(seq(-4,4,.01))
   xx <- tibble()
   ul <- xldf |> 
-    filter(!language %in% low_data_langs$Language) |> 
+    filter(!language %in% gen_langs) |> 
     select(language, uni_lemma) |> 
     distinct() |> 
     pull(uni_lemma) |> 
@@ -162,10 +162,11 @@ run_comparisons <- function(xldf, languages, swad_list, form = 'WS',
   
   for(lang in languages) {
     message(glue("Processing {lang}\r"))
-    load(here(paste("data/",form,"/",lang,"_",form,"_data.Rdata", sep='')))
-    if (lang == "Slovak") {
-      d_prod <- d_prod[,-440]
-    }
+    #load(here(paste("data/all_forms/",lang,"_data.Rdata", sep='')))
+    d_prod <- readRDS(here(paste("data/all_forms/",lang,"_data.rds", sep='')))
+    #if (lang == "Slovak") {
+    #  d_prod <- d_prod[,-440]
+    #}
     
     xldf_l <- xldf |> filter(language == lang)
     
