@@ -21,10 +21,10 @@ abstract: >
     not yet have CDIs, posing a significant barrier to increasing the diversity of languages that are 
     studied. Here, we propose a method for selecting candidate words to include on new CDIs, leveraging
     analysis of psychometric properties of translation-equivalent concepts that are frequently included on 
-    existing CDIs. Leveraging 27 datasets from existing CDIs, we propose a list of 100 concepts that have
+    existing CDIs. Leveraging 32 datasets from existing CDIs, we propose a list of 100 concepts that have
     low variability in their cross-linguistic learning difficulty. This pool of common concepts---analogous 
     to the "Swadesh" lists used in glottochronology---can be used as a starting point for future 
-    CDI adaptations. We test how well the proposed list generalizes to data from 11 additional languages.
+    CDI adaptations. We test how well the proposed list generalizes to data from 10 additional languages.
     
 keywords: >
     early language learning; CDI; psychometrics; cross-linguistic comparison; Swadesh vocabulary
@@ -135,7 +135,7 @@ Short versions of the CDI:WS forms are also available [e.g., @Fenson2000], each 
 Creating a new CDI requires a lot of effort and resources, presenting a daunting barrier to increasing the diversity of languages studied.
 Following the guidelines[^1] from the MacArthur-Bates CDI Advisory Board, the process of adapting a CDI for a language other than American English goes well beyond simply translating items on these forms to that new language. 
 While the process can begin with identifying translation equivalents (i.e., items that capture the same general concept in both languages, e.g., "dog" in English, and "perro" in Spanish), the final item set must then be filtered so that all items appropriately reflect the linguistic and sociocultural context of the children learning that language. 
-This process usually requires considerable time and effort by researchers who are both native speakers of the language and who have experience with children, to first select and identify translation equivalents and to then iteratively add, refine, and pilot the new CDI in the target language (see [@jaruskova2023]). 
+This process usually requires considerable time and effort by researchers who are both native speakers of the language and who have experience with children, to first select and identify translation equivalents and to then iteratively add, refine, and pilot the new CDI in the target language (see @jaruskova2023). 
 Because the goal is to obtain the set of items that best capture general trends and individual differences in that language, the items across CDIs in different languages do not necessarily overlap to a great extent. 
 For example, the American English CDI:WS and Mexican Spanish CDI:WS forms each have 680 words, but only have 463 overlapping concepts (68%).
 
@@ -191,7 +191,7 @@ While other standard IRT models exist (e.g., the 3PL model adds a "guessing" par
 ## Datasets
 
 
-```{r, show-data, echo=F, results="asis"}
+```{r, show-data-old, echo=F, include=F, results="asis"}
 # WG langs that don't have WS: British Sign Language, Spanish (Chilean), American Sign Language, English (British)
 
 it_tab <- all_tab %>% #rename(`WS items`=items, `WS N`=N) %>%
@@ -201,7 +201,21 @@ it_tab <- all_tab %>% #rename(`WS items`=items, `WS N`=N) %>%
 bold <- function(x) {paste('{\\textbf{',x,'}}', sep ='')}
 
 tab1 <- xtable::xtable(it_tab, digits=c(0), 
-                       caption = "CDI:WS items and subjects (N) per dataset. The final 8 datasets were used for a generalization test.")
+                       caption = "CDI:WS items and subjects (N) per dataset. The final 10 datasets were used for a generalization test.")
+print(tab1, type="latex", comment = F, 
+      sanitize.colnames.function=bold, # bold the header row
+      table.placement = "H", hline.after=length(train_langs),
+      include.rownames=FALSE, size="\\fontsize{9pt}{10pt}\\selectfont")
+```
+
+```{r, show-data-new, echo=F, results="asis"}
+it_tab <- model_stats %>% select(-iterations) %>%
+  arrange(desc(participants))
+
+bold <- function(x) {paste('{\\textbf{',x,'}}', sep ='')}
+
+tab1 <- xtable::xtable(it_tab, digits=c(0), 
+                       caption = "Total CDI items and participants per dataset (language). The final 10 datasets were used for a generalization test.")
 print(tab1, type="latex", comment = F, 
       sanitize.colnames.function=bold, # bold the header row
       table.placement = "H", hline.after=length(train_langs),
@@ -245,23 +259,14 @@ for(file in WG_files) {
 save(demo, file=here("data/WG_combined_demo.Rdata"))
 ```
 
-```{r combined-demo-data, echo=F}
-# where was this made?
-load(here("data/WS_combined_demo.Rdata"))
-demo_ws <- demo %>% mutate(form = "WS")
-
-load(here("data/WG_combined_demo.Rdata"))
-demo <- demo %>% mutate(form = "WG") %>%
-  bind_rows(demo_ws)
+```{r report-wg-ws-demo-data-old, includ=F, echo=F}
+# report mean age and N per language (by form type?)
 
 # cor.test(demo$age, demo$production, na.rm=T) # r=.70
 
 # 45402 in the 26 high-data languages
 demo_age <- demo %>% group_by(language) %>%
   summarise(n = n(), age = mean(age))
-
-# table(demo$form)
-# lots of non-WS/WG forms in here -- do we use all of those??
 
 #demo %>% 
 #  ggplot(aes(x=age, fill=language, color=language)) + 
@@ -278,8 +283,7 @@ wg_ws_tab %>%
 ```
 
 
-The Wordbank[^2] datasets consisted of CDI:WS production data for `r nrow(demo %>% filter(form=="WS"))` children aged 16--30 months and CDI_WG production data from `r nrow(demo %>% filter(form=="WG"))` children aged 8--18 months
-on `r sum(all_tab$items)` items across `r nrow(all_tab)` forms.
+Summarized in Table 1, the Wordbank[^2] datasets consisted of production data for `r sum(model_stats$participants)` children aged 8--30 on `r sum(model_stats$items)` items across `r nrow(model_stats)` forms.
 Note that the distributions of demographic variables (age, sex, etc.) of these datasets are not matched, so comparing overall language ability estimates across languages would be ill-advised. 
 (See @frank2021 for a discussion of effects of demographic variables on vocabulary development.) 
 Thus, we focused only on the estimated item parameters, and in particular the variability of item difficulty ($b_i$).
